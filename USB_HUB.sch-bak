@@ -4,7 +4,7 @@ EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
 Sheet 3 7
-Title "4-Port USB HUB for ISOShield"
+Title "4-Port USB HUB for AvenaShield"
 Date ""
 Rev ""
 Comp ""
@@ -857,4 +857,6 @@ F 3 "~" H 1250 4050 50  0001 C CNN
 $EndComp
 Wire Wire Line
 	3950 3950 3950 4500
+Text Notes 2700 5550 0    129  ~ 26
+HUB NEEDS TO BE RECONFIGURED FROM NO REMOVABLE TO REMOVABLE!!!
 $EndSCHEMATC

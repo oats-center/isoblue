@@ -14,10 +14,10 @@ Comment3 ""
 Comment4 ""
 $EndDescr
 $Comp
-L Connector_Generic:Conn_02x04_Counter_Clockwise J?
+L Connector_Generic:Conn_02x04_Counter_Clockwise J5
 U 1 1 5E532F04
 P 4150 1950
-F 0 "J?" H 4200 2267 50  0000 C CNN
+F 0 "J5" H 4200 2267 50  0000 C CNN
 F 1 "USB Headers Board Top" H 4200 2176 50  0000 C CNN
 F 2 "" H 4150 1950 50  0001 C CNN
 F 3 "~" H 4150 1950 50  0001 C CNN

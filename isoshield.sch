@@ -4,9 +4,9 @@ EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 7
-Title ""
+Title "AvenaShield for ISOBlue Avena"
 Date ""
-Rev ""
+Rev "1"
 Comp ""
 Comment1 ""
 Comment2 ""
@@ -351,22 +351,22 @@ Wire Wire Line
 Wire Wire Line
 	6350 4450 6500 4450
 $Comp
-L Connector_Generic:Conn_01x02 J?
+L Connector_Generic:Conn_01x02 J3
 U 1 1 5E47DD56
 P 10000 4000
-F 0 "J?" H 10080 3992 50  0000 L CNN
-F 1 "Conn_01x02" H 10080 3901 50  0000 L CNN
+F 0 "J3" H 10080 3992 50  0000 L CNN
+F 1 "CAN_TRA_HEADER" H 10080 3901 50  0000 L CNN
 F 2 "TerminalBlock_Phoenix:TerminalBlock_Phoenix_PT-1,5-2-5.0-H_1x02_P5.00mm_Horizontal" H 10000 4000 50  0001 C CNN
 F 3 "~" H 10000 4000 50  0001 C CNN
 	1    10000 4000
 	1    0    0    -1  
 $EndComp
 $Comp
-L Connector_Generic:Conn_01x02 J?
+L Connector_Generic:Conn_01x02 J4
 U 1 1 5E47E2F9
 P 9950 5400
-F 0 "J?" H 10030 5392 50  0000 L CNN
-F 1 "Conn_01x02" H 10030 5301 50  0000 L CNN
+F 0 "J4" H 10030 5392 50  0000 L CNN
+F 1 "CAN_IMP_HEADER" H 10030 5301 50  0000 L CNN
 F 2 "TerminalBlock_Phoenix:TerminalBlock_Phoenix_PT-1,5-2-5.0-H_1x02_P5.00mm_Horizontal" H 9950 5400 50  0001 C CNN
 F 3 "~" H 9950 5400 50  0001 C CNN
 	1    9950 5400
