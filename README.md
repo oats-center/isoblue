@@ -10,3 +10,6 @@ Software intended to be deployed and run on the ISOBlue Avena device itself
 
 Deployment:
 Ansible files for deployment, configuration, and management of multiple ISOBlue devices
+
+Documentation
+Various documentation files and papers related to Avena
