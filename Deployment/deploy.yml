@@ -1,0 +1,7 @@
+- hosts: dev
+  tasks:
+    - name: Copy ISOBlue software files over to /opt
+      template:
+        src: ../Software/opt/
+        dst: /opt/isoblue
+        
