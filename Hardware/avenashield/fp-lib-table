@@ -1,0 +1,5 @@
+(fp_lib_table
+  (lib (name "MiniPCIe Connector")(type KiCad)(uri ${KIPRJMOD}/footprints/mini-pcie-connector)(options "")(descr ""))
+  (lib (name "SIM Connectors")(type KiCad)(uri ${KIPRJMOD}/footprints/conn-sim)(options "")(descr ""))
+  (lib (name "MiniPCIe Latch")(type KiCad)(uri ${KIPRJMOD}/footprints/mini-pcie-latch-connector)(options "")(descr ""))
+)
