@@ -17,9 +17,6 @@ services:
   kafka-gps-log:
     image: kafka-gps-log
     restart: always
-    network_mode: host
-    extra_hosts:
-      kafka: 127.0.0.1
     environment:
       kafka_topic: "${gps_topic}"
   kafka-can-log:
