@@ -25,7 +25,7 @@ if __name__ == "__main__":
 
     # create kafka producer
     producer = KafkaProducer(bootstrap_servers=['kafka:9092'])
-    # exit if not connect to Kafka broker
+    # exit if not connected to Kafka broker
     if producer.bootstrap_connected():
         print('Connected to Kafka broker')
     else:
@@ -41,7 +41,7 @@ if __name__ == "__main__":
 
     # set up gpsd socket
     s = gps3.GPSDSocket()
-    s.connect(host='127.0.0.1', port=2947) #TODO: change to environment var?
+    s.connect(host='172.17.0.1', port=2947) #FIXME: host ip hack
     s.watch()
 
     timestamp = None
