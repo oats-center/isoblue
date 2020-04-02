@@ -1,0 +1,41 @@
+#!/bin/sh -e
+
+version="$1"
+proc_board_rev=/proc/device-tree/toradex,board-rev
+bootdir="/boot"
+
+# passing the kernel version is required
+if [ -z "${version}" ]; then
+	echo >&2 "W: update-device-tree: ${DPKG_MAINTSCRIPT_PACKAGE:-kernel package} did not pass a version number"
+	exit 2
+fi
+
+# absolute file name of kernel image may be passed as a second argument;
+# create the initrd in the same directory
+if [ -n "$2" ]; then
+	bootdir=$(dirname "$2")
+fi
+
+# Determine the board rev
+if [ ! -f "$proc_board_rev" ]; then
+  echo >&2 "W: update-device-tree: Can not determine board revision. Is this a Toradex board?"
+  exit 2
+fi
+
+board_rev=$(< $proc_board_rev tr -d \\0)
+board_rev_r=$(echo $board_rev | tr -cd '[:digit:]')
+
+# Check if we know the board rev
+if [ "${board_rev_r}" = "10" ]; then
+  fdtfile="imx6q-apalis-ixora.dtb"
+elif [ "${board_rev_r}" = "11" ]; then
+  fdtfile="imx6q-apalis-ixora-v1.1.dtb"
+fi
+
+if [ -z "${fdtfile}" ]; then
+  echo >&2 "W: update-device-tree: Unrecognized Toradex board revision (${board_rev}). Can not configure Das U-Boot"
+  exit 2
+fi
+
+cp /lib/linux-image-${version}/${fdtfile} ${bootdir}
+ln -sf ${fdtfile} /boot/fdt.dtb
