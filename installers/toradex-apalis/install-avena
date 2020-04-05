@@ -6,7 +6,7 @@ saveenv
 if test $board_rev -ge "010a" -a $board_rev -le "010z"; then
   setenv fdtfile imx6q-apalis-eval.dtb
 elif test $board_rev -ge "011a" -a $board_rev -le "011z"; then
-  setenv fdtfile imx6q-apalis-eval.dtb
+  setenv fdtfile imx6q-apalis-eval-v1.1.dtb
 fi
 
 # Set preseed file and other useful kernel params for the console
