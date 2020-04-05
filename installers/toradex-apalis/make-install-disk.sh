@@ -9,6 +9,12 @@ fi
 
 dev=$1
 
+# Check if running as root
+if [ "$EUID" -ne 0 ]
+  then echo "Please run as root"
+  exit 1;
+fi
+
 if [[ ! -b "$dev" ]]; then
   echo >&2 "You must provide a block device to build installer on"
   exit 2;

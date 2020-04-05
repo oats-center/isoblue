@@ -31,7 +31,7 @@ For example, Avena leverages (but does not necessarily require)
   data, etc.,
 - and much more.
 
-![Avena architecture](https://raw.githubusercontent.com/OATS-Group/isoblue-avena/master/docs/images/AvenaArch.png)
+![Avena architecture](AvenaArch.png)
 _TODO: update this_
 
 ## Getting started
@@ -64,8 +64,8 @@ management structure (if you so choose).
 
 ##### Apalis v1.0/v1.1
 
-- [Automatic (recommended)](https://github.com/OATS-Group/isoblue-avena/tree/master/docs/hardware/toradex/install-apalis.md)
-- [Manual](https://github.com/OATS-Group/isoblue-avena/tree/master/docs/hardware/toradex/install-apalis-manual.md)
+- [Automatic (recommended)](hardware/toradex/install-apalis.md)
+- [Manual](hardware/toradex/install-apalis-manual.md)
 
 ### Step 2: Installing Avena
 
@@ -73,4 +73,4 @@ management structure (if you so choose).
 
 ## Concepts
 
-- [SSH Central Authority (CA) - Authentication](https://github.com/OATS-Group/isoblue-avena/tree/master/docs/concepts/ssh-ca.md)
+- [SSH Central Authority (CA) - Authentication](concepts/ssh-ca.md)
