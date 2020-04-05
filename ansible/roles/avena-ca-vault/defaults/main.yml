@@ -1,0 +1,3 @@
+avena_ca_vault_client_signer: 'avena-client-signer'
+avena_ca_vault_host_signer: 'avena-host-signer'
+avena_ca_vault_role: 'deploy'

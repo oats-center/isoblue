@@ -1,0 +1,76 @@
+- name: Client certificate
+  block:
+  - name: fetch fleet client CA key
+    local_action:
+      module: command
+      cmd: vault read -field=public_key {{ avena_ca_vault_mp_client_pubkey }}
+    register: ca_pubkey
+
+  - set_fact:
+      ca_pubkey: "{{ ca_pubkey.stdout }}"
+
+  - name: install fleet client CA key
+    become: yes
+    copy:
+      dest: /etc/ssh/ca-client.pub
+      content: "{{ ca_pubkey }}"
+      mode: '0644'
+      owner: root
+      group: root
+
+- name: Host certificate
+  block:
+  - name: fetch host public key
+    become: yes
+    slurp:
+      src: /etc/ssh/ssh_host_ed25519_key.pub
+    register: host_pubkey
+
+  - set_fact:
+      host_pubkey: "{{ host_pubkey.content | b64decode }}"
+
+  - name: generate host certificate
+    local_action:
+      module: command
+      cmd: vault write -field=signed_key {{  avena_ca_vault_mp_host_signer }} public_key="{{ host_pubkey }}" cert_type=host
+    register: host_cert
+
+  - set_fact:
+      host_cert: "{{ host_cert.stdout }}"
+
+  - name: install host certificate
+    become: yes
+    copy:
+      dest: /etc/ssh/ssh_host_ed25519_key-cert.pub
+      content: "{{ host_cert }}"
+      mode: '0644'
+      owner: root
+      group: root
+    notify: reload sshd
+
+- name: CA authentication
+  block:
+  - name: ensure CA authentication principals directory exists
+    become: yes
+    file:
+      path: /etc/ssh/auth_principals
+      mode: '0755'
+      owner: root
+      group: root
+      state: directory
+
+  - name: ensure {{ ansible_ssh_user }} has CA authentication
+    become: yes
+    copy:
+      dest: /etc/ssh/auth_principals/{{ ansible_ssh_user }}
+      content: "{{ ansible_ssh_user }}"
+
+  - name: ensure sshd has ca configuration
+    become: yes
+    template:
+      dest: /etc/ssh/sshd_config.d/avena-va-vault.conf
+      src: ssh/avena-ca-vault.conf.j2
+      owner: root
+      group: root
+      mode: '0644'
+    notify: reload sshd
