@@ -7,17 +7,16 @@ if [[ -z "$1" ]]; then
   exit 1
 fi
 
-dev=$1
-
-# Check if running as root
-if [ "$EUID" -ne 0 ]
-  then echo "Please run as root"
-  exit 1;
+if ! [ $(id -u) = 0 ]; then
+   echo >&2 "This script requires root. Please run as root."
+   exit 2
 fi
+
+dev=$1
 
 if [[ ! -b "$dev" ]]; then
   echo >&2 "You must provide a block device to build installer on"
-  exit 2;
+  exit 2
 fi
 
 read -p "All paritions will be deleted. Do you wish to continue? [y/N]" yn
