@@ -1,0 +1,5 @@
+- hosts: avena
+  roles:
+    - role: avena
+    - role: avena-wireguard
+    - role: avena-ca

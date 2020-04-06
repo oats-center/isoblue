@@ -1,0 +1,2 @@
+# allow gpsd to use /dev/gps* type device files
+/{,var/}run/chrony.gps{,*}.sock rw,

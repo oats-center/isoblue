@@ -7,14 +7,14 @@
 - name: Ensure Wireguard apt repository is avaiable
   become: yes
   apt_repository:
-    repo: {{ avena_wg_apt_repo }}
+    repo: "{{ avena_wg_apt_repo }}"
   when: avena_wg_apt_repo is defined
 
 - name: ensure wireguard is installed
   apt:
     name: wireguard
     state: present
-    default_release: {{ avena_wg_apt_repo_release | default(omit) }}
+    default_release: "{{ avena_wg_apt_repo_release | default(omit) }}"
 
 - name: ensure wireguard interface exists and is configured
   block:

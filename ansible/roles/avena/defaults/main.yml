@@ -1,0 +1,16 @@
+# Fixed global nameservers
+avena_nameservers:
+  - 1.1.1.1
+  - 1.0.0.1
+
+# SSH authorized keys
+avena_authorized_keys:
+
+# GPS + time
+avena_gps_device: 'gps0'
+
+# Intel
+avena_intel_grub_default: 0
+avena_intel_grub_timeout: 0
+avena_intel_grub_hidden_timeout: 0
+

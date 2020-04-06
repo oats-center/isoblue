@@ -1,0 +1,32 @@
+# Welcome to the chrony configuration file. See chrony.conf(5) for more
+# information about usuable directives.
+pool 2.debian.pool.ntp.org iburst
+
+# This directive specify the location of the file containing ID/key pairs for
+# NTP authentication.
+keyfile /etc/chrony/chrony.keys
+
+# This directive specify the file into which chronyd will store the rate
+# information.
+logdir /var/log/chrony
+log measurements statistics tracking rtc refclocks
+
+# Stop bad estimates upsetting machine clock.
+maxupdateskew 100.0
+
+# This directive enables kernel synchronisation (every 11 minutes) of the
+# real-time clock. Note that it can’t be used along with the 'rtcfile' directive.
+rtcsync
+
+# Step the system clock instead of slewing it if the adjustment is larger than
+# one second, but only in the first three clock updates.
+makestep 1 3
+
+# Add the GPS as a time reference
+# SHM 0 - always works from GPS NEMA strings (good to 10-100's of ms)
+# SHM 1 - works for GPSs that provide PPS (good to 1's of ms)
+# SOCK - works for GPSs that provide PPS and was plugged in/identified at boot
+#        time. gpsd needs to see the device when it still is running as root.
+refclock SHM 0 refid GPS precision 1e-1 offset 0.115 delay 0.2
+refclock SHM 1 refid PPS precision 1e-9
+refclock SOCK /var/run/chrony.{{ avena_gps_device }}.sock refid SOCK
