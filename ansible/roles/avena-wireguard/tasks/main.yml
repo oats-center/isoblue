@@ -1,0 +1,62 @@
+- name: Assume debian-backports for Debian Buster hosts
+  set_fact:
+    avena_wg_apt_repo: "deb http://deb.debian.org/debian buster-backports main"
+    avena_wg_apt_repo_release: "buster-backports"
+  when: avena_wg_apt_repo is not defined
+
+- name: Ensure Wireguard apt repository is avaiable
+  become: yes
+  apt_repository:
+    repo: {{ avena_wg_apt_repo }}
+  when: avena_wg_apt_repo is defined
+
+- name: ensure wireguard is installed
+  apt:
+    name: wireguard
+    state: present
+    default_release: {{ avena_wg_apt_repo_release | default(omit) }}
+
+- name: ensure wireguard interface exists and is configured
+  block:
+    - name: ensure wireguard key exists
+      become: yes
+      shell: umask 377 && wg genkey > {{ avena_wg_interface }}.key
+      args:
+        chdir: /etc/wireguard/
+        creates: "{{ avena_wg_interface }}.key"
+
+    - name: ensure the wireguard interface is configured
+      become: yes
+      template:
+        src: templates/wg.conf.j2
+        dest: /etc/wireguard/{{ avena_wg_interface }}.conf
+        owner: root
+        group: root
+        mode: 0600
+
+    - name: ensure the wireguard interface is enabled
+      become: yes
+      systemd:
+        name: wg-quick@{{ avena_wg_interface }}
+        enabled: yes
+        state: started
+
+    - name: gather the wireguard public key
+      become: yes
+      shell: wg pubkey < /etc/wireguard/{{ avena_wg_interface }}.key
+      register: wg_pubkey
+
+    - pause:
+        prompt: |
+          Please add:
+
+          [Peer]
+          # Name = {{ inventory_hostname }}
+          PublicKey = {{ wg_pubkey.stdout }}
+          AllowedIPs = {{ ansible_host | ipsubnet }}
+
+          to your bounce server wiregaurd configuration and then run
+
+          sudo wg setconf <wg-interface> < (wg-quick <wg-interface>)
+
+          before hitting <enter> to continue.

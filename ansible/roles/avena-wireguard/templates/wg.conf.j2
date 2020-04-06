@@ -1,0 +1,10 @@
+[Interface]
+Address = {{ ansible_host | ipsubnet }}
+ListenPort = {{ avena_wg_listenPort }}
+PostUp = wg set %i private-key /etc/wireguard/{{ avena_wg_interface }}.key
+
+[Peer]
+PublicKey = {{ avena_wg_pubkey }}
+Endpoint = {{ avena_wg_endpoint }}
+AllowedIPs = {{ avena_wg_network }}
+PersistentKeepalive = {{ avena_wg_keepalive }}
