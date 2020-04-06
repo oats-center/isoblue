@@ -3,7 +3,7 @@
   - name: fetch fleet client CA key
     local_action:
       module: command
-      cmd: vault read -field=public_key {{ avena_ca_vault_mp_client_pubkey }}
+      cmd: {{ avena_ca_get_client_pubkey }}
     register: ca_pubkey
 
   - set_fact:
@@ -32,7 +32,9 @@
   - name: generate host certificate
     local_action:
       module: command
-      cmd: vault write -field=signed_key {{  avena_ca_vault_mp_host_signer }} public_key="{{ host_pubkey }}" cert_type=host
+      cmd:: {{ avena_ca_sign_host_key }}
+    with_items:
+      - pubkey: {{ host_pubkey }}
     register: host_cert
 
   - set_fact:
@@ -68,8 +70,8 @@
   - name: ensure sshd has ca configuration
     become: yes
     template:
-      dest: /etc/ssh/sshd_config.d/avena-va-vault.conf
-      src: ssh/avena-ca-vault.conf.j2
+      dest: /etc/ssh/sshd_config.d/avena-ca.conf
+      src: ssh/avena-ca.conf.j2
       owner: root
       group: root
       mode: '0644'
