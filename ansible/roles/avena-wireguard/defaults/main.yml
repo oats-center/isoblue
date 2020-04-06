@@ -1,0 +1,9 @@
+# Name of wireguard interface
+avena_wg_interface: 'wgAvena'
+
+# Wireguard UDP port to listen on
+avena_wg_listen: 51820
+
+# How often to send keepalive to wireguard bounce server. This keeps NAT ports
+# open (WiFi routers, LTE gateways, etc.)
+avena_wg_keepalive: 25
