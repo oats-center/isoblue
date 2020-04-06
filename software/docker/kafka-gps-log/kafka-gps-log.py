@@ -41,7 +41,7 @@ if __name__ == "__main__":
 
     # set up gpsd socket
     s = gps3.GPSDSocket()
-    s.connect(host='172.17.0.1', port=2947) #FIXME: host ip hack
+    s.connect(host='host.docker.internal', port=2947) #FIXME
     s.watch()
 
     timestamp = None
