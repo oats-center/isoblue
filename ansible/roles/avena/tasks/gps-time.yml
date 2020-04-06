@@ -1,0 +1,80 @@
+- name: disable systemd-timesyncd
+  become: yes
+  systemd:
+    name: systemd-timesyncd
+    state: stopped
+    enabled: no
+
+- name: install chrony
+  become: yes
+  apt:
+    name: chrony
+    state: present
+
+- name: configure chrony
+  become: yes
+  template:
+    dest: /etc/chrony/chrony.conf
+    src: templates/chrony/chrony.conf.j2
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart chrony
+
+- name: ensure chrony apparmor rules allow /run/chrony.gps0.sock RW
+  become: yes
+  copy:
+    dest: /etc/apparmor.d/local/
+    src: files/apparmor.d/usr.sbin.chronyd
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart apparmor
+
+- name: ensure chrony is enabled
+  become: yes
+  systemd:
+    name: chrony
+    enabled: yes
+
+- name: ensure GPSs with PL2303 are identified as a GPS
+  become: yes
+  copy:
+    dest: /etc/udev/rules.d/
+    src: files/udev/60-extended-gpsd.rules
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: install gpsd
+  become: yes
+  apt:
+    name: gpsd
+    state: present
+
+- name: ensure gpsd is properly configured
+  become: yes
+  template:
+    dest: /etc/default/gpsd
+    src: templates/default/gpsd.j2
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart gpsd
+
+- name: expose gpsd to docker
+  become: yes
+  template:
+    dest: /etc/systemd/system/gpsd.socket.d/
+    src: files/gpsd/systemd/gpsd-to-docker.conf
+    owner: root
+    group: groot
+    mode: '0644'
+  notify: reload systemd
+
+- name: ensure gpsd is enabled
+  become: yes
+  systemd:
+    name: chrony
+    enabled: yes
+  notify: restart gpsd

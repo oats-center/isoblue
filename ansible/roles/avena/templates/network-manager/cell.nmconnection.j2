@@ -1,0 +1,22 @@
+[connection]
+id=cell
+uuid=8cf7022a-7153-40bb-9a07-d419879a1455
+type=gsm
+autoconnect-retries=0
+interface-name={{ avena_cell_device }}
+permissions=
+
+[gsm]
+apn=Broadband
+number=*99#
+
+[ipv4]
+dns-search=
+ignore-auto-dns=true
+method=auto
+route-metric=99
+
+[ipv6]
+addr-gen-mode=stable-privacy
+dns-search=
+method=auto

@@ -3,7 +3,7 @@
   - name: fetch fleet client CA key
     local_action:
       module: command
-      cmd: {{ avena_ca_get_client_pubkey }}
+      cmd: "{{ avena_ca_get_client_pubkey }}"
     register: ca_pubkey
 
   - set_fact:
@@ -32,9 +32,9 @@
   - name: generate host certificate
     local_action:
       module: command
-      cmd:: {{ avena_ca_sign_host_key }}
+      cmd:: "{{ avena_ca_sign_host_key }}"
     with_items:
-      - pubkey: {{ host_pubkey }}
+      - pubkey: "{{ host_pubkey }}"
     register: host_cert
 
   - set_fact:

@@ -1,0 +1,26 @@
+- name: Set grub default
+  become: yes
+  ini_file:
+    path: /etc/default/grub
+    option: GRUB_DEFAULT
+    value: {{ avena_intel_grub_default }}
+    mode: '0644'
+  notify: rebuild grub
+
+- name: Set grub timeout
+  become: yes
+  ini_file:
+    path: /etc/default/grub
+    option: GRUB_TIMEOUT
+    value: {{ avena_intel_grub_timeout }}
+    mode: '0644'
+  notify: rebuild grub
+
+- name: Set grub hidden timeout
+  become: yes
+  ini_file:
+    path: /etc/default/grub
+    option: GRUB_HIDDEN_DEFAULT
+    value: {{ avena_intel_grub_hidden_timeout }}
+    mode: '0644'
+  notify: rebuild grub

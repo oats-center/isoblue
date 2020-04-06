@@ -1,0 +1,12 @@
+- name: Ensure {{ ansible_ssh_user }} user is acceptable
+  become: true
+  user:
+    name: "{{ ansible_ssh_user }}"
+    group: "{{ ansible_ssh_user }}"
+    comment: Avena control user
+    groups: sudo
+    shell: /bin/bash
+    generate_ssh_key: yes
+    ssh_key_type: ed25519
+    ssh_key_file: .ssh/id_25519
+    state: present

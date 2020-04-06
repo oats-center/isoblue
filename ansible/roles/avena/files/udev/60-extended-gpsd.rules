@@ -1,0 +1,10 @@
+# extended udev rules for gpsd
+
+SUBSYSTEM!="tty", GOTO="extended_gpsd_rules_end"
+
+# Prolific Technology, Inc. PL2303 Serial Port [linux module: pl2303]
+# is very popular and so by default it is not assumed to be a GPS. However, in
+# our case, it is most likely a GPS
+ATTRS{idVendor}=="067b", ATTRS{idProduct}=="2303", SYMLINK+="gps%n", TAG+="systemd", ENV{SYSTEMD_WANTS}="gpsdctl@%k.service"
+
+LABEL="extended_gpsd_rules_end"

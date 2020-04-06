@@ -1,0 +1,28 @@
+- name: ensure avena id is stored
+  become: yes
+  copy:
+    dest: /avena-id
+    content: "{{ inventory_hostname }}"
+    owner: root
+    group: root
+    mode: '644'
+
+- name: ensure avena id is a system environmental variable
+  become: yes
+  copy:
+    dest: /etc/profile.d/99-avena-id.sh
+    content: "export AVENA_ID=\"{{ inventory_hostname }}\""
+    owner: root
+    group: root
+    mode: '644'
+
+- name: change hostname to {{ inventory_hostname }}
+  become: yes
+  hostname:
+    name: "{{ inventory_hostname }}"
+
+- name: configure /etc/hosts
+  become: yes
+  template:
+    dest: /etc/hosts
+    src: templates/hosts.j2

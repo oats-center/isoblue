@@ -1,0 +1,49 @@
+- name: reload sysctl
+  become: yes
+  command: 'sysctl -p /etc/sysctl.d/*.conf'
+
+- name: reload systemd
+  become: yes
+  systemd:
+    daemon_reload: yes
+
+- name: rebuild grub
+  become: yes
+  command: /usr/sbin/update-grub
+
+- name: reload sshd
+  become: yes
+  systemd:
+    name: sshd
+    state: reloaded
+
+- name: restart apparmor
+  become: yes
+  systemd:
+    name: apparmor
+    state: restarted
+
+- name: restart chrony
+  become: yes
+  systemd:
+    name: chrony
+    state: restarted
+  notify: restart gpsd
+
+- name: restart gpsd
+  become: yes
+  systemd:
+    name: gpsd
+    state: restarted
+
+- name: reload network-manager
+  become: yes
+  systemd:
+    name: NetworkManager
+    state: reloaded
+
+- name: restart networking
+  become: yes
+  systemd:
+    name: networking
+    state: restarted

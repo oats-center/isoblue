@@ -1,0 +1,31 @@
+# CAUTION: Not idempotent
+- name: ensure base operating system is up to date
+  become: yes
+  apt:
+    update_cache: yes
+    upgrade: dist
+    autoclean: yes
+    autoremove: yes
+  async: 600
+  poll: 10
+
+- name: check if reboot is needed
+  stat:
+    path: /var/run/reboot-required
+  register: reboot_required
+
+- name: reboot if needed
+  block:
+    - name: reboot
+      become: yes
+      reboot:
+        reboot_timeout: 100
+      register: reboot
+
+    - name: cleanup after reboot
+      become: yes
+      file:
+        path: /var/run/reboot-required
+        state: absent
+      when: "{{ reboot.rebooted == true }}"
+  when: "{{ reboot_required.stat.exists == true }}"

@@ -1,0 +1,54 @@
+- name: ensure `linkdown` routes are skiped
+  become: yes
+  copy:
+    src: files/sysctl.d/10-skip-linkdown-routes.conf
+    dest: /etc/sysctl.d/10-skip-linkdown-routes.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: reload sysctl
+
+- name: ensure custom name servers are in use
+  become: yes
+  template:
+    src: templates/resolv.conf.j2
+    dest: /etc/resolv.conf
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: ensure network manager is installed
+  become: yes
+  apt:
+    name: network-manager
+    state: present
+
+- name: ensure network manager manages interfaces
+  become: yes
+  copy:
+    src: files/network-manager/NetworkManager.conf
+    dest: /etc/NetworkManager/NetworkManager.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: reload network-manager
+
+- name: ensure /etc/network/interfaces does not manage physical interfaces
+  become: yes
+  copy:
+    src: files/network/interfaces
+    dest: /etc/network/interfaces
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart networking
+
+- name: ensure cell connection is configured
+  become: yes
+  template:
+    src: templates/network-manager/cell.nmconnection.j2
+    dest: /etc/NetworkManager/system-connections/cell.nmconnection
+    owner: root
+    group: root
+    mode: 0600
+  notify: reload network-manager

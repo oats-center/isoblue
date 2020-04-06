@@ -1,0 +1,66 @@
+- name: ensure distribution docker packages are not installed
+  become: yes
+  apt:
+    name:
+      - docker
+      - docker-engine
+      - docker.io
+      - containerd
+      - runc
+    state: absent
+
+- name: ensure required packages for docker repository are installed
+  become: yes
+  apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg-agent
+      - software-properties-common
+    state: present
+
+- name: ensure docker apt key is installed
+  apt_key:
+    url: https://download.docker.com/linux/debian/gpg
+    state: present
+
+# TODO: Resolve "buster" correctly?
+- name: ensure docker apt repository is installed
+  apt_repository:
+    repo: 'deb https://download.docker.com/linux/debian buster stable'
+    state: present
+    filename: docker
+
+- name: ensure docker is installed
+  apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+    state: present
+
+- name: ensure docker group exists
+  group:
+    name: docker
+    state: present
+
+- name: ensure {{ ansible_user }} is part of the docker group
+  user:
+    groups: docker
+    append: yes
+    state: present
+
+- name: ensure python packages needed for docker-compose are installed
+  apt:
+    name:
+      - python3-pip
+      - libffi-dev
+      - openssl-dev
+    state: present
+
+- name: use pip to ensure docker-compose is installed
+  pip:
+    name: docker-compose
+    extra_args: -IU
+    state: present
