@@ -1,0 +1,30 @@
+FROM balenalib/apalis-imx6q-debian:latest as builder
+
+RUN apt-get update && \
+      apt-get install -y --no-install-recommends \
+      build-essential \
+      automake \
+      libsasl2-2 \
+      libsasl2-dev \
+      libssl-dev \
+      librdkafka1 \
+      librdkafka-dev \
+      libavro23 \
+      libavro-dev
+
+COPY . /build
+
+WORKDIR /build
+
+RUN autoreconf --install || exit 1
+RUN /build/configure CFLAGS="-DDEBUG" && make
+
+FROM balenalib/apalis-imx6q-debian:latest
+COPY qemu-arm-static /usr/bin/
+WORKDIR /usr/app
+
+COPY --from=builder /usr/lib/arm-linux-gnueabihf/ /usr/lib/arm-linux-gnueabihf/
+COPY --from=builder /build/kafka_can_log/kafka_can_log .
+COPY --from=builder /build/start.sh .
+
+CMD ["./start.sh"]
