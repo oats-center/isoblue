@@ -1,0 +1,10 @@
+- name: ensure cell connection is configured
+  become: yes
+  template:
+    src: templates/network-manager/cell.nmconnection.j2
+    dest: /etc/NetworkManager/system-connections/cell.nmconnection
+    owner: root
+    group: root
+    mode: 0600
+  notify: reload network-manager
+
