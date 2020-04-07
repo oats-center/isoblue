@@ -19,7 +19,7 @@ if __name__ == "__main__":
 
     # valid environment variables
     if 'kafka_topic' in os.environ:
-        pass
+        print('Topic: {}'.format(os.environ['kafka_topic']))
     else:
         sys.exit('Kafka topic not given. Exiting ...')
 
