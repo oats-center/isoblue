@@ -21,18 +21,21 @@
     state: present
 
 - name: ensure docker apt key is installed
+  become: yes
   apt_key:
     url: https://download.docker.com/linux/debian/gpg
     state: present
 
 # TODO: Resolve "buster" correctly?
 - name: ensure docker apt repository is installed
+  become: yes
   apt_repository:
     repo: 'deb https://download.docker.com/linux/debian buster stable'
     state: present
     filename: docker
 
 - name: ensure docker is installed
+  become: yes
   apt:
     name:
       - docker-ce
@@ -41,17 +44,30 @@
     state: present
 
 - name: ensure docker group exists
+  become: yes
   group:
-    name: docker
+    name: "{{ avena_docker_group }}"
     state: present
 
 - name: ensure {{ ansible_user }} is part of the docker group
+  become: yes
   user:
     groups: docker
     append: yes
     state: present
 
+- name: ensure docker is configured
+  become: yes
+  template:
+    src: templates/docker/daemon.json.j2
+    dest: /etc/docker/daemon.json
+    owner: root
+    group: root
+    chmod: '0600'
+  notify: restart docker
+
 - name: ensure python packages needed for docker-compose are installed
+  become: yes
   apt:
     name:
       - python3-pip
@@ -60,6 +76,7 @@
     state: present
 
 - name: use pip to ensure docker-compose is installed
+  become: yes
   pip:
     name: docker-compose
     extra_args: -IU
