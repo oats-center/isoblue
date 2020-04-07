@@ -47,3 +47,9 @@
   systemd:
     name: networking
     state: restarted
+
+- name: restart docker
+  become: yes
+  systemd:
+    name: docker
+    state: restarted

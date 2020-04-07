@@ -1,0 +1,10 @@
+{
+  "bip": "{{ avena_docker_bip }}",
+  "data-root": "{{ avena_docker_data_root }}",
+  "default-address-pool": [
+  {% for pool in avena_docker_default_address_pool %}
+   { base: "{{ pool.base }}", "size": "{{ pool.size }}" }{{ "," if not loop.last }}
+  {% endfor %}
+  ],
+  "group": "{{ avena_docker_group }}",
+}
