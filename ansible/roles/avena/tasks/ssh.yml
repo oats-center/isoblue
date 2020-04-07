@@ -47,3 +47,4 @@
     state: present
     key: {{ item }}
   with_items: {{ avena_authorized_keys }}
+  when: {{ avena_authorized_keys is defined }}
