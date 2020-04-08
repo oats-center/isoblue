@@ -52,7 +52,8 @@
 - name: ensure {{ ansible_user }} is part of the docker group
   become: yes
   user:
-    groups: docker
+    name: "{{ ansible_user }}"
+    groups: "{{ avena_docker_group }}"
     append: yes
     state: present
 
@@ -63,7 +64,7 @@
     dest: /etc/docker/daemon.json
     owner: root
     group: root
-    chmod: '0600'
+    mode: '0600'
   notify: restart docker
 
 - name: ensure python packages needed for docker-compose are installed
@@ -71,13 +72,12 @@
   apt:
     name:
       - python3-pip
+      - python3-setuptools
       - libffi-dev
-      - openssl-dev
+      - libssl-dev
     state: present
 
 - name: use pip to ensure docker-compose is installed
+  command:
+    cmd: python3 -m pip install -IU docker-compose
   become: yes
-  pip:
-    name: docker-compose
-    extra_args: -IU
-    state: present

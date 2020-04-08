@@ -1,3 +1,15 @@
+# Known issues / annoyances
+
+- lack of use of `validate`. Ansible will allow you to call a command,
+  validating the task that was just done. We don't do that enough.
+
+- SSHd added support for the "Include" statement within /etc/ssh/sshd_config in
+  version 8.2. That is in testing but not buster-backports. In the meantime we
+  just mutate the SSHd configure in multiple places. It is a bit fragile and we
+  should go back to ".d" config when 8.2 lands in backports.
+
+- avena-ca: Don't resign host key unless expiration is near?
+
 # Ensure IPs don't clash
 
 In a default deploy, both Wireguard and Docker use local networks in the private
@@ -32,4 +44,3 @@ Currently the secrets that need to be defined are:
   which need to modify a core file. **Take advantage of Debian ".d" directories
   when possible.** Never modify a Debian default file when there is a ".d"
   directory available.
-

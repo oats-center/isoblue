@@ -1,0 +1,7 @@
+- hosts: oats_fleet
+  roles:
+    - { role: avena, tags: avena }
+    #- { role: avena-gps-time, tags: avena_gps_time }
+    #- { role: avena-cell, tags: avena_cell }
+    #- { role: avena-ca, tags: avena_ca }
+    #- { role: avena-wireguard, tags: avena_wireguard }

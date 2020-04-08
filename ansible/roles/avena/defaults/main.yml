@@ -3,9 +3,6 @@ avena_nameservers:
   - 1.1.1.1
   - 1.0.0.1
 
-# SSH authorized keys
-avena_authorized_keys:
-
 # Intel
 avena_intel_grub_default: 0
 avena_intel_grub_timeout: 0

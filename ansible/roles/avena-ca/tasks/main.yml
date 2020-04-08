@@ -23,32 +23,36 @@
   - name: fetch host public key
     become: yes
     slurp:
-      src: /etc/ssh/ssh_host_ed25519_key.pub
+      src: /etc/ssh/ssh_host_avena_ed25519_key.pub
     register: host_pubkey
 
   - set_fact:
       host_pubkey: "{{ host_pubkey.content | b64decode }}"
 
+# TODO: Check if the certificate is going to expire soon?
+# TODO: `with_items` is like a loop, but here it is allowing for runtime
+# interpolation of the `avena_ca_sign_host_key` command template. Can we do it
+# without a loop structure?
   - name: generate host certificate
     local_action:
       module: command
-      cmd:: "{{ avena_ca_sign_host_key }}"
+      cmd: "{{ avena_ca_sign_host_key }}"
     with_items:
       - pubkey: "{{ host_pubkey }}"
     register: host_cert
 
   - set_fact:
-      host_cert: "{{ host_cert.stdout }}"
+      host_cert: "{{ host_cert.results[0].stdout }}"
 
   - name: install host certificate
     become: yes
     copy:
-      dest: /etc/ssh/ssh_host_ed25519_key-cert.pub
+      dest: /etc/ssh/ssh_host_avena_ed25519_key-cert.pub
       content: "{{ host_cert }}"
       mode: '0644'
       owner: root
       group: root
-    notify: reload sshd
+      notify: reload sshd
 
 - name: CA authentication
   block:
@@ -61,18 +65,18 @@
       group: root
       state: directory
 
-  - name: ensure {{ ansible_ssh_user }} has CA authentication
+  - name: ensure ansible user has CA authentication
     become: yes
     copy:
-      dest: /etc/ssh/auth_principals/{{ ansible_ssh_user }}
-      content: "{{ ansible_ssh_user }}"
+      dest: /etc/ssh/auth_principals/{{ ansible_user }}
+      content: "{{ ansible_user }}"
 
-  - name: ensure sshd has ca configuration
+  - name: ensure sshd is ca configured
     become: yes
-    template:
-      dest: /etc/ssh/sshd_config.d/avena-ca.conf
-      src: ssh/avena-ca.conf.j2
-      owner: root
-      group: root
-      mode: '0644'
+    blockinfile:
+      block: "{{ lookup('template', 'sshd_config.j2') }}"
+      dest: /etc/ssh/sshd_config
+      marker: "# {mark} ANSIBLE MANAGED BLOCK -- avena-ca"
+      backup: yes
+      validate: /usr/sbin/sshd -T -f %s
     notify: reload sshd

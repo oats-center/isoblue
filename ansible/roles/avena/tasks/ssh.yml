@@ -1,50 +1,47 @@
-- name: SSH hardening
-  tag: ssh-hard
-  block:
-    # TODO: Should we also replace if about to expire?
-    - name: ensure an ed25519 SSH host key is present
-      become: yes
-      command: ssh-keygen -q -t ed25519 -f /etc/ssh/ssh_host_ed25519_key -C "{{ inventory_hostname }} ed25519 host key" -N ""
-      args:
-        creates: /etc/ssh/ssh_host_ed25519_key
-      notify: reload sshd
+# TODO: Is this register as idempotent correctly?
+- name: ensure small Diffie-Hellman moduli are removed
+  become: yes
+  shell: awk '$5 >= 3071' moduli > moduli.safe && mv moduli.safe moduli
+  args:
+    chdir: /etc/ssh/
+    creates:
+    removes:
+  notify: reload sshd
 
-    - name: ensure unused stock SSH host keys are removed
-      become: yes
-      file:
-        state: absent
-        path: "{{ item }}"
-      loop:
-        - /etc/ssh/ssh_host_ecdsa_key
-        - /etc/ssh/ssh_host_ecdsa_key.pub
-        - /etc/ssh/ssh_host_rsa_key
-        - /etc/ssh/ssh_host_rsa_key.pub
-      notify: reload sshd
-
-    # TODO: Is this register as idempotent correctly?
-    - name: ensure small Diffie-Hellman moduli are removed
-      become: yes
-      shell: awk '$5 >= 3071' moduli > moduli.safe && mv moduli.safe moduli
-      args:
-        chdir: /etc/ssh/
-        creates:
-        removes:
-      notify: reload sshd
+- name: ensure an ed25519 SSH host key is present
+  become: yes
+  command: ssh-keygen -q -t ed25519 -f /etc/ssh/ssh_host_avena_ed25519_key -C "{{ inventory_hostname }} ed25519 host key" -N ""
+  args:
+    creates: /etc/ssh/ssh_host_avena_ed25519_key
+  notify: reload sshd
 
 - name: ensure sshd is configured
   become: yes
-  template:
+  blockinfile:
+    block: "{{ lookup('file', 'ssh/sshd_config') }}"
     dest: /etc/ssh/sshd_config
-    src: ssh/sshd_config
-    owner: root
-    group: root
-    mode: '0644'
+    marker: "# {mark} ANSIBLE MANAGED BLOCK -- avena"
+    validate: /usr/sbin/sshd -T -f %s
+  notify: reload sshd
+
+- name: cleam up unused stock SSH host keys are removed
+  become: yes
+  file:
+    state: absent
+    path: "{{ item }}"
+  loop:
+    - /etc/ssh/ssh_host_ed25519_key
+    - /etc/ssh/ssh_host_ed25519_key.pub
+    - /etc/ssh/ssh_host_ecdsa_key
+    - /etc/ssh/ssh_host_ecdsa_key.pub
+    - /etc/ssh/ssh_host_rsa_key
+    - /etc/ssh/ssh_host_rsa_key.pub
   notify: reload sshd
 
 - name: ensure authorized keys are installed
   authorized_key:
-    user: {{ ansible_user }}
+    user: "{{ ansible_user }}"
     state: present
-    key: {{ item }}
-  with_items: {{ avena_authorized_keys }}
-  when: {{ avena_authorized_keys is defined }}
+    key: "{{ item }}"
+  with_items: "{{ avena_authorized_keys }}"
+  when: avena_authorized_keys is defined
