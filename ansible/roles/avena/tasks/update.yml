@@ -17,7 +17,7 @@
     name:
       - linux-image-armmp
       - linux-headers-armmp
-    state: present
+    state: latest
     default_release: "{{ avena_apt_backports_release | default(omit) }}"
 
 - name: ensure base operating system is up to date

@@ -52,7 +52,7 @@
       mode: '0644'
       owner: root
       group: root
-      notify: reload sshd
+    notify: reload sshd
 
 - name: CA authentication
   block:
