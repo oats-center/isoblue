@@ -1,5 +1,13 @@
 - name: ensure wireguard interface exists and is configured
   block:
+    - name: ensure wireguard is install
+      become: yes
+      apt:
+        name:
+          - wireguard
+        state: present
+        default_release: "{{ avena_apt_backports_release | default(omit) }}"
+
     - name: ensure wireguard key exists
       become: yes
       shell: umask 377 && wg genkey > {{ avena_wg_interface }}.key
@@ -39,6 +47,7 @@
 
           to your bounce server wiregaurd configuration and then run
 
-          sudo wg setconf <wg-interface> < (wg-quick <wg-interface>)
+          $ sudo su
+          # wg addconf <wg-interface> <(wg-quick strip <wg-interface>)
 
           before hitting <enter> to continue.

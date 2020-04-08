@@ -17,4 +17,3 @@ avena_docker_default_address_pool:
   - base: "172.19.0.0/16"
     size: "24"
 avena_docker_group: 'docker'
-
