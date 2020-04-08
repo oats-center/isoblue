@@ -2,58 +2,51 @@
   include_tasks:
     file: user.yml
     apply:
-      tags:
-        - user
+      tags: user
+  tags: user
 
 - name: Run updating tasks
   include_tasks:
     file: update.yml
     apply:
-      tags:
-        - update
+      tags: update
+  tags: update
 
 - name: Run naming tasks
   include_tasks:
     file: names.yml
     apply:
-      tags:
-        - names
+      tags: names
+  tags: names
 
 - name: Run ssh tasks
   include_tasks:
     file: ssh.yml
     apply:
-      tags:
-        - ssh
+      tags: ssh
+  tags: ssh
 
 - name: Run docker tasks
   include_tasks:
     file: docker.yml
     apply:
-      tags:
-        - docker
-
-- name: Run GPS and time sync tasks
-  include_tasks:
-    file: gps-time.yml
-    apply:
-      tags:
-        - gps-time
+      tags: docker
+  tags: docker
 
 - name: Run networking tasks
   include_tasks:
     file: networking.yml
     apply:
-      tags:
-        - networking
+      tags: networking
+  tags: networking
 
 - name: Run intel tasks
   include_tasks:
     file: intel.yml
     apply:
-      tags:
-        - intel
-  when: ansible_architecture matches("x86.*")
+      tags: intel
+  when: ansible_architecture is match("x86.*")
+  tags: intel
 
 # TODO: Set  uboot to no delay booting
 #- name: Run arm tasks
@@ -62,4 +55,4 @@
 #    apply:
 #      tags:
 #        - intel
-#  when: ansible_architecture matches("arm*")
+#  when: ansible_architecture is match("arm*")

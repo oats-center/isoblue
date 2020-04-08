@@ -1,8 +1,28 @@
-# CAUTION: Not idempotent
+- name: Assume buster-backports for Debian buster
+  set_fact:
+    avena_apt_backports: "deb http://deb.debian.org/debian buster-backports main"
+    avena_apt_backports_release: "buster-backports"
+  when: ansible_distribution_release == "buster"
+
+- name: Ensure buster-backports is available to apt
+  become: yes
+  apt_repository:
+    repo: "{{ avena_apt_backports }}"
+  when: avena_apt_backports is defined
+
+# TODO: This is arm specific
+- name: ensure Linux Kernel is up to date
+  become: yes
+  apt:
+    name:
+      - linux-image-armmp
+      - linux-headers-armmp
+    state: present
+    default_release: "{{ avena_apt_backports_release | default(omit) }}"
+
 - name: ensure base operating system is up to date
   become: yes
   apt:
-    update_cache: yes
     upgrade: dist
     autoclean: yes
     autoremove: yes
@@ -27,5 +47,5 @@
       file:
         path: /var/run/reboot-required
         state: absent
-      when: "{{ reboot.rebooted == true }}"
-  when: "{{ reboot_required.stat.exists == true }}"
+      when: reboot.rebooted == true
+  when: reboot_required.stat.exists == true

@@ -15,7 +15,7 @@
   become: yes
   template:
     dest: /etc/chrony/chrony.conf
-    src: templates/chrony/chrony.conf.j2
+    src: chrony/chrony.conf.j2
     owner: root
     group: root
     mode: '0644'
@@ -25,7 +25,7 @@
   become: yes
   copy:
     dest: /etc/apparmor.d/local/
-    src: files/apparmor.d/usr.sbin.chronyd
+    src: apparmor.d/usr.sbin.chronyd
     owner: root
     group: root
     mode: '0644'
@@ -41,7 +41,7 @@
   become: yes
   copy:
     dest: /etc/udev/rules.d/
-    src: files/udev/60-extended-gpsd.rules
+    src: udev/60-extended-gpsd.rules
     owner: root
     group: root
     mode: '0644'
@@ -56,7 +56,7 @@
   become: yes
   template:
     dest: /etc/default/gpsd
-    src: templates/default/gpsd.j2
+    src: default/gpsd.j2
     owner: root
     group: root
     mode: '0644'
@@ -64,11 +64,11 @@
 
 - name: expose gpsd to docker
   become: yes
-  template:
+  copy:
     dest: /etc/systemd/system/gpsd.socket.d/
-    src: files/gpsd/systemd/gpsd-to-docker.conf
+    src: gpsd/systemd/gpsd-to-docker.conf
     owner: root
-    group: groot
+    group: root
     mode: '0644'
   notify: reload systemd
 

@@ -1,8 +1,8 @@
-- name: Ensure {{ ansible_ssh_user }} user is acceptable
+- name: Ensure ansible user is acceptable
   become: true
   user:
-    name: "{{ ansible_ssh_user }}"
-    group: "{{ ansible_ssh_user }}"
+    name: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
     comment: Avena control user
     groups: sudo
     shell: /bin/bash
