@@ -55,9 +55,15 @@ called `oats-fleet.yml`:
      when `avena-ca` is to be used. Otherwise, you could store this password in
      your inventory using Ansible vault.
 
-# Updating a new
+# Updating nodes
 
 1. Get the auth certificate
    `vault write -field=signed_key avena-client-signer/sign/admin public_key=@$HOME/.ssh/id_ed25519.pub > ~/.ssh/id_ed25519-cert.pub`
 
-Updating a
+2. Run the playbook
+
+```bash
+   $ ansible-playbook oats-fleet.yml -i inventory/
+```
+
+_Note: You can include the `--limit` flag if you want to work on some nodes_

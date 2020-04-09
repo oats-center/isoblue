@@ -48,4 +48,4 @@
         path: /var/run/reboot-required
         state: absent
       when: reboot.rebooted == true
-  when: reboot_required.stat.exists == true
+#  when: reboot_required.stat.exists == true

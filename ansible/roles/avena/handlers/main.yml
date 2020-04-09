@@ -23,6 +23,10 @@
     name: apparmor
     state: restarted
 
+- name: reload udev
+  become: yes
+  shell: udevadm control --reload-rules && udevadm trigger
+
 - name: restart chrony
   become: yes
   systemd:

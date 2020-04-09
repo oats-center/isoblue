@@ -24,13 +24,6 @@
         group: root
         mode: 0600
 
-    - name: ensure the wireguard interface is enabled
-      become: yes
-      systemd:
-        name: wg-quick@{{ avena_wg_interface }}
-        enabled: yes
-        state: started
-
     - name: gather the wireguard public key
       become: yes
       shell: wg pubkey < /etc/wireguard/{{ avena_wg_interface }}.key
@@ -51,3 +44,20 @@
           # wg addconf <wg-interface> <(wg-quick strip <wg-interface>)
 
           before hitting <enter> to continue.
+
+    - name: ensure wireguard auto restarts on failure
+      become: yes
+      copy:
+        dest: /etc/systemd/system/wg-quick@.service.d/
+        src: systemd/auto-restart-wg.conf
+        owner: root
+        group: root
+        mode: '0644'
+      notify: reload systemd
+
+    - name: ensure the wireguard interface is enabled
+      become: yes
+      systemd:
+        name: wg-quick@{{ avena_wg_interface }}
+        enabled: yes
+        state: started
