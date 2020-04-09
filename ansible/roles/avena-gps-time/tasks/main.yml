@@ -45,6 +45,7 @@
     owner: root
     group: root
     mode: '0644'
+  notify: reload udev
 
 - name: install gpsd
   become: yes
@@ -75,6 +76,6 @@
 - name: ensure gpsd is enabled
   become: yes
   systemd:
-    name: chrony
+    name: gpsd
     enabled: yes
   notify: restart gpsd

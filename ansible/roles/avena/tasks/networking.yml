@@ -23,6 +23,12 @@
     name: network-manager
     state: present
 
+- name: ensure network manager is enabled
+  become: yes
+  systemd:
+    name: network-manager
+    enabled: yes
+
 - name: ensure network manager manages interfaces
   become: yes
   copy:

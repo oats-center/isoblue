@@ -63,6 +63,7 @@ you are certain the `DEVICE_FILE` is correct.
 
 _Note: The Debian installer does not always properly reboot the hardware. You
 may have to manually power cycle the device._
+
 ## Known issues
 
 - **Issue:** Wake-on-can does not work out of the box on Debian 10.3.

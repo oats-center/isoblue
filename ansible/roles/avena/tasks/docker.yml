@@ -77,7 +77,8 @@
       - libssl-dev
     state: present
 
+# TODO: Ansible is using python 2.0 ... what shouild we use?
 - name: use pip to ensure docker-compose is installed
+  become: yes
   command:
     cmd: python3 -m pip install -IU docker-compose
-  become: yes
