@@ -1,0 +1,14 @@
+#!/bin/sh
+# /usr/lib/systemd/system-sleep
+echo "Cell reset"
+case $1/$2 in
+        pre/*)
+                echo "Going to $2..."
+                echo '{{ avena_cell_usb_modem_bus }}' > /sys/bus/usb/drivers/usb/unbind
+                ;;
+        post/*)
+                echo "Waking up from $2..."
+                echo '{{ avena_cell_usb_modem_bus }}' > /sys/bus/usb/drivers/usb/bind
+                ;;
+esac
+
