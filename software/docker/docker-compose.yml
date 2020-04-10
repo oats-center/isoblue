@@ -37,4 +37,3 @@ services:
       mqtt_topic: "${mqtt_topic}"
       cloud_domain: "${avena_domain}"
       mqtt_port: "${mqtt_port}"
-      PYTHONUNBUFFERED: "1"
