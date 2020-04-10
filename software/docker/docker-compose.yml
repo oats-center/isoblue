@@ -1,7 +1,7 @@
 version: '2'
 services:
   kafka:
-    image: wurstmeister/kafka
+    image: konradmalik/kafka-armhf
     ports:
       - "9092:9092"
     environment:
@@ -11,16 +11,16 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
   zookeeper:
-    image: wurstmeister/zookeeper
+    image: konradmalik/zookeeper-armhf
     ports:
       - "2181:2181"
   kafka-gps-log:
-    image: kafka-gps-log
+    image: wang701/kafka-gps-log:latest-armhf
     restart: always
     environment:
       kafka_topic: "${gps_topic}"
   kafka-can-log:
-    image: kafka-can-log
+    image: wang701/kafka-can-log:latest-armhf
     restart: always
     network_mode: host
     extra_hosts:
@@ -29,7 +29,7 @@ services:
       can_dev: "${tra_interface}"
       kafka_topic: "${tra_interface}"
   engine-rpm-pub:
-    image: engine-rpm-pub
+    image: wang701/engine-rpm-pub:latest-armhf
     restart: always
     environment:
       isoblue_id: "${isoblue_id}"
@@ -37,4 +37,3 @@ services:
       mqtt_topic: "${mqtt_topic}"
       cloud_domain: "${avena_domain}"
       mqtt_port: "${mqtt_port}"
-      PYTHONUNBUFFERED: "1"
