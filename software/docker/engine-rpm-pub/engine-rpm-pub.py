@@ -105,7 +105,7 @@ if __name__ == '__main__':
     # initialize consumer
     consumer = KafkaConsumer(os.environ['kafka_topic'], \
                              bootstrap_servers='kafka:9092', \
-                             group_id='engine-rpm-consumer')
+                             client_id='engine-rpm-consumer')
 
     if consumer.bootstrap_connected():
         print('Connected to Kafka broker')
