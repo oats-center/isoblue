@@ -1,5 +1,37 @@
-version: '2'
+version: '3.1'
 services:
+  # use Docker secrets?
+  postgres:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: "1ubuntu9@"
+      POSTGRES_USER: "avena"
+      POSTGRES_DB: "avena"
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres:/var/lib/postgresql/data
+      - ./postgres/schema:/docker-entrypoint-initdb.d
+  oada-upload:
+    build:
+      context: ./oada_upload
+    restart: always
+    env_file:
+      oada_variables.env
+    depends_on:
+      - postgres
+  adminer: # For dev ONLY
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+  gps:
+    image: abalmos/gps
+    restart: always
+    environment:
+       GPSD_URL: "172.17.0.1:2947"
+       DATABASE_URL: "postgres://avena:1ubuntu9@@postgres/avena"
   kafka:
     image: konradmalik/kafka-armhf
     ports:
@@ -37,3 +69,5 @@ services:
       mqtt_topic: "${mqtt_topic}"
       cloud_domain: "${avena_domain}"
       mqtt_port: "${mqtt_port}"
+volumes:
+  postgres:
