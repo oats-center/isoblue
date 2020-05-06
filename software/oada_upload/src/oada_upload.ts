@@ -13,7 +13,9 @@ import { config } from 'dotenv';
 import { Client } from 'pg';
 import moment from 'moment';
 import ksuid from 'ksuid';
+import pEachSeries from 'p-each-series';
 import { connect } from '@oada/client';
+import { V1 as Location } from '@oada/types/oada/isoblue/location/v1';
 
 import { isoblueDataTree } from './trees';
 
@@ -35,6 +37,15 @@ config();
 //   4f) Mark entries successfully updated as sent in db
 //   4g) Optional pause to not overload oada server
 // 5) Gracefully handle errors
+
+interface DataIndex {
+  [key: string]: {
+    gpsId: Array<string>;
+    locations: {
+      [key: string]: Omit<Location, Location['_type']>;
+    };
+  };
+}
 
 async function main(): Promise<void> {
   const db = new Client();
@@ -98,49 +109,63 @@ async function main(): Promise<void> {
     console.info(`Found batch of ${gps.rows.length} GPS points`);
     console.debug(`Head time: ${gps.rows[0].time}`);
 
-    await Promise.all(
-      gps.rows.map(async (p) => {
-        const gpsId = p.id;
-        console.debug(`Processing GPS id: ${gpsId}`);
+    const data: DataIndex = {};
+    gps.rows.forEach((p) => {
+      console.debug(`Processing GPS id: ${p.id}`);
 
-        const t = moment.unix(p.time);
-        const day = t.format('YYYY-MM-DD');
-        const hour = t.format('HH');
-        const path = `/bookmarks/isoblue/${id}/location/day-index/${day}/hour-index/${hour}`;
-        const pId = ksuid.randomSync().string;
-        const data = {
-          data: {
-            [pId]: {
-              id: pId,
-              time: {
-                value: p.time,
-              },
-              location: {
-                lat: p.lat,
-                lng: p.lng,
-              },
-            },
-          },
+      const t = moment.unix(p.time);
+      const day = t.format('YYYY-MM-DD');
+      const hour = t.format('HH');
+      const path = `/bookmarks/isoblue/${id}/location/day-index/${day}/hour-index/${hour}`;
+      const pId = ksuid.randomSync().string;
+
+      if (!data[path]) {
+        data[path] = {
+          gpsId: [],
+          locations: {},
         };
+      }
 
-        try {
-          console.debug(`Sending point ${gpsId} to OADA`);
-          await oada.put({ tree: isoblueDataTree, path, data });
-        } catch (e) {
-          // Do something with the error ?
-          // Maybe just treat this as an indication that Internet is gone?
-        }
+      data[path].gpsId.push(p.id);
+      data[path].locations = {
+        [pId]: {
+          id: pId,
+          time: {
+            value: p.time,
+          },
+          location: {
+            lat: p.lat,
+            lng: p.lng,
+          },
+        },
+      };
+    });
 
-        try {
-          console.log('Updating database');
-          await db.query('UPDATE gps SET send = TRUE WHERE id = $1', [gpsId]);
-        } catch (e) {
-          // Do something with the error?
-          // This seems pretty fatal
-        }
-        await sleep(500);
-      })
-    );
+    pEachSeries(Object.keys(data), async (path) => {
+      try {
+        console.debug(`GPS ID ${data[path].gpsId.join(',')} to OADA ${path}`);
+        await oada.put({
+          tree: isoblueDataTree,
+          path,
+          data: data[path].locations,
+        });
+      } catch (e) {
+        // Do something with the error ?
+        // Maybe just treat this as an indication that Internet is gone?
+      }
+
+      try {
+        console.log('Updating database');
+        await db.query(
+          'UPDATE gps SET send = TRUE WHERE id IN ($1)',
+          data[path].gpsId
+        );
+      } catch (e) {
+        // Do something with the error?
+        // This seems pretty fatal
+      }
+      await sleep(500);
+    });
   }
 }
 

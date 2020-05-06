@@ -13,11 +13,13 @@
     "start": "ts-node src/oada_upload.ts"
   },
   "dependencies": {
-    "@oada/client": "oada/client#97c5e20",
+    "@oada/client": "^0.0.3",
+    "@oada/types": "github:oada/types",
     "@sindresorhus/is": "^2.1.1",
     "dotenv": "^8.2.0",
     "ksuid": "^1.2.0",
     "moment": "^2.25.3",
+    "p-each-series": "^2.1.0",
     "pg": "^7.18.2"
   },
   "devDependencies": {

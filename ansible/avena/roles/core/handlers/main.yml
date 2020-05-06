@@ -6,6 +6,7 @@
   become: yes
   systemd:
     daemon_reload: yes
+    state: started
 
 - name: rebuild grub
   become: yes
