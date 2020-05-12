@@ -7,6 +7,14 @@
 // Maybe just detect @oada/client failure, and re-queue with some sort of delay?
 // const dns = require('dns').promises; // DNS Lookup used to check internet connectivity
 
+
+// Quick fix while https://github.com/sindresorhus/is/issues/85 is still an issue
+declare global {
+  interface SymbolConstructor {
+    readonly observable: symbol;
+  }
+}
+
 // Packages
 import { assert } from '@sindresorhus/is';
 import { config } from 'dotenv';

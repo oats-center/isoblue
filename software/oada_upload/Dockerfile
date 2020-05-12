@@ -1,15 +1,23 @@
-FROM node
-#ENV NPM_CONFIG_LOGLEVEL info
-
-ENV NODE_TLS_REJECT_UNAUTHORIZED 0
+FROM node as builder
 
 RUN mkdir /code
 WORKDIR /code
 
-COPY package*.json ./
+COPY package*.json yarn.lock tsconfig.json ./
+RUN ls && yarn install
+COPY "./" "/code/"
 
-RUN npm install
+RUN yarn run build
 
-COPY . .
 
-CMD [ "node", "oada_upload.js" ]
+FROM node:slim as runtime
+
+RUN mkdir /code
+WORKDIR /code
+
+COPY --from=builder "/code/src/" "/code/src/"
+COPY --from=builder "/code/node_modules/" "/code/node_modules/"
+COPY --from=builder "/code/package.json" "/code/package.json"
+COPY --from=builder "/code/tsconfig.json" "/code/tsconfig.json"
+
+CMD ["yarn", "run", "start"]
