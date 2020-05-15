@@ -18,7 +18,15 @@
       - linux-headers-armmp
     state: latest
     default_release: "{{ avena_apt_backports_release | default(omit) }}"
-  when: ansible_facts["ansible_architecture"] == "armv7l"
+  register: kernel_upgrade
+  when: ansible_facts.architecture == "armv7l"
+
+- name: reboot after kernel upgrade
+  become: yes
+  reboot:
+    reboot_timeout: 100
+  register: reboot
+  when: kernel_upgrade.changed
 
 - name: ensure base operating system is up to date
   become: yes
