@@ -1,54 +1,57 @@
-- name: Assume buster-backports for Debian buster
-  set_fact:
-    avena_apt_backports: "deb http://deb.debian.org/debian buster-backports main"
-    avena_apt_backports_release: "buster-backports"
-  when: ansible_distribution_release == "buster"
+- name: Update system
+  block:
+    - name: Assume buster-backports for Debian buster
+      set_fact:
+        avena_apt_backports: "deb http://deb.debian.org/debian buster-backports main"
+        avena_apt_backports_release: "buster-backports"
+      when: ansible_distribution_release == "buster"
 
-- name: Ensure buster-backports is available to apt
-  become: yes
-  apt_repository:
-    repo: "{{ avena_apt_backports }}"
-  when: avena_apt_backports is defined
+    - name: Ensure buster-backports is available to apt
+      become: yes
+      apt_repository:
+        repo: "{{ avena_apt_backports }}"
+      when: avena_apt_backports is defined
 
-- name: ensure Linux Kernel is up to date
-  become: yes
-  apt:
-    name:
-      - linux-image-armmp
-      - linux-headers-armmp
-    state: latest
-    default_release: "{{ avena_apt_backports_release | default(omit) }}"
-  register: kernel_upgrade
-  when: ansible_facts.architecture == "armv7l"
+    - name: ensure Linux Kernel is up to date
+      become: yes
+      apt:
+        name:
+          - linux-image-armmp
+          - linux-headers-armmp
+        state: latest
+        default_release: "{{ avena_apt_backports_release | default(omit) }}"
+      register: kernel_upgrade
+      when: ansible_facts.architecture == "armv7l"
 
-- name: reboot after kernel upgrade
-  become: yes
-  reboot:
-    reboot_timeout: 100
-  register: reboot
-  when: kernel_upgrade.changed
+    - name: reboot after kernel upgrade
+      become: yes
+      reboot:
+        reboot_timeout: 100
+      register: reboot
+      when: kernel_upgrade.changed
 
-- name: ensure base operating system is up to date
-  become: yes
-  apt:
-    upgrade: dist
-    autoclean: yes
-    autoremove: yes
-  async: 600
-  poll: 10
-
-- name: check if reboot is needed
-  stat:
-    path: /var/run/reboot-required
-  register: reboot_required
+    - name: ensure base operating system is up to date
+      become: yes
+      apt:
+        upgrade: dist
+        autoclean: yes
+        autoremove: yes
+      async: 600
+      poll: 10
 
 - name: reboot if needed
   block:
+    - name: check if reboot is needed
+      stat:
+        path: /var/run/reboot-required
+      register: reboot_required
+
     - name: reboot
       become: yes
       reboot:
         reboot_timeout: 100
       register: reboot
+      when: reboot_required.stat.exists
 
     - name: cleanup after reboot
       become: yes
