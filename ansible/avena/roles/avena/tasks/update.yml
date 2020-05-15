@@ -10,7 +10,6 @@
     repo: "{{ avena_apt_backports }}"
   when: avena_apt_backports is defined
 
-# TODO: This is arm specific
 - name: ensure Linux Kernel is up to date
   become: yes
   apt:
@@ -19,6 +18,7 @@
       - linux-headers-armmp
     state: latest
     default_release: "{{ avena_apt_backports_release | default(omit) }}"
+  when: ansible_facts["ansible_architecture"] == "armv7l"
 
 - name: ensure base operating system is up to date
   become: yes
