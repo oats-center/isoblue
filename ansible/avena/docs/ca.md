@@ -1,4 +1,4 @@
-# Ansible role: avena-ca-vault
+# Ansible role: ca
 
 ## Description
 

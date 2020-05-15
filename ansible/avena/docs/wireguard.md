@@ -1,4 +1,4 @@
-# Ansible role: avena-wireguard
+# Ansible role: wireguard
 
 ## Description
 
