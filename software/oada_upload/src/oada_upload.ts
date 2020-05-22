@@ -56,7 +56,6 @@ interface DataIndex {
 }
 
 async function main(): Promise<void> {
-  const db = new Client();
 
   // Options
   const batchsize = process.env.oada_server_batchsize;
@@ -77,8 +76,25 @@ async function main(): Promise<void> {
     Token: ${token}
     db_connection_string: ${conString}`);
 
-  console.log('Connecting to database');
-  await db.connect();
+  console.log('Creating databse client');
+  //const db = new Client({ connectionString: conString });
+  
+  const db = new Client({
+    user: 'avena',
+    host: 'postgres',
+    database: 'avena',
+    password: 'password',
+    port: 5432,
+    //ssl: {rejectUnauthorized: false},
+  })
+  console.log('Client: ' + db.toString() + '\nConnecting to database');
+
+  try{ 
+    await db.connect();
+  }catch{
+    console.log('Something went wrong connecting... exiting');
+    process.exit(-1);
+  }
 
   // ADB: It is not clear to me if this service should own this table or not ... we
   // ADB: should think about this, because I could see many things wanting GPS.
@@ -97,6 +113,7 @@ async function main(): Promise<void> {
   console.log(`Connecting to OADA: ${domain}`);
   const oada = await connect({ domain, token });
 
+  console.log(`Entering for loop`);
   for (;;) {
     const gps = await db.query(
       `SELECT id, extract(epoch from time) as time, lat, lng, sent
@@ -111,7 +128,7 @@ async function main(): Promise<void> {
     // For debugging, exit. Eventually should wait and requery
     if (!gps.rows.length) {
       console.log('No unsent data found in database');
-      return sleep(1000);
+      sleep(1000);
     }
 
     console.info(`Found batch of ${gps.rows.length} GPS points`);
@@ -124,7 +141,7 @@ async function main(): Promise<void> {
       const t = moment.unix(p.time);
       const day = t.format('YYYY-MM-DD');
       const hour = t.format('HH');
-      const path = `/bookmarks/isoblue/${id}/location/day-index/${day}/hour-index/${hour}`;
+      const path = `/bookmarks/isoblue/device-index/${id}/location/day-index/${day}/hour-index/${hour}`;
       const pId = ksuid.randomSync().string;
 
       if (!data[path]) {
@@ -152,23 +169,28 @@ async function main(): Promise<void> {
     pEachSeries(Object.keys(data), async (path) => {
       try {
         console.debug(`GPS ID ${data[path].gpsId.join(',')} to OADA ${path}`);
+        console.log(`Data: %j`, data[path].locations);
         await oada.put({
           tree: isoblueDataTree,
           path,
           data: data[path].locations,
         });
+        console.log(`Done sending, exiting`);
+        process.exit(-1);
       } catch (e) {
+        console.log(`Error Uploading to OADA: ` + e);
         // Do something with the error ?
         // Maybe just treat this as an indication that Internet is gone?
       }
-
+      
       try {
         console.log('Updating database');
         await db.query(
-          'UPDATE gps SET send = TRUE WHERE id IN ($1)',
+          'UPDATE gps SET sent = TRUE WHERE id IN ($1)',
           data[path].gpsId
         );
       } catch (e) {
+        console.error(`Error updating database with sent information`);
         // Do something with the error?
         // This seems pretty fatal
       }
