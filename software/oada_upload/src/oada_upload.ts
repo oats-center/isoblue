@@ -66,33 +66,45 @@ async function main(): Promise<void> {
   assert.string(domain);
   const token = process.env.oada_server_token;
   assert.string(token);
-  const conString = process.env.db_connection_string;
-  assert.string(conString);
+  const db_user = process.env.db_user;
+  assert.string(db_user);
+  const db_host = process.env.db_host;
+  assert.string(db_host);
+  const db_database = process.env.db_database;
+  assert.string(db_database);
+  const db_password = process.env.db_password;
+  assert.string(db_password);
+  const db_port = Number(process.env.db_port);
+  assert.integer(db_port);
+
 
   console.log(`Options from enviroment lets:
     Batch size: ${batchsize}
     ID: ${id}
     Domain: ${domain}
     Token: ${token}
-    db_connection_string: ${conString}`);
+    DB User: ${db_user}
+    DB Host: ${db_host}
+    DB Database: ${db_database}
+    DB Password ${db_password}
+    DB Port ${db_port}`);
 
   console.log('Creating databse client');
   //const db = new Client({ connectionString: conString });
   
   const db = new Client({
-    user: 'avena',
-    host: 'postgres',
-    database: 'avena',
-    password: 'password',
-    port: 5432,
-    //ssl: {rejectUnauthorized: false},
+    user: db_user,
+    host: db_host,
+    database: db_database,
+    password: db_password,
+    port: db_port,
   })
-  console.log('Client: ' + db.toString() + '\nConnecting to database');
+  console.log('Connecting to database');
 
   try{ 
     await db.connect();
   }catch{
-    console.log('Something went wrong connecting... exiting');
+    console.log('Something went wrong connecting to the database... exiting');
     process.exit(-1);
   }
 
@@ -112,7 +124,7 @@ async function main(): Promise<void> {
 
   console.log(`Connecting to OADA: ${domain}`);
   const oada = await connect({ domain, token });
-
+  
   console.log(`Entering for loop`);
   for (;;) {
     const gps = await db.query(
@@ -128,9 +140,10 @@ async function main(): Promise<void> {
     // For debugging, exit. Eventually should wait and requery
     if (!gps.rows.length) {
       console.log('No unsent data found in database');
-      sleep(1000);
+      await sleep(1000);
+      continue;
     }
-
+    
     console.info(`Found batch of ${gps.rows.length} GPS points`);
     console.debug(`Head time: ${gps.rows[0].time}`);
 
@@ -152,50 +165,58 @@ async function main(): Promise<void> {
       }
 
       data[path].gpsId.push(p.id);
-      data[path].locations = {
-        [pId]: {
-          id: pId,
-          time: {
-            value: p.time,
-          },
-          location: {
-            lat: p.lat,
-            lng: p.lng,
-          },
+      data[path].locations[pId] = {
+        id: pId,
+        time: {
+          value: p.time,
+        },
+        location: {
+          lat: p.lat,
+          lng: p.lng,
         },
       };
+      
     });
-
-    pEachSeries(Object.keys(data), async (path) => {
+    console.debug(`Done with the forEach loop\n`);
+    await pEachSeries(Object.keys(data), async (path) => {
+      console.debug(`Iterating pEachSeries loop with path ${path}`);
+      var update_success = true;
+      var res;
       try {
         console.debug(`GPS ID ${data[path].gpsId.join(',')} to OADA ${path}`);
-        console.log(`Data: %j`, data[path].locations);
-        await oada.put({
+        //console.debug(`Data[path]: %j`, data[path]);
+        console.debug(`Calling oata.put:`);
+        res = await oada.put({
           tree: isoblueDataTree,
           path,
-          data: data[path].locations,
+          data: {data: data[path].locations},
         });
-        console.log(`Done sending, exiting`);
-        process.exit(-1);
+        console.debug(`oada put finished: `, res);
       } catch (e) {
-        console.log(`Error Uploading to OADA: ` + e);
+        console.error(`Error Uploading to OADA: %p`, e, e.message, (<Error>e).message, ` `, res);
+        update_success = false;
         // Do something with the error ?
         // Maybe just treat this as an indication that Internet is gone?
       }
-      
-      try {
-        console.log('Updating database');
-        await db.query(
-          'UPDATE gps SET sent = TRUE WHERE id IN ($1)',
-          data[path].gpsId
-        );
-      } catch (e) {
-        console.error(`Error updating database with sent information`);
-        // Do something with the error?
-        // This seems pretty fatal
+      console.debug(`Done uploading to OADA`);
+      if (update_success){
+        try {
+          console.debug(`Updating database for id ${data[path].gpsId}`);
+          // Matching arrays do not always work like expected
+          // https://github.com/brianc/node-postgres/wiki/FAQ#11-how-do-i-build-a-where-foo-in--query-to-find-rows-matching-an-array-of-values
+          await db.query(
+            'UPDATE gps SET sent = TRUE WHERE id = ANY($1)',
+            [data[path].gpsId]
+          );
+        } catch (e) {
+          console.error(`Error updating database with sent information: `, (<Error>e).message);
+          // Do something with the error?
+          // This seems pretty fatal
+        }
       }
       await sleep(500);
     });
+    console.debug(`End of pEachSeries loop`)
   }
 }
 
