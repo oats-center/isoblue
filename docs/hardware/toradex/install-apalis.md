@@ -66,7 +66,7 @@ may have to manually power cycle the device._
 
 ## Known issues
 
-- **Issue:** Wake-on-can does not work out of the box on Debian 10.3.
+- **Issue:** Wake-on-can does not work out of the box on Debian 10.4.
 
   **Solution:**: The current release of Avena upgrades to most recent
   [backports](https://backports.debian.org/) kernel, which contains the needed
