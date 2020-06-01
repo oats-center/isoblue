@@ -1,12 +1,7 @@
 // TODO
 // Check for and gracefully handle invalid certificate
 // Check for and gracefully handle no internet
-// Seperate queried data into buckets for sending
-// Use seperate table for tracking if someting sent with a union seletc
-
-// Maybe just detect @oada/client failure, and re-queue with some sort of delay?
-// const dns = require('dns').promises; // DNS Lookup used to check internet connectivity
-
+// Use seperate table for tracking if someting sent with a union select
 
 // Quick fix while https://github.com/sindresorhus/is/issues/85 is still an issue
 declare global {
@@ -30,7 +25,7 @@ import { isoblueDataTree } from './trees';
 // dotenv
 config();
 
-// Main promise chain starts here
+// Main program starts here
 // Desired program flow:
 //
 // 1) Ensure postgres table is setup
@@ -39,9 +34,9 @@ config();
 // 4) While true:
 //   4a) Await internet connection
 //   4b) Query db for x unsent messages
-//   4c) Massage data into proper oada-upoad format
+//   4c) Massage data into proper oada-upload format
 //   4d) Sort data into batches based on topic and hour collected
-//   4e) Upload data using oada-cache, verify success
+//   4e) Upload data using oada-cache/client, verify success
 //   4f) Mark entries successfully updated as sent in db
 //   4g) Optional pause to not overload oada server
 // 5) Gracefully handle errors
@@ -90,8 +85,6 @@ async function main(): Promise<void> {
     DB Port ${db_port}`);
 
   console.log('Creating databse client');
-  //const db = new Client({ connectionString: conString });
-  
   const db = new Client({
     user: db_user,
     host: db_host,
@@ -103,14 +96,17 @@ async function main(): Promise<void> {
 
   try{ 
     await db.connect();
-  }catch{
-    console.log('Something went wrong connecting to the database... exiting');
+  }catch (e){
+    console.error('Fatal: Error connecting to the database: ', (<Error>e).message,);
     process.exit(-1);
   }
 
   // ADB: It is not clear to me if this service should own this table or not ... we
   // ADB: should think about this, because I could see many things wanting GPS.
   // ADB: Maybe this service should own a link table to mark `gps`.`id` as sent?
+  // AJN: ^^^ This works for now, but especially when we have mutliple processes reading
+  //      GPS data and multiple tables to upload (CAN data, etc) it would be better to
+  //      use link tables. This is in the TODO
   console.log('Ensure DB table exists');
   await db.query(
     `CREATE TABLE IF NOT EXISTS gps (
@@ -125,7 +121,6 @@ async function main(): Promise<void> {
   console.log(`Connecting to OADA: ${domain}`);
   const oada = await connect({ domain, token });
   
-  console.log(`Entering for loop`);
   for (;;) {
     const gps = await db.query(
       `SELECT id, extract(epoch from time) as time, lat, lng, sent
@@ -136,8 +131,8 @@ async function main(): Promise<void> {
       [batchsize]
     );
 
-    // If we get no data from the databse, we sent everything
-    // For debugging, exit. Eventually should wait and requery
+    // If we get no data from the databse, we sent everything.
+    // Wait 1s for the data to start to refill the db and requery
     if (!gps.rows.length) {
       console.log('No unsent data found in database');
       await sleep(1000);
@@ -177,15 +172,11 @@ async function main(): Promise<void> {
       };
       
     });
-    console.debug(`Done with the forEach loop\n`);
     await pEachSeries(Object.keys(data), async (path) => {
-      console.debug(`Iterating pEachSeries loop with path ${path}`);
       var update_success = true;
       var res;
       try {
         console.debug(`GPS ID ${data[path].gpsId.join(',')} to OADA ${path}`);
-        //console.debug(`Data[path]: %j`, data[path]);
-        console.debug(`Calling oata.put:`);
         res = await oada.put({
           tree: isoblueDataTree,
           path,
@@ -193,15 +184,15 @@ async function main(): Promise<void> {
         });
         console.debug(`oada put finished: `, res);
       } catch (e) {
+        // Sending is not a success. This is either due to a misconfiguration or lack of internet.
+        // Assume that everything is configured correctly, and rebuild the queue for the next try.
         console.error(`Error Uploading to OADA: %p`, e, e.message, (<Error>e).message, ` `, res);
         update_success = false;
-        // Do something with the error ?
-        // Maybe just treat this as an indication that Internet is gone?
       }
       console.debug(`Done uploading to OADA`);
       if (update_success){
         try {
-          console.debug(`Updating database for id ${data[path].gpsId}`);
+          console.debug(`Updating database for ids ${data[path].gpsId}`);
           // Matching arrays do not always work like expected
           // https://github.com/brianc/node-postgres/wiki/FAQ#11-how-do-i-build-a-where-foo-in--query-to-find-rows-matching-an-array-of-values
           await db.query(
@@ -211,12 +202,13 @@ async function main(): Promise<void> {
         } catch (e) {
           console.error(`Error updating database with sent information: `, (<Error>e).message);
           // Do something with the error?
-          // This seems pretty fatal
+          // This seems pretty fatal, exit and hope that when docker restarting the process fixes it
+          console.error(`FATAL: Database exit error`);
+          process.exit(-1);
         }
       }
       await sleep(500);
     });
-    console.debug(`End of pEachSeries loop`)
   }
 }
 
@@ -246,6 +238,6 @@ function sleep(ms: number): Promise<void> {
 }
 
 main().catch((err) => {
-  console.error(`Something unexpected happened! ${err}`);
+  console.error(`Something unexpected happened! ${err}\n`, (<Error>err).message);
   process.exit(-1);
 });
