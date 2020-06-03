@@ -101,33 +101,88 @@ async function main(): Promise<void> {
     process.exit(-1);
   }
 
-  // ADB: It is not clear to me if this service should own this table or not ... we
-  // ADB: should think about this, because I could see many things wanting GPS.
-  // ADB: Maybe this service should own a link table to mark `gps`.`id` as sent?
-  // AJN: ^^^ This works for now, but especially when we have mutliple processes reading
-  //      GPS data and multiple tables to upload (CAN data, etc) it would be better to
-  //      use link tables. This is in the TODO
-  console.log('Ensure DB table exists');
+  console.log('Ensuring GPS DB table exists');
   await db.query(
     `CREATE TABLE IF NOT EXISTS gps (
-      "id" BIGSERIAL NOT NULL,
-      "time" timestamptz NOT NULL,
-      "lat" double precision NOT NULL,
-      "lng" double precision NOT NULL,
-      "sent" boolean NOT NULL
-    )`
+      id BIGSERIAL UNIQUE NOT NULL,
+      time timestamptz NOT NULL,
+      lat double precision NOT NULL,
+      lng double precision NOT NULL
+    );`
   );
+  console.log(`Ensuring own sent table exists`);
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS gps_sent (
+      g_id BIGSERIAL NOT NULL references gps(id),
+      sent boolean DEFAULT FALSE
+    );`
+  );
+
+  console.log(`Ensuring triggers to sync gps ids to sent db are created`);
+  console.debug(`\tCreating sent row procedure`);
+  await db.query(`
+    CREATE OR REPLACE FUNCTION create_sent_row_procedure() RETURNS trigger AS $$
+    BEGIN
+    INSERT INTO gps_sent(g_id, sent)
+    VALUES(NEW.id, FALSE);
+    
+    RETURN NEW;
+    END;
+    $$
+    LANGUAGE 'plpgsql';`
+  );
+
+  // TODO: Currently we delete the trigger and recreate it. Apparently there is no
+  // 'CREATE TRIGGER IF NOT EXISTS'. Is there a better way to ensure a trigger is 
+  // created that may already exist?
+  console.debug(`\tCreating trigger for creating rows`);
+  await db.query(`
+    DROP TRIGGER IF EXISTS create_sent_row_trig on public.gps;
+    CREATE TRIGGER create_sent_row_trig
+           AFTER INSERT on gps
+           FOR EACH ROW
+           EXECUTE FUNCTION create_sent_row_procedure();`
+  );
+  console.debug(`\tCreating delete row procedure`);
+  await db.query(`
+    CREATE OR REPLACE FUNCTION delete_sent_row_procedure() RETURNS trigger AS $$
+    BEGIN
+    DELETE FROM gps_sent where g_id = OLD.id;
+    
+    RETURN OLD;
+    END;
+    $$
+    LANGUAGE 'plpgsql';`
+  );
+  console.debug('\tCreating trigger for deleting rows');
+  await db.query(`
+    DROP TRIGGER IF EXISTS delete_sent_row_trig on public.gps;
+    CREATE TRIGGER delete_sent_row_trig
+           BEFORE DELETE on gps
+           FOR EACH ROW
+           EXECUTE FUNCTION delete_sent_row_procedure();`
+  );
+
+  // This statement took more than 10 minuites of one of the
+  // cloudradio machines when the database was loaded with 
+  // > 300,000 data points. That is about a season of data
+  // but should still be careful. Going to leave it commented out
+  // for now until we determine a more efficient way to do this
+  /*console.log(`Copying id's not already in the sent db`);
+  await db.query(`SELECT id FROM gps WHERE gps.id NOT IN (SELECT g_id from gps_sent)`);*/
 
   console.log(`Connecting to OADA: ${domain}`);
   const oada = await connect({ domain, token });
   
   for (;;) {
     const gps = await db.query(
-      `SELECT id, extract(epoch from time) as time, lat, lng, sent
-       FROM gps
-       WHERE sent = FALSE
-       ORDER BY time DESC
-       LIMIT $1`,
+      `SELECT gps.id, extract(epoch from gps.time) as time, gps.lat, gps.lng, gps_sent.sent
+        FROM gps
+        JOIN gps_sent ON gps.id = gps_sent.g_id
+
+        WHERE sent = FALSE
+        ORDER BY time DESC
+        LIMIT $1;`,
       [batchsize]
     );
 
@@ -196,7 +251,7 @@ async function main(): Promise<void> {
           // Matching arrays do not always work like expected
           // https://github.com/brianc/node-postgres/wiki/FAQ#11-how-do-i-build-a-where-foo-in--query-to-find-rows-matching-an-array-of-values
           await db.query(
-            'UPDATE gps SET sent = TRUE WHERE id = ANY($1)',
+            'UPDATE gps_sent SET sent = TRUE WHERE g_id = ANY($1)',
             [data[path].gpsId]
           );
         } catch (e) {
