@@ -1,7 +1,6 @@
 // TODO
 // Check for and gracefully handle invalid certificate
 // Check for and gracefully handle no internet
-// Use seperate table for tracking if someting sent with a union select
 
 // Quick fix while https://github.com/sindresorhus/is/issues/85 is still an issue
 declare global {

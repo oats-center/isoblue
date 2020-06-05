@@ -2,12 +2,13 @@ version: '3.1'
 services:
   # use Docker secrets?
   postgres:
-    image: postgres
+    image: timescale/timescaledb:latest-pg12
     restart: always
     environment:
       POSTGRES_PASSWORD: "password"
       POSTGRES_USER: "avena"
       POSTGRES_DB: "avena"
+      TIMESCALEDB_TELEMETRY: "off"
     ports:
       - 5432:5432
     volumes:
@@ -17,8 +18,18 @@ services:
     build:
       context: ./oada_upload
     restart: always
-    env_file:
-      oada_variables.env
+    environment:
+      NODE_TLS_REJECT_UNAUTHORIZED: "0"
+      isoblue_id: "ib997"
+      oada_server_batchsize: "1000"
+      oada_server_basepath: "/bookmarks/isoblue/device-index"
+      oada_server_url: "cloudradio33.ecn.purdue.edu"
+      oada_server_token: "abc"
+      db_user: "avena"
+      db_host: "postgres"
+      db_database: "avena"
+      db_password: "password"
+      db_port: "5432"
     depends_on:
       - postgres
   adminer: # For dev ONLY
