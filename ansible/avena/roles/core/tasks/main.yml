@@ -26,6 +26,13 @@
       tags: ssh
   tags: ssh
 
+- name: Run time tasks
+  include_tasks:
+    file: time.yml
+    apply:
+      tags: time
+  tags: time
+
 - name: Run docker tasks
   include_tasks:
     file: docker.yml

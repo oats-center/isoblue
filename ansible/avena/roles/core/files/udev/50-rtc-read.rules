@@ -1,0 +1,1 @@
+ACTION=="add", SUBSYSTEMS=="i2c", SUBSYSTEM=="rtc", KERNEL=="rtc0", ATTR{hctosys}=="0", RUN+="/sbin/hwclock '--rtc=$root/$name' --hctosys", RUN+="/sbin/logger --tag systemd-udevd 'System clock set from i2c hardware clock $name ($attr{name})'"

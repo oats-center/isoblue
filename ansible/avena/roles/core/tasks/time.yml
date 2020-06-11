@@ -1,0 +1,9 @@
+- name: Ensure RTC rules are copied
+  become:
+  copy:
+    dest: /etc/udev/rules.d/50-rtc-read.rules
+    src: files/udev/50-rtc-read.rules
+    owner: root
+    group: root
+    mode: "0644"
+  notify: reload udev
