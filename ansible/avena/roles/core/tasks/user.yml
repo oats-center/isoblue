@@ -3,6 +3,7 @@
   user:
     name: "{{ ansible_user }}"
     group: "{{ ansible_user }}"
+    append: yes
     comment: Avena control user
     groups: sudo
     shell: /bin/bash
