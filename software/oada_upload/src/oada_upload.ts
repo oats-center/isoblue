@@ -32,7 +32,7 @@ config();
 //
 // 1) Ensure postgres table is setup
 // 2) Await internet connection
-// 3) Connect oada-cache to server
+// 3) Connect oada-cache/client to server
 // 4) While true:
 //   4a) Await internet connection
 //   4b) Query db for x unsent messages
@@ -48,8 +48,8 @@ config();
 // The database schema has been a moving target but this is it's current state:
 //
 // One databse for GPS points/timestamps only. Eventually this should be made read-only
-// by everyone but the process filling the db. This process ensures that the db is setup
-// incase it boots before the process filling it but does not write to it
+// to everyone but the process filling the db. This process ensures that the db is setup
+// in case it boots before the process filling it but does not write to it
 //
 // One db "owned" by this process. It is linked to the GPS DB using triggers or foreign
 // keys + cascades on update/delete. This is used by this process to keep track of which
@@ -59,7 +59,8 @@ config();
 // to organize data pulled from the database
 interface DataIndex {
   [key: string]: {
-    gpsId: Array<string>;
+    epochs: Array<string>;
+    timetzs: Array<string>;
     locations: {
       [key: string]: Omit<Location, Location['_type']>;
     };
@@ -165,17 +166,16 @@ async function main(): Promise<void> {
     );`
   );
 
-  // timescale hypertables are effective on monotonically incrementing ids as well
-  // which fits our sent table. We must specify the time chunk, which with defaults to 1 week
-  // with time based data. If we are expecting 1 data point per second, that comes out to 604800
-  //console.log(`Ensuring sent table is a timescaledb hypertable`);
-  //await db.query(`
-  //  SELECT create_hypertable('gps_sent', 'g_time', if_not_exists => TRUE, migrate_data => TRUE);
-  //`);
+  // Timescabdb hypertable for our sent table as well
+  console.log(`Ensuring sent table is a timescaledb hypertable`);
+  await db.query(`
+    SELECT create_hypertable('gps_sent', 'g_time', if_not_exists => TRUE, migrate_data => TRUE);
+  `);
 
 
   // To keep data synced in our sent table, we need to add triggers that will automagically
-  // insert/delete a row in out table when one is inserted into the gps table
+  // insert/delete a row in out table when one is inserted into the gps table. We cannot use
+  // foreign keys easily due to timescaledb restrictions
   // Postgres requires us to define a function and then a trigger for it as opposed to
   // other databases that put the function inline with the tigger creation
   console.log(`Ensuring triggers to sync gps ids to sent db are created`);
@@ -244,7 +244,7 @@ async function main(): Promise<void> {
   for (;;) {
     // Extract x number of unsent data points
     const gps = await db.query(
-      `SELECT extract(epoch from gps.time) as time, gps.lat, gps.lng, gps_sent.sent
+      `SELECT gps.time as time_tz, extract(epoch from gps.time) as time_epoch, gps.lat, gps.lng, gps_sent.sent
         FROM gps
         JOIN gps_sent ON gps.time = gps_sent.g_time
 
@@ -263,17 +263,17 @@ async function main(): Promise<void> {
     }
     
     console.info(`Found batch of ${gps.rows.length} GPS points`);
-    console.debug(`Head time: ${gps.rows[0].time}`);
+    console.debug(`Head time: ${gps.rows[0].time_tz}`);
 
     // Create DataIndex object(?) for filling data in
     const data: DataIndex = {};
     // For each datapoint used, extract data and begin to sort them into buckets to be uploaded
     // Due to how the OADA server is setup, we the buckets will be by hour collected
     gps.rows.forEach((p) => {
-      console.debug(`Processing GPS timestamp: ${p.time}`);
+      //console.debug(`Processing GPS time: ${p.time_tz}`);
 
       // Extract time and use it to create path that it will be uploaded it
-      const t = moment.unix(p.time);
+      const t = moment.unix(p.time_epoch);
       const day = t.format('YYYY-MM-DD');
       const hour = t.format('HH');
       const path = `/bookmarks/isoblue/device-index/${id}/location/day-index/${day}/hour-index/${hour}`;
@@ -284,13 +284,15 @@ async function main(): Promise<void> {
       // If the current bucket does not exist, create it
       if (!data[path]) {
         data[path] = {
-          gpsId: [],
+          epochs: [],
+          timetzs: [],
           locations: {},
         };
       }
 
       // Insert our data into the bucket
-      data[path].gpsId.push(p.time);
+      data[path].epochs.push(p.time_ecpoch);
+      data[path].timetzs.push(p.time_tz);
       data[path].locations[pId] = {
         id: pId,
         time: {
@@ -310,13 +312,15 @@ async function main(): Promise<void> {
 
       // Attempt the put to OADA
       try {
-        console.debug(`GPS ID ${data[path].gpsId.join(',')} to OADA ${path}`);
+        //console.debug(`GPS ID ${data[path].epochs.join(',')} to OADA ${path}`);
+        console.debug(`${data[path].epochs.length} points to OADA ${path}`);
         res = await oada.put({
           tree: isoblueDataTree,
           path,
           data: {data: data[path].locations},
         });
-        console.debug(`oada put finished: `, res);
+        //console.debug(`oada put finished: `, res);
+        console.debug(`OADA put finished`);
       } catch (e) {
         // The PUT is not a success. This is either due to a misconfiguration or lack of internet.
         // Assume that everything is configured correctly rebuild the queue for the next try.
@@ -328,21 +332,15 @@ async function main(): Promise<void> {
 
         // Update the databse that all of the ids are now sent successfully
         try {
-          console.debug(`Updating database for ids ${data[path].gpsId}`);
+          console.debug(`Updating database for ${data[path].timetzs.length} ids`);
           // Matching arrays do not always work like expected
           // https://github.com/brianc/node-postgres/wiki/FAQ#11-how-do-i-build-a-where-foo-in--query-to-find-rows-matching-an-array-of-values
-          var tz_values = new Array(0);
+          
+          console.debug(`${data[path].timetzs.length} rows to update`)
 
-          // We have our ids in unix time. They must be converted to timestamptz first
-          // TODO: Don't convert it to unix time in the first place
-          //       This is rediculously parallelizable
-          for(var i = 0; i < data[path].gpsId.length; i++){
-            const t = moment.unix(Number(data[path].gpsId[i]));
-            tz_values.push(t.format('YYYY-MM-DD HH:MM:SS'));
-          }
           await db.query(`
             UPDATE gps_sent SET sent = TRUE WHERE g_time = ANY($1)`,
-            [tz_values]
+            [data[path].timetzs]
           );
         } catch (e) {
           console.error(`Error updating database with sent information: `, (<Error>e).message);
