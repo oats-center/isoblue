@@ -1,0 +1,8 @@
+- name: reload systemd
+  become: yes
+  systemd:
+    daemon_reload: yes
+
+- name: reload udev
+  become: yes
+  shell: udevadm control --reload-rules && udevadm trigger

@@ -1,0 +1,14 @@
+[Unit]
+Description=Enable %I interface
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/sbin/ip link set %I type can bitrate 250000
+ExecStart=/sbin/ip link set %I up
+ExecStart=/usr/bin/bash -c 'echo "enabled" > /sys/class/net/%I/device/power/wakeup'
+ExecStop=/sbin/ip link set %I down
+ExecStop=/usr/bin/bash -c 'echo "disabled" > /sys/class/net/%I/device/power/wakeup'
+
+[Install]
+WantedBy=multi-user.target

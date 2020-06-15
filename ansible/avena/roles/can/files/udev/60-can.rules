@@ -1,0 +1,1 @@
+KERNEL=="can[0-9]*", TAG+="systemd", ENV{SYSTEMD_WANTS}="can@%k.service"
