@@ -1,0 +1,27 @@
+- name: reload udev
+  become: yes
+  shell: udevadm control --reload-rules && udevadm trigger
+
+- name: restart apparmor
+  become: yes
+  systemd:
+    name: apparmor
+    state: restarted
+
+- name: reload systemd
+  become: yes
+  systemd:
+    daemon_reload: yes
+
+- name: restart chrony
+  become: yes
+  systemd:
+    name: chrony
+    state: restarted
+  notify: restart gpsd
+
+- name: restart gpsd
+  become: yes
+  systemd:
+    name: gpsd
+    state: restarted

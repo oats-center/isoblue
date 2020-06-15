@@ -2,14 +2,13 @@
   become: yes
   command: 'sysctl -p /etc/sysctl.d/*.conf'
 
-- name: reload systemd
-  become: yes
-  systemd:
-    daemon_reload: yes
-
 - name: rebuild grub
   become: yes
   command: /usr/sbin/update-grub
+
+- name: reload udev
+  become: yes
+  shell: udevadm control --reload-rules && udevadm trigger
 
 - name: reload sshd
   become: yes
@@ -17,27 +16,10 @@
     name: sshd
     state: reloaded
 
-- name: restart apparmor
+- name: restart networking
   become: yes
   systemd:
-    name: apparmor
-    state: restarted
-
-- name: reload udev
-  become: yes
-  shell: udevadm control --reload-rules && udevadm trigger
-
-- name: restart chrony
-  become: yes
-  systemd:
-    name: chrony
-    state: restarted
-  notify: restart gpsd
-
-- name: restart gpsd
-  become: yes
-  systemd:
-    name: gpsd
+    name: networking
     state: restarted
 
 - name: reload network-manager
@@ -45,12 +27,6 @@
   systemd:
     name: NetworkManager
     state: reloaded
-
-- name: restart networking
-  become: yes
-  systemd:
-    name: networking
-    state: restarted
 
 - name: restart docker
   become: yes

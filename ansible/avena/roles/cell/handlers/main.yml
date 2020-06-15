@@ -1,0 +1,5 @@
+- name: reload network-manager
+  become: yes
+  systemd:
+    name: NetworkManager
+    state: reloaded
