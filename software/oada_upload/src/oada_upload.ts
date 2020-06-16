@@ -139,22 +139,22 @@ async function main(): Promise<void> {
     CREATE EXTENSION IF NOT EXISTS timescaledb;`
   );
 
-  // Create the GPS DB table
+  // Check if the GPS DB table exists
   console.log('Ensuring GPS DB table exists');
-  await db.query(`
-    CREATE TABLE IF NOT EXISTS gps (
-    time timestamptz UNIQUE NOT NULL,
-    lat double precision NOT NULL,
-    lng double precision NOT NULL
+  const gps_exist = await db.query(`
+    SELECT EXISTS (
+      SELECT FROM information_schema.tables
+      WHERE  table_schema = 'public'
+      AND    table_name   = 'gps'
     );`
   );
 
-  // Enable timescabledb hypertable for this table
-  console.log(`Ensuring that GPS DB table is a timescaledb hypertable`);
-  await db.query(`
-    SELECT create_hypertable('gps', 'time', if_not_exists => TRUE, migrate_data => TRUE);`
-  );
-
+  if (gps_exist.rows[0].exists != 1){
+    // Database does not exist. Exit and try again
+    console.error(`FATAL: GPS table in databse does not exist`);
+    process.exit(-1);
+  }
+  
   // Create table to track what data has been sent
   // Previously we used IDs to keep track, but this has caused issues with timescaledb,
   // so we are currently using the timestamp itself
@@ -343,10 +343,9 @@ async function main(): Promise<void> {
             [data[path].timetzs]
           );
         } catch (e) {
-          console.error(`Error updating database with sent information: `, (<Error>e).message);
+          console.error(`FATAL: Error updating database with sent information: `, (<Error>e).message);
           // Do something with the error?
           // This seems pretty fatal, exit and hope that when docker restarting the process fixes it
-          console.error(`FATAL: Database exit error`);
           process.exit(-1);
         }
       }
