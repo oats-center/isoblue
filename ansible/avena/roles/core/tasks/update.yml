@@ -1,27 +1,39 @@
 - name: Update system
   block:
-    - name: Assume buster-backports for Debian buster
-      set_fact:
-        avena_apt_backports: "deb http://deb.debian.org/debian buster-backports main"
-        avena_apt_backports_release: "buster-backports"
-      when: ansible_distribution_release == "buster"
+    - name: Ensure non-free is available to apt
+      become: yes
+      apt_repository:
+        repo: "deb http://deb.debian.org/debian non-free main"
 
     - name: Ensure buster-backports is available to apt
       become: yes
       apt_repository:
-        repo: "{{ avena_apt_backports }}"
-      when: avena_apt_backports is defined
+        repo: "deb http://deb.debian.org/debian buster-backports main"
+      when: ansible_distribution_release == "buster"
 
-    - name: ensure Linux Kernel is up to date
-      become: yes
-      apt:
-        name:
-          - linux-image-armmp
-          - linux-headers-armmp
-        state: latest
-        default_release: "{{ avena_apt_backports_release | default(omit) }}"
-      register: kernel_upgrade
-      when: ansible_facts.architecture == "armv7l"
+    - block: kernel upgrade
+      tasks:
+        - name: ensure Linux Kernel is up to date (arm)
+          become: yes
+          apt:
+            name:
+              - linux-image-armmp
+              - linux-headers-armmp
+            state: latest
+            default_release: "{{ "buster-backports" if ansible_distribution_release == "buster" | default(omit) }}"
+          register: kernel_upgrade
+          when: ansible_facts.architecture == "armv7l"
+
+        - name: ensure Linux Kernel is up to date (x86_64)
+          become: yes
+          apt:
+            name:
+              - linux-image-amd64
+              - linux-headers-amd64
+            state: latest
+            default_release: "{{ "buster-backports" if ansible_distribution_release == "buster" | default(omit) }}"
+          register: kernel_upgrade
+          when: ansible_facts.architecture == "x86_64"
 
     - name: reboot after kernel upgrade
       become: yes
