@@ -317,7 +317,7 @@ async function main(): Promise<void> {
         res = await oada.put({
           tree: isoblueDataTree,
           path,
-          data: {data: data[path].locations},
+          data: JSON.stringify({data: data[path].locations}),
         });
         //console.debug(`oada put finished: `, res);
         console.debug(`OADA put finished`);

@@ -14,7 +14,7 @@
     "build": "tsc"
   },
   "dependencies": {
-    "@oada/client": "^0.0.3",
+    "@oada/client": "^1.0.2",
     "@oada/formats": "^1.0.3",
     "@oada/types": "^1.0.5",
     "@sindresorhus/is": "^2.1.1",
