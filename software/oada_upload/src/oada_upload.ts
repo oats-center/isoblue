@@ -291,12 +291,12 @@ async function main(): Promise<void> {
       }
 
       // Insert our data into the bucket
-      data[path].epochs.push(p.time_ecpoch);
+      data[path].epochs.push(p.time_epoch);
       data[path].timetzs.push(p.time_tz);
       data[path].locations[pId] = {
         id: pId,
         time: {
-          value: p.time,
+          value: p.time_epoch,
         },
         location: {
           lat: p.lat,
@@ -317,7 +317,7 @@ async function main(): Promise<void> {
         res = await oada.put({
           tree: isoblueDataTree,
           path,
-          data: JSON.stringify({data: data[path].locations}),
+          data: JSON.parse(JSON.stringify({data: data[path].locations})),
         });
         //console.debug(`oada put finished: `, res);
         console.debug(`OADA put finished`);
