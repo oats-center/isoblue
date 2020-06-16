@@ -19,11 +19,10 @@ services:
       context: ./oada_upload
     restart: always
     environment:
-      NODE_TLS_REJECT_UNAUTHORIZED: "0"
-      isoblue_id: "ib997"
+      isoblue_id: "ib999"
       oada_server_batchsize: "1000"
       oada_server_basepath: "/bookmarks/isoblue/device-index"
-      oada_server_url: "cloudradio33.ecn.purdue.edu"
+      oada_server_url: "server_url.example.com"
       oada_server_token: "abc"
       db_user: "avena"
       db_host: "postgres"
@@ -32,53 +31,5 @@ services:
       db_port: "5432"
     depends_on:
       - postgres
-  adminer: # For dev ONLY
-    image: adminer
-    restart: always
-    ports:
-      - 8080:8080
-  gps:
-    image: abalmos/gps
-    restart: always
-    environment:
-      GPSD_URL: "172.17.0.1:2947"
-      DATABASE_URL: "postgres://avena:1ubuntu9@@postgres/avena"
-  kafka:
-    image: konradmalik/kafka-armhf
-    ports:
-      - "9092:9092"
-    environment:
-      KAFKA_ADVERTISED_HOST_NAME: "kafka"
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-  zookeeper:
-    image: konradmalik/zookeeper-armhf
-    ports:
-      - "2181:2181"
-  kafka-gps-log:
-    image: wang701/kafka-gps-log:latest-armhf
-    restart: always
-    environment:
-      kafka_topic: "${gps_topic}"
-  kafka-can-log:
-    image: wang701/kafka-can-log:latest-armhf
-    restart: always
-    network_mode: host
-    extra_hosts:
-      kafka: 127.0.0.1
-    environment:
-      can_dev: "${tra_interface}"
-      kafka_topic: "${tra_interface}"
-  engine-rpm-pub:
-    image: wang701/engine-rpm-pub:latest-armhf
-    restart: always
-    environment:
-      isoblue_id: "${isoblue_id}"
-      kafka_topic: "${tra_interface}"
-      mqtt_topic: "${mqtt_topic}"
-      cloud_domain: "${avena_domain}"
-      mqtt_port: "${mqtt_port}"
 volumes:
   postgres:
