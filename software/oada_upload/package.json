@@ -10,8 +10,7 @@
   ],
   "license": "MIT",
   "scripts": {
-    "start": "ts-node --project tsconfig.json src/oada_upload.ts",
-    "build": "tsc"
+    "start": "ts-node src/oada_upload.ts"
   },
   "dependencies": {
     "@oada/client": "^1.0.2",

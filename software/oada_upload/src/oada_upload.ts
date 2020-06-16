@@ -18,6 +18,7 @@ import { config } from 'dotenv';
 import { Client } from 'pg';
 import moment from 'moment';
 import ksuid from 'ksuid';
+import { randomBytes } from 'crypto'
 import pEachSeries from 'p-each-series';
 import { connect } from '@oada/client';
 import { V1 as Location } from '@oada/types/oada/isoblue/location/v1';
@@ -238,7 +239,8 @@ async function main(): Promise<void> {
   await db.query(`SELECT time FROM gps WHERE gps.time NOT IN (SELECT g_time from gps_sent)`);*/
 
   console.log(`Connecting to OADA: ${domain}`);
-  const oada = await connect({ domain, token });
+  // Will add concurrency once I figure out the Promise.All() in the next section
+  const oada = await connect({ domain, token, concurrency: 1 });
   
   // Infinite loop to continuously check the db for unsent data
   for (;;) {
@@ -278,8 +280,7 @@ async function main(): Promise<void> {
       const hour = t.format('HH');
       const path = `/bookmarks/isoblue/device-index/${id}/location/day-index/${day}/hour-index/${hour}`;
       // Create a UUID that can be coarsely sorted by time of creation
-      // TODO: find a way to use the timestamp to create the id instead of the current time
-      const pId = ksuid.randomSync().string;
+      const pId = ksuid.fromParts(p.time_epoch*1000, randomBytes(16)).string;
 
       // If the current bucket does not exist, create it
       if (!data[path]) {
