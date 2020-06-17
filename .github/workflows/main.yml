@@ -57,11 +57,12 @@ jobs:
             --build-arg VERSION=${VERSION} \
             --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
             --build-arg GIT_REF=${GITHUB_SHA::8} \
-            ${TAGS} --file Dockerfile software/${{ matrix.service }}
+            ${TAGS} --file Dockerfile .
             
       - name: Set up docker buildx
         uses: crazy-max/ghaction-docker-buildx@v3
 
       - name: Docker Buildx (build)
         run: |
+          cd software/${{ matrix.service }}
           docker buildx build --output "type=image,push=false" ${{ steps.prepare.outputs.buildx_args }}
