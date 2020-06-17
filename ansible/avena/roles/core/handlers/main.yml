@@ -33,3 +33,8 @@
   systemd:
     name: docker
     state: restarted
+
+- name: reboot system
+  become: yes
+  reboot:
+    reboot_timeout: 100
