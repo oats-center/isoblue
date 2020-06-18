@@ -1,5 +1,6 @@
-- block: ensure CAN interfaces
-  tasks:
+- name: ensure CAN interfaces
+  when: oats_can_interfaces is defined
+  block:
     - name: ensure can@ service is installed
       become: yes
       copy:
@@ -37,8 +38,8 @@
         group: root
         mode: "0755"
 
-    - block: Can watchdog
-      tasks:
+    - name: Can watchdog
+      block:
         - name: ensure can-watchdog.service is installed
           become: yes
           copy:
@@ -63,7 +64,5 @@
           systemd:
             name: can-watchdog
             daemon_reload: yes
-            enabled: yes
-            state: started
-          when: oats_disable_can_watchdog is not defined or not oats_disable_can_watchdog
-  when: oats_can_interfaces is defined
+            enabled: "{{ oats_can_watchdog }}"
+            state: "{{ 'stopped' if not oats_can_watchdog | default('started') }}"

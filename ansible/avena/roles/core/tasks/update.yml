@@ -1,13 +1,25 @@
 - name: Ensure non-free is available to apt
   become: yes
   apt_repository:
-    repo: "deb http://deb.debian.org/debian non-free main"
+    repo: deb http://deb.debian.org/debian buster non-free
+    state: present
+    filename: debian-non-free
+    update_cache: no
 
 - name: Ensure buster-backports is available to apt
   become: yes
   apt_repository:
-    repo: "deb http://deb.debian.org/debian buster-backports main"
+    repo: deb http://deb.debian.org/debian buster-backports main
+    state: present
+    filename: debian-buster-backports
+    update_cache: no
   when: ansible_distribution_release == "buster"
+
+# Wait up update cache until now due to known Ansible bugs
+- name: Update apt cache
+  become: yes
+  apt:
+    update_cache: yes
 
 - name: ensure Linux Kernel is up to date (arm)
   become: yes
@@ -16,7 +28,7 @@
       - linux-image-armmp
       - linux-headers-armmp
     state: latest
-    default_release: "{{ "buster-backports" if ansible_distribution_release == "buster" | default(omit) }}"
+    default_release: "{{ buster-backports if ansible_distribution_release == buster | default(omit) }}"
   notify: reboot system
   when: ansible_facts.architecture == "armv7l"
 
@@ -27,7 +39,7 @@
       - linux-image-amd64
       - linux-headers-amd64
     state: latest
-    default_release: "{{ "buster-backports" if ansible_distribution_release == "buster" | default(omit) }}"
+    default_release: "{{ buster-backports if ansible_distribution_release == buster | default(omit) }}"
   notify: reboot system
   when: ansible_facts.architecture == "x86_64"
 

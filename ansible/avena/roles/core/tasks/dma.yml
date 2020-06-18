@@ -1,4 +1,5 @@
 - name: Ensure non-free firmware is installed
+  become: yes
   apt:
     name: firmware-misc-nonfree
   when: ansible_facts.architecture == "armv7l"
