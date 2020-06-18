@@ -50,7 +50,7 @@ jobs:
               VERSION='latest'
             fi
           
-          elif [[ $GITHUB_REF == 'refs/remotes/pull/*/merge ]]; then
+          elif [[ $GITHUB_REF == 'refs/remotes/pull/*/merge' ]]; then
             VERSION=${GITHUB_REF#regs/remotes/pull/}
             VERSION="pr-${VERSION%/merge}"
             
