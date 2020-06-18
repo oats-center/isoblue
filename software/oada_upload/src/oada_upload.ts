@@ -239,7 +239,6 @@ async function main(): Promise<void> {
   await db.query(`SELECT time FROM gps WHERE gps.time NOT IN (SELECT g_time from gps_sent)`);*/
 
   console.log(`Connecting to OADA: ${domain}`);
-  // Will add concurrency once I figure out the Promise.All() in the next section
   const oada = await connect({ domain, token, concurrency: 5 });
   
   // Infinite loop to continuously check the db for unsent data
@@ -308,7 +307,6 @@ async function main(): Promise<void> {
     });
     // pEachSeries executes the following code for each bucket (path) that we created sequentially 
     await pMap( Object.keys(data), async (path) => {
-      var update_success = true;
       var res;
 
       // Attempt the put to OADA
@@ -326,31 +324,28 @@ async function main(): Promise<void> {
         // The PUT is not a success. This is either due to a misconfiguration or lack of internet.
         // Assume that everything is configured correctly rebuild the queue for the next try.
         console.error(`Error Uploading to OADA: %p`, e, e.message, (<Error>e).message, ` `, res);
-        update_success = false;
+        return;
       }
       console.debug(`Done uploading to OADA`);
-      if (update_success){ // Replace the if with a 'continue' in the previous error state?
 
-        // Update the databse that all of the ids are now sent successfully
-        try {
-          console.debug(`Updating database for ${data[path].timetzs.length} ids`);
-          // Matching arrays do not always work like expected
-          // https://github.com/brianc/node-postgres/wiki/FAQ#11-how-do-i-build-a-where-foo-in--query-to-find-rows-matching-an-array-of-values
-          
-          console.debug(`${data[path].timetzs.length} rows to update`)
+      // Update the databse that all of the ids are now sent successfully
+      try {
+        console.debug(`Updating database for ${data[path].timetzs.length} ids`);
+        // Matching arrays do not always work like expected
+        // https://github.com/brianc/node-postgres/wiki/FAQ#11-how-do-i-build-a-where-foo-in--query-to-find-rows-matching-an-array-of-values
+        
+        console.debug(`${data[path].timetzs.length} rows to update`)
 
-          await db.query(`
-            UPDATE gps_sent SET sent = TRUE WHERE g_time = ANY($1)`,
-            [data[path].timetzs]
-          );
-        } catch (e) {
-          console.error(`FATAL: Error updating database with sent information: `, (<Error>e).message);
-          // Do something with the error?
-          // This seems pretty fatal, exit and hope that when docker restarting the process fixes it
-          process.exit(-1);
-        }
+        await db.query(`
+          UPDATE gps_sent SET sent = TRUE WHERE g_time = ANY($1)`,
+          [data[path].timetzs]
+        );
+      } catch (e) {
+        console.error(`FATAL: Error updating database with sent information: `, (<Error>e).message);
+        // Do something with the error?
+        // This seems pretty fatal, exit and hope that when docker restarting the process fixes it
+        process.exit(-1);
       }
-      
     });
   }
 }
