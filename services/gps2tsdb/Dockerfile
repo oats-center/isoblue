@@ -20,7 +20,6 @@ RUN rm -rf target/release/deps/gps2tsdb*
 # Do the full build
 COPY . .
 RUN cargo build --release
-RUN cargo install --path .
 
 #####
 # Final stage
