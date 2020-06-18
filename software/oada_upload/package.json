@@ -1,0 +1,35 @@
+{
+  "name": "@isoblue/oada_upload",
+  "version": "0.0.1",
+  "description": "Upload Avena time-series datapoints to an OADA store",
+  "main": "src/oada_upload.ts",
+  "repository": "https://github.com/oats-group/isoblue-avena",
+  "author": "Aaron Neustedter",
+  "contributors": [
+    "Andrew Balmos <abalmos@purdue.edu>"
+  ],
+  "license": "MIT",
+  "scripts": {
+    "start": "ts-node src/oada_upload.ts"
+  },
+  "dependencies": {
+    "@oada/client": "^1.0.2",
+    "@oada/formats": "^1.0.3",
+    "@oada/types": "^1.0.5",
+    "@sindresorhus/is": "^2.1.1",
+    "dotenv": "^8.2.0",
+    "ksuid": "^1.2.0",
+    "moment": "^2.25.3",
+    "p-map": "^4.0.0",
+    "pg": "8.2.1"
+  },
+  "devDependencies": {
+    "@types/pg": "^7.14.3",
+    "@typescript-eslint/eslint-plugin": "^2.29.0",
+    "@typescript-eslint/parser": "^2.29.0",
+    "eslint": "^6.8.0",
+    "prettier": "^2.0.5",
+    "ts-node": "^8.10.1",
+    "typescript": "^3.8.3"
+  }
+}
