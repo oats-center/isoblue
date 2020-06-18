@@ -3,10 +3,10 @@ name: docker buildx
 on:
   push:
     paths:
-      - 'software/**'
+      - 'services/**'
   pull_request:
     paths:
-      - 'software/**'
+      - 'services/**'
 env:
   DOCKER_IMAGE_PROD: "isoblue"
   DOCKER_IMAGE_DEV: "isoblue"
@@ -40,6 +40,8 @@ jobs:
       - name: Prepare
         id: prepare
         run: |
+          echo ::debug ::${GITHUB_REF}
+          
           if [[ $GITHUB_REF == refs/heads/* ]]; then
             branch=${GITHUB_REF#refs/heads/}
             
