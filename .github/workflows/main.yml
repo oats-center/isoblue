@@ -2,8 +2,6 @@ name: docker buildx
 
 on:
   push:
-    branches:
-      - 'master'
     paths:
       - 'services/**'
   pull_request:
