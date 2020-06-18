@@ -2,11 +2,7 @@ name: docker buildx
 
 on:
   push:
-    paths:
-      - 'services/**'
-  pull_request:
-    paths:
-      - 'services/**'
+    
 env:
   DOCKER_IMAGE_PROD: "isoblue"
   DOCKER_IMAGE_DEV: "isoblue"
