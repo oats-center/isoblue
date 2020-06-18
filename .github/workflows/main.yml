@@ -2,6 +2,8 @@ name: docker buildx
 
 on:
   push:
+    branches:
+      - 'master'
     paths:
       - 'services/**'
   pull_request:
@@ -40,31 +42,28 @@ jobs:
       - name: Prepare
         id: prepare
         run: |
-          echo ::debug::${GITHUB_REF}
+          DOCKER_IMAGE=isoblue/${{ matrix.service }}
           
-          if [[ $GITHUB_REF == refs/heads/* ]]; then
-            branch=${GITHUB_REF#refs/heads/}
-            
-            # default branch goes to production docker hub
-            if [[ $branch == ${{ github.event.repository.default_branch }} ]]; then
-              DOCKER_IMAGE=$DOCKER_IMAGE_PROD/${{ matrix.service }}
-              VERSION=latest
-            
-            # every thing else goes to dev docker hub (for easy testing on development ISOBlue)
-            else 
-              DOCKER_IMAGE=$DOCKER_IMAGE_DEV/${{ matrix.service }}
-              VERSION="sha-${GITHUB_SHA::8}"
-            fi
-            
-          # tags to go production docker hub 
-          elif [[ $GITHUB_REF == refs/tags/* ]]; then
-            DOCKER_IMAGE=$DOCKER_IMAGE_PROD/${{ matrix.service }}
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
             VERSION=${GITHUB_REF#refs/tags/}
-          else  
-            echo ::error ::Can not determine version of service. Stopping.
+          
+          elif [[ $GITHUB_REF == refs/heads/* ]]; then
+            VERSION=${GITHUB_REF#refs/heads/}
+            
+            # Make default branch the latest tag
+            if [[ $VERSION == ${{ github.event.repository.default_branch }} ]]; then
+              VERSION='latest'
+            fi
+          
+          elif [[ $GITHUB_REF == 'refs/remotes/pull/*/merge ]]; then
+            VERSION=${GITHUB_REF#regs/remotes/pull/}
+            VERSION="pr-${VERSION%/merge}"
+            
+          else
+            echo ::error ::Can not determine version of service -- unexpected job trigger? Stopping.
             exit 1
           fi
-
+          
           echo ::set-output name=docker_image::${DOCKER_IMAGE}
           echo ::set-output name=version::${VERSION}
           echo ::set-output name=buildx_args:: \
@@ -84,12 +83,12 @@ jobs:
         run: |
           echo "${DOCKER_PASSWORD}" | docker login --username "${DOCKER_USERNAME}" --password-stdin
       
-      - name: Docker Buildx
+      - name: Docker buildx
         if: success()
         run: |
           docker buildx build --output "type=image,push=true" ${{ steps.prepare.outputs.buildx_args }}
         
-      - name: Docker Check Manifest
+      - name: Docker check manifest
         if: success()
         run: |
           docker run --rm mplatform/mquery ${{ steps.prepare.outputs.docker_image }}:${{ steps.prepare.outputs.version }}
