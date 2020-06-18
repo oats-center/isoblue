@@ -2,6 +2,7 @@ name: docker buildx
 
 on:
   push:
+  pull_request:  
     
 env:
   DOCKER_IMAGE_PROD: "isoblue"
@@ -67,7 +68,7 @@ jobs:
             --build-arg VERSION=${VERSION} \
             --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
             --build-arg GIT_REF=${GITHUB_SHA::8} \
-            --tag ${DOCKER_IMAGE}:${VERSION}
+            --tag ${DOCKER_IMAGE}:${VERSION} \
             ${TAGS} --file Dockerfile services/${{ matrix.service }}/Dockerfile ./services/${{ matrix.service }}
       
       - name: Docker Login
