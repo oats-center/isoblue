@@ -19,7 +19,7 @@ import { Client } from 'pg';
 import moment from 'moment';
 import ksuid from 'ksuid';
 import { randomBytes } from 'crypto'
-import pEachSeries from 'p-each-series';
+import pMap from 'p-map';
 import { connect } from '@oada/client';
 import { V1 as Location } from '@oada/types/oada/isoblue/location/v1';
 
@@ -240,7 +240,7 @@ async function main(): Promise<void> {
 
   console.log(`Connecting to OADA: ${domain}`);
   // Will add concurrency once I figure out the Promise.All() in the next section
-  const oada = await connect({ domain, token, concurrency: 1 });
+  const oada = await connect({ domain, token, concurrency: 5 });
   
   // Infinite loop to continuously check the db for unsent data
   for (;;) {
@@ -307,7 +307,7 @@ async function main(): Promise<void> {
       
     });
     // pEachSeries executes the following code for each bucket (path) that we created sequentially 
-    await pEachSeries(Object.keys(data), async (path) => {
+    await pMap( Object.keys(data), async (path) => {
       var update_success = true;
       var res;
 
@@ -350,32 +350,15 @@ async function main(): Promise<void> {
           process.exit(-1);
         }
       }
-      // Wait half a second between uploads to not overwhelm the isoblue, OADA server, or the programmer trying to debug stuff
-      // Should be removed enentually. Likely once OADA-Client has concurrency control
-      await sleep(500);
+      
     });
   }
 }
 
 // Sleep - used to pause after put to not overload server as well as yielding if
 // there is no data to upload
-
-// ADB: This seems fine for now ... in the future @oada/client will have built
-// in concurrancy controls and I don't think you'll need any of the `sleep`s. In
-// that case, you can control how many open requests you have to OADA, and you
-// should go as fast as you can, within that limit ... I suppose the "caught up"
-// case should maybe sleep a bit.
-//
-// A few other options:
-//   - Move the work into a function, and use `setInterval` and `clearInterval`
-//   to get a nice once-per-second rate going ... which you override to go
-//   faster when there is still data in the database, e.g., "not caught up"
-//
-//   - Use p-queue to control the calls to OADA / DB (any Promise), and then use
-//   queue length to make decisions on weather or not to continue searching.
-//   p-queue comes with the ability to have a call back when the queue gets
-//   below a certain size / empty. You could fetch from the DB in that case, and
-//   the load up OADA calls.
+// Keeping the sleep function defined for use in debugging as well as waiting for the db
+// to fill
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => {
     setTimeout(resolve, ms);

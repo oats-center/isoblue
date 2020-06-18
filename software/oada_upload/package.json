@@ -20,7 +20,7 @@
     "dotenv": "^8.2.0",
     "ksuid": "^1.2.0",
     "moment": "^2.25.3",
-    "p-each-series": "^2.1.0",
+    "p-map": "^4.0.0",
     "pg": "8.2.1"
   },
   "devDependencies": {
