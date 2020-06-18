@@ -40,7 +40,7 @@ jobs:
       - name: Prepare
         id: prepare
         run: |
-          echo ::debug ::${GITHUB_REF}
+          echo ::debug::${GITHUB_REF}
           
           if [[ $GITHUB_REF == refs/heads/* ]]; then
             branch=${GITHUB_REF#refs/heads/}
