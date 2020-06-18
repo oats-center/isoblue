@@ -1,25 +1,16 @@
 name: docker buildx
 
-# Build containers when:
-#   1. pushed to 'master', a 'v*' version branch, or 'v*' tag. This will also push containers to DockerHub
-#   2. pull request is opened on 'master' or a 'v*' version branch. This will NOT push containers to DockerHub (just build for testing)
 on:
   push:
-    branches: 
-      - 'master'
-      - 'v*'
-    tags:
-      - 'v*'
     paths:
       - 'software/**'
   pull_request:
-    branches: 
-      - 'master'
-      - 'v*'
-    tags:
-      - 'v*'
     paths:
       - 'software/**'
+env:
+  DOCKER_IMAGE_PROD: "isoblue"
+  DOCKER_IMAGE_DEV: "isoblue"
+  DOCKER_PLATFORMS: "linux/amd64,linux/arm/v7"
 
 jobs:
   docker:
@@ -33,36 +24,75 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Prepare
-        id: prepare
-        run: |
-          DOCKER_USERNAME=abalmos
-          DOCKER_IMAGE=isoblue/${{ matrix.service }}
-          DOCKER_PLATFORMS=linux/amd64,linux/arm/v7
-          VERSION=edge
-          
-          if [[ $GITHUB_REF == refs/tags/* ]]; then
-            VERSION=${GITHUB_REF#regs/tags/v}
-          fi
-          
-          TAGS="--tag ${DOCKER_IMAGE}:${VERSION}"
-          if [[ $VERSION =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
-            TAGS="$TAGS --tag ${DOCKER_IMAGE}:latest"
-          fi
-          
-          echo ::set-output name=docker_username::${DOCKER_USERNAME}
-          echo ::set-output name=docker_image::${DOCKER_IMAGE}
-          echo ::set-output name=version::${VERSION}
-          echo ::set-output name=buildx_args::--platform ${DOCKER_PLATFORMS} \
-            --build-arg VERSION=${VERSION} \
-            --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
-            --build-arg GIT_REF=${GITHUB_SHA::8} \
-            ${TAGS} --file Dockerfile .
-            
       - name: Set up docker buildx
         uses: crazy-max/ghaction-docker-buildx@v3
 
-      - name: Docker Buildx (build)
+      - name: Cache docker layers
+        uses: actions/cache@v2
+        id: cache
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ matrix.service }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-${{ matrix.service }}
+            ${{ runner.os }}-buildx-
+
+      - name: Prepare
+        id: prepare
         run: |
-          cd software/${{ matrix.service }}
-          docker buildx build --output "type=image,push=false" ${{ steps.prepare.outputs.buildx_args }}
+          if [[ $GITHUB_REF == refs/heads/* ]]; then
+            branch=${GITHUB_REF#refs/heads/}
+            
+            # default branch goes to production docker hub
+            if [[ $branch == ${{ github.event.repository.default_branch }} ]]; then
+              DOCKER_IMAGE=$DOCKER_IMAGE_PROD/${{ matrix.service }}
+              VERSION=latest
+            
+            # every thing else goes to dev docker hub (for easy testing on development ISOBlue)
+            else 
+              DOCKER_IMAGE=$DOCKER_IMAGE_DEV/${{ matrix.service }}
+              VERSION="sha-${GITHUB_SHA::8}"
+            fi
+            
+          # tags to go production docker hub 
+          elif [[ $GITHUB_REF == refs/tags/* ]]; then
+            DOCKER_IMAGE=$DOCKER_IMAGE_PROD/${{ matrix.service }}
+            VERSION=${GITHUB_REF#refs/tags/}
+          else  
+            echo ::error ::Can not determine version of service. Stopping.
+            exit 1
+          fi
+
+          echo ::set-output name=docker_image::${DOCKER_IMAGE}
+          echo ::set-output name=version::${VERSION}
+          echo ::set-output name=buildx_args:: \
+            --cache-from "type=local,src=/tmp/.buildx-cache" \
+            --cache-to "type=local,dest=/tmp/.buildx-cache"
+            --platform ${DOCKER_PLATFORMS} \
+            --build-arg VERSION=${VERSION} \
+            --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
+            --build-arg GIT_REF=${GITHUB_SHA::8} \
+            --tag ${DOCKER_IMAGE}:${VERSION}
+            ${TAGS} --file Dockerfile services/${{ matrix.service }}/Dockerfile ./services/${{ matrix.service }}
+      
+      - name: Docker Login
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        run: |
+          echo "${DOCKER_PASSWORD}" | docker login --username "${DOCKER_USERNAME}" --password-stdin
+      
+      - name: Docker Buildx
+        if: success()
+        run: |
+          docker buildx build --output "type=image,push=true" ${{ steps.prepare.outputs.buildx_args }}
+        
+      - name: Docker Check Manifest
+        if: success()
+        run: |
+          docker run --rm mplatform/mquery ${{ steps.prepare.outputs.docker_image }}:${{ steps.prepare.outputs.version }}
+          
+      - name: Clear
+        if: always()
+        run: |
+          rm -f ${HOME}/.docker/config.json
