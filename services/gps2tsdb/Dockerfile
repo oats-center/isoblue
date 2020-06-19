@@ -1,12 +1,11 @@
 #####
 # Build stage
 #####
-FROM --platform=${BUILDPLATFORM:-linux/amd64} rust as builder
+FROM rust as builder
 
-ARG BUILD_DATE
-ARG GIT_REF
-ARG VERSION=dev
-ARG TARGETPLATFORM
+#ARG BUILD_DATE
+#ARG GIT_REF
+#ARG VERSION
 
 WORKDIR /tmp/build
 
@@ -24,7 +23,7 @@ RUN cargo build --release
 #####
 # Final stage
 #####
-FROM --platform=${TARGETPLATFORM:-linux/amd64} debian:buster-slim
+FROM debian:buster-slim
 
 ARG BUILD_DATE
 ARG GIT_REF
