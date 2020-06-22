@@ -358,6 +358,7 @@ version = "0.1.0"
 dependencies = [
  "chrono",
  "gpsd_proto",
+ "openssl",
  "sqlx",
  "tokio",
 ]
@@ -655,6 +656,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "77af24da69f9d9341038eba93a073b1fdaaa1b788221b00a69bce9e762cb32de"
 
 [[package]]
+name = "openssl-src"
+version = "111.10.0+1.1.1g"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "47cd4a96d49c3abf4cac8e8a80cba998a030c75608f158fb1c5f609772f265e6"
+dependencies = [
+ "cc",
+]
+
+[[package]]
 name = "openssl-sys"
 version = "0.9.58"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -663,6 +673,7 @@ dependencies = [
  "autocfg",
  "cc",
  "libc",
+ "openssl-src",
  "pkg-config",
  "vcpkg",
 ]
