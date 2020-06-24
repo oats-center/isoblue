@@ -4,7 +4,7 @@
     name:
       - wireguard
     state: present
-    default_release: "{{ buster-backports if ansible_distribution_release == buster | default(omit) }}"
+    default_release: "{{ 'buster-backports' if ansible_distribution_release == 'buster' | default(omit) }}"
 
 - name: ensure wireguard interface exists and is configured
   block:

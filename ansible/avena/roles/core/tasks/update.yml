@@ -28,7 +28,7 @@
       - linux-image-armmp
       - linux-headers-armmp
     state: latest
-    default_release: "{{ buster-backports if ansible_distribution_release == buster | default(omit) }}"
+    default_release: "{{ 'buster-backports' if ansible_distribution_release == 'buster' | default(omit) }}"
   notify: reboot system
   when: ansible_facts.architecture == "armv7l"
 
@@ -39,7 +39,7 @@
       - linux-image-amd64
       - linux-headers-amd64
     state: latest
-    default_release: "{{ buster-backports if ansible_distribution_release == buster | default(omit) }}"
+    default_release: "{{ 'buster-backports' if ansible_distribution_release == 'buster' | default(omit) }}"
   notify: reboot system
   when: ansible_facts.architecture == "x86_64"
 
@@ -58,3 +58,6 @@
   register: reboot_required
   changed_when: reboot_required.stat.exists
   notify: reboot system
+
+- name: Run handlers to ensure system is updated before continuing
+  meta: flush_handlers
