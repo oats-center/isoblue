@@ -28,6 +28,7 @@
       become: yes
       shell: wg pubkey < /etc/wireguard/{{ avena_wg_interface }}.key
       register: wg_pubkey
+      changed_when: false
 
     - pause:
         prompt: |
