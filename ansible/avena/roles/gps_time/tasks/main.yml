@@ -63,14 +63,22 @@
     mode: '0644'
   notify: restart gpsd
 
-- name: expose gpsd to docker
+# TODO: This appears to be breaking gpsd.service / gpsd.socket from starting ?
+#- name: expose gpsd to docker
+#  become: yes
+#  copy:
+#    dest: /etc/systemd/system/gpsd.socket.d/
+#    src: gpsd/systemd/gpsd-to-docker.conf
+#    owner: root
+#    group: root
+#    mode: '0644'
+#  notify: reload systemd
+
+- name: ensure broken gpsd to docker socket is removed
   become: yes
-  copy:
-    dest: /etc/systemd/system/gpsd.socket.d/
-    src: gpsd/systemd/gpsd-to-docker.conf
-    owner: root
-    group: root
-    mode: '0644'
+  file:
+    path: /etc/systemd/system/gpsd.socket.d/
+    state: absent
   notify: reload systemd
 
 - name: ensure gpsd is enabled
