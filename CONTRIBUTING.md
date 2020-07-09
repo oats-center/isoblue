@@ -16,7 +16,7 @@ Releases will be numbered in the [Semantic Versioning](https://semver.org/) styl
 Members of the ISOBlue-Avena repository will use feature/bugfix branches in the form of `feature/feature-name` or `bugfix/bug-name`. Outside contributors forking the repository are encouraged to do the same
 
 
-Once a feature/bugfix branch as reached maturity and has been properly [tested](#Testing) a pull request will be created requesting to merge the branch into master. Members of the ISOBlue-Avena repository will review the code and changes may be be requested. Given all requested changes are addressed and all tests pass, a member of the repository will approve the changes and the branch will be merged into master. If the person opening the pull request has permission to merge, it will be their responsibilty to merge the branch and reslove any conflicts. Otherwise this responsibility falls to the first reviewer listed in the Github Pull Request UI
+Once a feature/bugfix branch as reached maturity and has been properly [tested](#Testing) a pull request will be created requesting to merge the branch into master. Members of the ISOBlue-Avena repository will review the code and changes may be be requested. Given all requested changes are addressed and all tests pass, a member of the repository will approve the changes and the branch will be merged into master. If the person opening the pull request has permission to merge, it will be their responsibility to merge the branch and resolve any conflicts. Otherwise this responsibility falls to the first reviewer listed in the Github Pull Request UI
 
 
 ## Testing
