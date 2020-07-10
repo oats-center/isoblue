@@ -64,5 +64,5 @@
           systemd:
             name: can-watchdog
             daemon_reload: yes
-            enabled: "{{ oats_can_watchdog }}"
-            state: "{{ 'stopped' if not oats_can_watchdog | default('started') }}"
+            enabled: "{{ 'yes' if oats_can_watchdog == 'yes' else 'no' }}"
+            state: "{{ 'started' if oats_can_watchdog == 'yes' else 'stopped' }}"
