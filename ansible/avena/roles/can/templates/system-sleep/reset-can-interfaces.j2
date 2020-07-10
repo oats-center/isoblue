@@ -1,0 +1,12 @@
+#!/bin/sh
+# /usr/lib/systemd/system-sleep
+echo "Reset can interfaces"
+case $1/$2 in
+        post/*)
+                echo "Waking up from $2..."
+                {% for interface in oats_can_interfaces %}
+                systemctl restart can@{{ interface }}
+                {% endfor %}
+                ;;
+esac
+

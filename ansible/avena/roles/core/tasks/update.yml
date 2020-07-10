@@ -1,61 +1,63 @@
-- name: Update system
-  block:
-    - name: Assume buster-backports for Debian buster
-      set_fact:
-        avena_apt_backports: "deb http://deb.debian.org/debian buster-backports main"
-        avena_apt_backports_release: "buster-backports"
-      when: ansible_distribution_release == "buster"
+- name: Ensure non-free is available to apt
+  become: yes
+  apt_repository:
+    repo: deb http://deb.debian.org/debian buster non-free
+    state: present
+    filename: debian-non-free
+    update_cache: no
 
-    - name: Ensure buster-backports is available to apt
-      become: yes
-      apt_repository:
-        repo: "{{ avena_apt_backports }}"
-      when: avena_apt_backports is defined
+- name: Ensure buster-backports is available to apt
+  become: yes
+  apt_repository:
+    repo: deb http://deb.debian.org/debian buster-backports main
+    state: present
+    filename: debian-buster-backports
+    update_cache: no
+  when: ansible_distribution_release == "buster"
 
-    - name: ensure Linux Kernel is up to date
-      become: yes
-      apt:
-        name:
-          - linux-image-armmp
-          - linux-headers-armmp
-        state: latest
-        default_release: "{{ avena_apt_backports_release | default(omit) }}"
-      register: kernel_upgrade
-      when: ansible_facts.architecture == "armv7l"
+# Wait up update cache until now due to known Ansible bugs
+- name: Update apt cache
+  become: yes
+  apt:
+    update_cache: yes
 
-    - name: reboot after kernel upgrade
-      become: yes
-      reboot:
-        reboot_timeout: 100
-      register: reboot
-      when: kernel_upgrade.changed
+- name: ensure Linux Kernel is up to date (arm)
+  become: yes
+  apt:
+    name:
+      - linux-image-armmp
+      - linux-headers-armmp
+    state: latest
+    default_release: "{{ 'buster-backports' if ansible_distribution_release == 'buster' | default(omit) }}"
+  notify: reboot system
+  when: ansible_facts.architecture == "armv7l"
 
-    - name: ensure base operating system is up to date
-      become: yes
-      apt:
-        upgrade: dist
-        autoclean: yes
-        autoremove: yes
-      async: 600
-      poll: 10
+- name: ensure Linux Kernel is up to date (x86_64)
+  become: yes
+  apt:
+    name:
+      - linux-image-amd64
+      - linux-headers-amd64
+    state: latest
+    default_release: "{{ 'buster-backports' if ansible_distribution_release == 'buster' | default(omit) }}"
+  notify: reboot system
+  when: ansible_facts.architecture == "x86_64"
+
+- name: ensure base operating system is up to date
+  become: yes
+  apt:
+    upgrade: dist
+    autoclean: yes
+    autoremove: yes
+  async: 600
+  poll: 10
 
 - name: check if reboot is needed
   stat:
     path: /var/run/reboot-required
   register: reboot_required
+  changed_when: reboot_required.stat.exists
+  notify: reboot system
 
-- name: reboot if needed
-  block:
-    - name: reboot
-      become: yes
-      reboot:
-        reboot_timeout: 100
-      register: reboot
-
-    - name: cleanup after reboot
-      become: yes
-      file:
-        path: /var/run/reboot-required
-        state: absent
-      when: reboot.rebooted == true
-  when: reboot_required.stat.exists
+- name: Run handlers to ensure system is updated before continuing
+  meta: flush_handlers

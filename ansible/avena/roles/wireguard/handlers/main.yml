@@ -1,9 +1,3 @@
-- name: reload sshd
-  become: yes
-  systemd:
-    name: sshd
-    state: reloaded
-
 - name: reload systemd
   become: yes
   systemd:

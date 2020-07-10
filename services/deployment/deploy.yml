@@ -1,0 +1,51 @@
+- hosts: dev
+  vars:
+    oada_server: cloudradio42.ecn.purdue.edu
+    oada_token: stillnotatoken
+  tasks:
+    # Ensure dependencies are installed
+    - name: Ensure dependency rsync is installed
+      apt:
+        name: rsync
+        state: latest
+    - name: Ensure dependency network-manager is installed
+      apt: 
+        name: network-manager
+        state: latest
+    # Copy files and systemd files over
+    - name: Copy ISOBlue software files over to /opt
+      synchronize:
+        src: ../Software/opt/
+        dest: /opt/isoblue
+        recursive: yes
+    - name: Copy systemd files to /lib/systemd/system
+      synchronize:
+        src: ../Software/systemd/
+        dest: /lib/systemd/system
+    # Modify config files appropiately
+    - name: Write ISOBlue ID to isoblue.cfg based on wireguard ip
+      ini_file:
+        path: /opt/isoblue/isoblue.cfg
+        section: ISOBlue
+        option: id
+        value: "{{ 'ib0' + ansible_facts.wg0.ipv4.address | regex_search('\\d{1,3}$') }}"
+    - name: Write debug level based on host varable
+      ini_file:
+        path: /opt/isoblue/isoblue.cfg
+        section: ISOBlue
+        option: debuglevel
+        value: "{{ debuglevel|string }}"
+    - name: Write oada server url to isoblue.cfg
+      ini_file:
+        path: /opt/isoblue/isoblue.cfg
+        section: REST
+        option: server
+        value: "{{ oada_server }}"
+    - name: Write oada server token to isoblue.cfg
+      ini_file:
+        path: /opt/isoblue/isoblue.cfg
+        section: REST
+        option: token
+        value: "{{ oada_token }}"
+  become: yes
+  become_method: sudo

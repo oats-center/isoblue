@@ -1,0 +1,75 @@
+{
+  "type": "record",
+  "name": "TPV",
+  "fields":
+	[
+		{
+			"name": "device",
+			"type": ["null", "string"]
+		},
+		{
+			"name": "mode",
+			"type": ["null", "int"]
+		},
+		{
+			"name": "time",
+			"type": ["null", "int"]
+		},
+		{
+			"name": "status",
+			"type": ["null", "int"]
+		},
+		{
+			"name": "lat",
+			"type": ["null", "double"]
+		},
+		{
+			"name": "lon",
+			"type": ["null", "double"]
+		},
+		{
+			"name": "alt",
+			"type": ["null", "double"]
+		},
+		{
+			"name": "epx",
+			"type": ["null", "double"]
+		},
+		{
+			"name": "epy",
+			"type": ["null", "double"]
+		},
+		{
+			"name": "epv",
+			"type": ["null", "double"]
+		},
+		{
+			"name": "track",
+			"type": ["null", "double"]
+		},
+		{
+			"name": "speed",
+			"type": ["null", "double"]
+		},
+		{
+			"name": "climb",
+			"type": ["null", "double"]
+		},
+		{
+			"name": "ept",
+			"type": ["null", "double"]
+		},
+		{
+			"name": "epd",
+			"type": ["null", "double"]
+		},
+		{
+			"name": "eps",
+			"type": ["null", "double"]
+		},
+		{
+			"name": "epc",
+			"type": ["null", "double"]
+		}
+	]
+}

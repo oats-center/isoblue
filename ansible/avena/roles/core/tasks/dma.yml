@@ -1,0 +1,16 @@
+- name: Ensure non-free firmware is installed
+  become: yes
+  apt:
+    name: firmware-misc-nonfree
+  when: ansible_facts.architecture == "armv7l"
+
+- name: Copy initramfs hook script
+  become: yes
+  copy:
+    src: files/sdma/imx-sdma
+    dest: /etc/initramfs-tools/hooks/imx-sdma
+    owner: root
+    group: root
+    mode: "0755"
+  notify: update initramfs
+  when: ansible_facts.architecture == "armv7l"

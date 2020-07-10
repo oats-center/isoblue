@@ -1,5 +1,5 @@
 - name: Ensure RTC rules are copied
-  become:
+  become: yes
   copy:
     dest: /etc/udev/rules.d/50-rtc-read.rules
     src: files/udev/50-rtc-read.rules

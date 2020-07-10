@@ -1,24 +1,10 @@
 - name: ensure wireguard is installed
-  block:
-    - name: Assume buster-backports for Debian buster
-      set_fact:
-        avena_apt_backports: "deb http://deb.debian.org/debian buster-backports main"
-        avena_apt_backports_release: "buster-backports"
-      when: ansible_distribution_release == "buster"
-
-    - name: Ensure buster-backports is available to apt
-      become: yes
-      apt_repository:
-        repo: "{{ avena_apt_backports }}"
-      when: avena_apt_backports is defined
-
-    - name: ensure wireguard is install
-      become: yes
-      apt:
-        name:
-          - wireguard
-        state: present
-        default_release: "{{ avena_apt_backports_release | default(omit) }}"
+  become: yes
+  apt:
+    name:
+      - wireguard
+    state: present
+    default_release: "{{ 'buster-backports' if ansible_distribution_release == 'buster' | default(omit) }}"
 
 - name: ensure wireguard interface exists and is configured
   block:
@@ -42,6 +28,7 @@
       become: yes
       shell: wg pubkey < /etc/wireguard/{{ avena_wg_interface }}.key
       register: wg_pubkey
+      changed_when: false
 
     - pause:
         prompt: |

@@ -47,19 +47,16 @@
       tags: networking
   tags: networking
 
-- name: Run intel tasks
+- name: Run grub tasks
   include_tasks:
-    file: intel.yml
+    file: grub.yml
     apply:
-      tags: intel
-  when: ansible_architecture is match("x86.*")
-  tags: intel
+      tags: grub
+  tags: grub
 
-# TODO: Set  uboot to no delay booting
-#- name: Run arm tasks
-#  include_tasks:
-#    file: arm.yml
-#    apply:
-#      tags:
-#        - intel
-#  when: ansible_architecture is match("arm*")
+- name: Run dma tasks
+  include_tasks:
+    file: dma.yml
+    apply:
+      tags:
+        - dma

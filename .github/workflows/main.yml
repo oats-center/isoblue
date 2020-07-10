@@ -11,7 +11,7 @@ on:
       - '*'
     tags:
       - '*'
-    
+
 env:
   DOCKER_IMAGE_PROD: "isoblue"
   DOCKER_IMAGE_DEV: "isoblue"
@@ -46,27 +46,27 @@ jobs:
         id: prepare
         run: |
           DOCKER_IMAGE=isoblue/${{ matrix.service }}
-          
+
           if [[ $GITHUB_REF == refs/tags/* ]]; then
             VERSION=${GITHUB_REF#refs/tags/}
           
           elif [[ $GITHUB_REF == refs/heads/* ]]; then
             VERSION=${GITHUB_REF#refs/heads/}
-            
+
             # Make default branch the latest tag
             if [[ $VERSION == ${{ github.event.repository.default_branch }} ]]; then
               VERSION='latest'
             fi
-          
+
           elif [[ $GITHUB_REF == 'refs/remotes/pull/*/merge' ]]; then
-            VERSION=${GITHUB_REF#regs/remotes/pull/}
+            VERSION=${GITHUB_REF#refs/remotes/pull/}
             VERSION="pr-${VERSION%/merge}"
             
           else
             echo ::error ::Can not determine version of service -- unexpected job trigger? Stopping.
             exit 1
           fi
-          
+
           echo ::set-output name=docker_image::${DOCKER_IMAGE}
           echo ::set-output name=version::${VERSION}
           echo ::set-output name=buildx_args:: \
@@ -78,24 +78,24 @@ jobs:
             --build-arg GIT_REF=${GITHUB_SHA::8} \
             --tag ${DOCKER_IMAGE}:${VERSION} \
             ${TAGS} --file services/${{ matrix.service }}/Dockerfile ./services/${{ matrix.service }}
-      
+
       - name: Docker Login
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         run: |
           echo "${DOCKER_PASSWORD}" | docker login --username "${DOCKER_USERNAME}" --password-stdin
-      
+
       - name: Docker buildx
         if: success()
         run: |
           docker buildx build --output "type=image,push=true" ${{ steps.prepare.outputs.buildx_args }}
-        
+
       - name: Docker check manifest
         if: success()
         run: |
           docker run --rm mplatform/mquery ${{ steps.prepare.outputs.docker_image }}:${{ steps.prepare.outputs.version }}
-          
+
       - name: Clear
         if: always()
         run: |
