@@ -1,0 +1,13 @@
+FROM balenalib/apalis-imx6q-debian-python:3.7.4
+COPY qemu-arm-static /usr/bin/
+
+WORKDIR /usr/app
+
+COPY requirements.txt ./
+
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY ./engine-rpm-pub.py .
+COPY ./raw-can.avsc .
+
+CMD ["./engine-rpm-pub.py"]

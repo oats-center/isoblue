@@ -9,6 +9,8 @@ on:
   pull_request:
     branches:
       - '*'
+    tags:
+      - '*'
 
 env:
   DOCKER_IMAGE_PROD: "isoblue"
@@ -39,6 +41,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildx-${{ matrix.service }}
             ${{ runner.os }}-buildx-
+
       - name: Prepare
         id: prepare
         run: |
@@ -46,7 +49,7 @@ jobs:
 
           if [[ $GITHUB_REF == refs/tags/* ]]; then
             VERSION=${GITHUB_REF#refs/tags/}
-
+          
           elif [[ $GITHUB_REF == refs/heads/* ]]; then
             VERSION=${GITHUB_REF#refs/heads/}
 
@@ -56,9 +59,9 @@ jobs:
             fi
 
           elif [[ $GITHUB_REF == 'refs/remotes/pull/*/merge' ]]; then
-            VERSION=${GITHUB_REF#regs/remotes/pull/}
+            VERSION=${GITHUB_REF#refs/remotes/pull/}
             VERSION="pr-${VERSION%/merge}"
-
+            
           else
             echo ::error ::Can not determine version of service -- unexpected job trigger? Stopping.
             exit 1
