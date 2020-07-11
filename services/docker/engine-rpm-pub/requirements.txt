@@ -1,3 +1,0 @@
-kafka-python
-avro-python3
-paho-mqtt
