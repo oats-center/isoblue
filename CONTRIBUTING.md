@@ -3,7 +3,7 @@ This document describes how to go about contributing to the ISOBlue-Avena reposi
 
 
 ## General Guidelines
-If you are looking to help us, please visit our [issue tracker](https://github.com/OATS-Group/isoblue-avena/issues). If you would like to suggest or discuss a feature/bug, please email our mailing list found here https://groups.google.com/forum/?oldui=1#!forum/isoblue. Please ensure you mention the 'Avena' version of ISOBlue.
+If you are looking to help us, please visit our [issue tracker](https://github.com/OATS-Group/isoblue-avena/issues). If you would like to suggest or discuss a feature/bug, please email our [mailing list](https://groups.google.com/g/isoblue). Please ensure you mention the 'Avena' version of ISOBlue.
 
 
 ## Release Branches and Versioning
