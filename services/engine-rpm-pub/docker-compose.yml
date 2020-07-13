@@ -1,0 +1,13 @@
+version: '3.1'
+services:
+  engine-rpm-pub:
+    image: wang701/engine-rpm-pub:latest-armhf
+    restart: always
+    environment:
+      isoblue_id: "${isoblue_id}"
+      kafka_topic: "${tra_interface}"
+      mqtt_topic: "${mqtt_topic}"
+      cloud_domain: "${avena_domain}"
+      mqtt_port: "${mqtt_port}"
+volumes:
+  postgres:

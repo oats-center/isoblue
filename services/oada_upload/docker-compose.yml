@@ -1,0 +1,19 @@
+version: '3.1'
+services:
+  oada-upload:
+    build:
+      context: ./
+    restart: always
+    environment:
+      isoblue_id: "ib999"
+      oada_server_batchsize: "1000"
+      oada_server_basepath: "/bookmarks/isoblue/device-index"
+      oada_server_url: "server_url.example.com"
+      oada_server_token: "abc"
+      db_user: "avena"
+      db_host: "postgres"
+      db_database: "avena"
+      db_password: "password"
+      db_port: "5432"
+    depends_on:
+      - postgres
