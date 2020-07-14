@@ -1,3 +1,3 @@
 # ISOBlue-AvenaShield
 
-Hardware schematic files for AvenaShield expansion board. 
+KiCad hardware schematic and PCB layout design files for the AvenaShield expansion board. 
