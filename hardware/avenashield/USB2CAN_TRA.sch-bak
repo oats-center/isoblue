@@ -418,21 +418,6 @@ F 3 "http://ww1.microchip.com/downloads/en/devicedoc/21667d.pdf" H 7400 4150 50 
 	1    0    0    -1  
 $EndComp
 $Comp
-L power:+5V #PWR0153
-U 1 1 5E591CA5
-P 7400 3450
-AR Path="/5E564EEA/5E591CA5" Ref="#PWR0153"  Part="1" 
-AR Path="/5E45C906/5E591CA5" Ref="#PWR?"  Part="1" 
-F 0 "#PWR0153" H 7400 3300 50  0001 C CNN
-F 1 "+5V" H 7415 3623 50  0000 C CNN
-F 2 "" H 7400 3450 50  0001 C CNN
-F 3 "" H 7400 3450 50  0001 C CNN
-	1    7400 3450
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	7400 3450 7400 3550
-$Comp
 L power:GNDREF #PWR0154
 U 1 1 5E59308B
 P 7400 4650
@@ -792,31 +777,14 @@ F 3 "" H 9900 900 50  0001 C CNN
 	1    9900 900 
 	1    0    0    -1  
 $EndComp
-$Comp
-L power:+5V #PWR0162
-U 1 1 5E61AB69
-P 10200 900
-AR Path="/5E564EEA/5E61AB69" Ref="#PWR0162"  Part="1" 
-AR Path="/5E45C906/5E61AB69" Ref="#PWR?"  Part="1" 
-F 0 "#PWR0162" H 10200 750 50  0001 C CNN
-F 1 "+5V" H 10215 1073 50  0000 C CNN
-F 2 "" H 10200 900 50  0001 C CNN
-F 3 "" H 10200 900 50  0001 C CNN
-	1    10200 900 
-	1    0    0    -1  
-$EndComp
 Text HLabel 9650 1100 0    50   Input ~ 0
 BOARD_3v3
-Text HLabel 9650 1250 0    50   Input ~ 0
+Text HLabel 7200 3250 0    50   Input ~ 0
 BOARD_5V
 Wire Wire Line
 	9650 1100 9900 1100
 Wire Wire Line
 	9900 1100 9900 900 
-Wire Wire Line
-	10200 900  10200 1250
-Wire Wire Line
-	10200 1250 9650 1250
 Text HLabel 9650 1450 0    50   Input ~ 0
 BOARD_GND
 $Comp
@@ -871,8 +839,8 @@ $Comp
 L Logic_LevelTranslator:TXS0102DCT U9
 U 1 1 5E61F145
 P 5600 5600
-F 0 "U9" H 5600 5011 50  0000 C CNN
-F 1 "TXS0102DCT" H 5600 4920 50  0000 C CNN
+F 0 "U9" H 6050 5350 50  0000 C CNN
+F 1 "TXS0102DCT" H 6200 5250 50  0000 C CNN
 F 2 "Package_SO:SSOP-8_2.95x2.8mm_P0.65mm" H 5600 5050 50  0001 C CNN
 F 3 "http://www.ti.com/lit/gpn/txs0102" H 5600 5580 50  0001 C CNN
 	1    5600 5600
@@ -885,17 +853,6 @@ Wire Wire Line
 Wire Wire Line
 	3550 4000 3550 5700
 $Comp
-L power:+5V #PWR0140
-U 1 1 5E63CF51
-P 5700 4700
-F 0 "#PWR0140" H 5700 4550 50  0001 C CNN
-F 1 "+5V" H 5715 4873 50  0000 C CNN
-F 2 "" H 5700 4700 50  0001 C CNN
-F 3 "" H 5700 4700 50  0001 C CNN
-	1    5700 4700
-	1    0    0    -1  
-$EndComp
-$Comp
 L power:+3V3 #PWR0184
 U 1 1 5E63D55D
 P 5500 4700
@@ -906,8 +863,6 @@ F 3 "" H 5500 4700 50  0001 C CNN
 	1    5500 4700
 	1    0    0    -1  
 $EndComp
-Wire Wire Line
-	5700 4700 5700 4750
 Wire Wire Line
 	5500 4700 5500 4750
 $Comp
@@ -1018,4 +973,27 @@ Wire Wire Line
 	5100 6350 5100 5900
 Wire Wire Line
 	5100 5900 5200 5900
+$Comp
+L power:GNDREF #PWR0195
+U 1 1 5E715CCE
+P 5600 6350
+AR Path="/5E564EEA/5E715CCE" Ref="#PWR0195"  Part="1" 
+AR Path="/5E45C906/5E715CCE" Ref="#PWR?"  Part="1" 
+F 0 "#PWR0195" H 5600 6100 50  0001 C CNN
+F 1 "GNDREF" H 5605 6177 50  0000 C CNN
+F 2 "" H 5600 6350 50  0001 C CNN
+F 3 "" H 5600 6350 50  0001 C CNN
+	1    5600 6350
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5600 6350 5600 6100
+Wire Wire Line
+	7200 3250 7400 3250
+Wire Wire Line
+	7400 3250 7400 3550
+Wire Wire Line
+	5700 3550 7400 3550
+Wire Wire Line
+	5700 3550 5700 4750
 $EndSCHEMATC

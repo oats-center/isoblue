@@ -3,7 +3,7 @@ EELAYER 30 0
 EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
-Sheet 5 7
+Sheet 3 7
 Title "USB2CAN for AvenaShield"
 Date ""
 Rev ""
@@ -418,21 +418,6 @@ F 3 "http://ww1.microchip.com/downloads/en/devicedoc/21667d.pdf" H 7400 4150 50 
 	1    0    0    -1  
 $EndComp
 $Comp
-L power:+5V #PWR?
-U 1 1 5E4CF1CE
-P 7400 3450
-AR Path="/5E564EEA/5E4CF1CE" Ref="#PWR?"  Part="1" 
-AR Path="/5E45C906/5E4CF1CE" Ref="#PWR0170"  Part="1" 
-F 0 "#PWR0170" H 7400 3300 50  0001 C CNN
-F 1 "+5V" H 7415 3623 50  0000 C CNN
-F 2 "" H 7400 3450 50  0001 C CNN
-F 3 "" H 7400 3450 50  0001 C CNN
-	1    7400 3450
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	7400 3450 7400 3550
-$Comp
 L power:GNDREF #PWR?
 U 1 1 5E4CF1CF
 P 7400 4650
@@ -799,31 +784,14 @@ F 3 "" H 9900 900 50  0001 C CNN
 	1    9900 900 
 	1    0    0    -1  
 $EndComp
-$Comp
-L power:+5V #PWR?
-U 1 1 5E4CF1E2
-P 10200 900
-AR Path="/5E564EEA/5E4CF1E2" Ref="#PWR?"  Part="1" 
-AR Path="/5E45C906/5E4CF1E2" Ref="#PWR0179"  Part="1" 
-F 0 "#PWR0179" H 10200 750 50  0001 C CNN
-F 1 "+5V" H 10215 1073 50  0000 C CNN
-F 2 "" H 10200 900 50  0001 C CNN
-F 3 "" H 10200 900 50  0001 C CNN
-	1    10200 900 
-	1    0    0    -1  
-$EndComp
 Text HLabel 9650 1100 0    50   Input ~ 0
 BOARD_3v3
-Text HLabel 9650 1250 0    50   Input ~ 0
+Text HLabel 7200 3250 0    50   Input ~ 0
 BOARD_5V
 Wire Wire Line
 	9650 1100 9900 1100
 Wire Wire Line
 	9900 1100 9900 900 
-Wire Wire Line
-	10200 900  10200 1250
-Wire Wire Line
-	10200 1250 9650 1250
 Text HLabel 9650 1450 0    50   Input ~ 0
 BOARD_GND
 $Comp
@@ -908,17 +876,6 @@ F 3 "" H 5500 4700 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L power:+5V #PWR0189
-U 1 1 5E5B678E
-P 5700 4700
-F 0 "#PWR0189" H 5700 4550 50  0001 C CNN
-F 1 "+5V" H 5715 4873 50  0000 C CNN
-F 2 "" H 5700 4700 50  0001 C CNN
-F 3 "" H 5700 4700 50  0001 C CNN
-	1    5700 4700
-	1    0    0    -1  
-$EndComp
-$Comp
 L power:GNDREF #PWR?
 U 1 1 5E5C33C4
 P 5600 6300
@@ -935,8 +892,6 @@ Wire Wire Line
 	5600 6300 5600 6150
 Wire Wire Line
 	5500 4700 5500 4750
-Wire Wire Line
-	5700 4700 5700 4750
 $Comp
 L Device:C C53
 U 1 1 5E5DE230
@@ -1039,4 +994,12 @@ Wire Wire Line
 	4950 6450 4950 5950
 Wire Wire Line
 	4950 5950 5200 5950
+Wire Wire Line
+	5700 3550 7400 3550
+Wire Wire Line
+	5700 3550 5700 4750
+Wire Wire Line
+	7200 3250 7400 3250
+Wire Wire Line
+	7400 3250 7400 3550
 $EndSCHEMATC
