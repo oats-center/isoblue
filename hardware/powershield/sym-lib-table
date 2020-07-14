@@ -1,0 +1,9 @@
+(sym_lib_table
+  (lib (name SMBJ40A)(type Legacy)(uri ${KIPRJMOD}/lib/SMBJ40A.lib)(options "")(descr "SMBJ40A TVS"))
+  (lib (name SMBJ17A)(type Legacy)(uri ${KIPRJMOD}/lib/SMBJ17A.lib)(options "")(descr "SMBJ17A TVS"))
+  (lib (name LM74610)(type Legacy)(uri ${KIPRJMOD}/lib/LM74610.lib)(options "")(descr "LM74610 Ideal Diode"))
+  (lib (name PDQ30-Q24-S12)(type Legacy)(uri ${KIPRJMOD}/lib/PDQ30-Q24-S12-D.lib)(options "")(descr "PDQ30-Q24-S12-D Regulator"))
+  (lib (name R-78EX.X-1.0)(type Legacy)(uri ${KIPRJMOD}/lib/R-78E3.3-1.0.lib)(options "")(descr "R-78EX.X-1.0  1A DC-DC switching converters"))
+  (lib (name MIC5233)(type Legacy)(uri ${KIPRJMOD}/lib/MIC5233.lib)(options "")(descr " MIC5233 1.8V Linear regulator."))
+  (lib (name TLV379)(type Legacy)(uri ${KIPRJMOD}/lib/TLV379.lib)(options "")(descr "TLV379 Op Amp"))
+)

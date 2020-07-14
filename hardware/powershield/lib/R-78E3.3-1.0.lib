@@ -1,0 +1,27 @@
+EESchema-LIBRARY Version 2.3
+#encoding utf-8
+#(c) SnapEDA 2016 (snapeda.com)
+#This work is licensed under a Creative Commons Attribution-ShareAlike 4.0 International License (CC BY-SA) with Design Exception 1.0
+#
+# R-78E3.3-1.0
+#
+DEF R-78E3.3-1.0 PS 0 40 Y Y 1 L N
+F0 "PS" -400 250 50 H V L BNN
+F1 "R-78E3.3-1.0" -400 -300 50 H V L BNN
+F2 "CONV_R-78E3.3-1.0" 0 0 50 H I L BNN
+F3 "Manufacturer Recommendations" 0 0 50 H I L BNN
+F4 "10.40mm" 0 0 50 H I L BNN
+F5 "RECOM" 0 0 50 H I L BNN
+F6 "6" 0 0 50 H I L BNN
+DRAW
+P 2 0 0 10 -400 200 -400 -200 N
+P 2 0 0 10 -400 -200 400 -200 N
+P 2 0 0 10 400 -200 400 200 N
+P 2 0 0 10 400 200 -400 200 N
+X +VIN 1 -600 100 200 R 40 40 0 0 I 
+X +VOUT 3 600 100 200 L 40 40 0 0 O 
+X GND 2 600 -100 200 L 40 40 0 0 W 
+ENDDRAW
+ENDDEF
+#
+# End Library
