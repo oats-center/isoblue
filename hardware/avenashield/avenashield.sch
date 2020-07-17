@@ -341,25 +341,25 @@ F 3 "" H 9500 5350 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L Connector_Generic:Conn_01x03 J3
+L 1546551-3:1546551-3 J3
 U 1 1 5E57F848
-P 9850 3650
-F 0 "J3" H 9930 3692 50  0000 L CNN
-F 1 "CAN_TRA_HEADER" H 9930 3601 50  0000 L CNN
-F 2 "TerminalBlock_Phoenix:TerminalBlock_Phoenix_MKDS-1,5-3-5.08_1x03_P5.08mm_Horizontal" H 9850 3650 50  0001 C CNN
-F 3 "~" H 9850 3650 50  0001 C CNN
-	1    9850 3650
+P 10050 3650
+F 0 "J3" H 10350 3700 50  0000 L CNN
+F 1 "CAN_TRA_HEADER" H 10350 3600 50  0000 L CNN
+F 2 "TerminalBlock:TerminalBlock_bornier-3_P5.08mm" H 10050 3650 50  0001 C CNN
+F 3 "~" H 10050 3650 50  0001 C CNN
+	1    10050 3650
 	1    0    0    -1  
 $EndComp
 $Comp
-L Connector_Generic:Conn_01x03 J4
+L 1546551-3:1546551-3 J4
 U 1 1 5E58DC75
-P 9900 5050
-F 0 "J4" H 9980 5092 50  0000 L CNN
-F 1 "CAN_IMP_HEADER" H 9980 5001 50  0000 L CNN
-F 2 "TerminalBlock_Phoenix:TerminalBlock_Phoenix_MKDS-1,5-3-5.08_1x03_P5.08mm_Horizontal" H 9900 5050 50  0001 C CNN
-F 3 "~" H 9900 5050 50  0001 C CNN
-	1    9900 5050
+P 10100 5050
+F 0 "J4" H 10350 5100 50  0000 L CNN
+F 1 "CAN_IMP_HEADER" H 10350 5000 50  0000 L CNN
+F 2 "TerminalBlock_Phoenix:TerminalBlock_Phoenix_MKDS-1,5-3-5.08_1x03_P5.08mm_Horizontal" H 10100 5050 50  0001 C CNN
+F 3 "~" H 10100 5050 50  0001 C CNN
+	1    10100 5050
 	1    0    0    -1  
 $EndComp
 $Comp
