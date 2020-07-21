@@ -1,22 +1,8 @@
 version: '3.1'
 services:
-  # use Docker secrets?
-  postgres:
-    image: timescale/timescaledb:latest-pg12
-    restart: always
-    environment:
-      POSTGRES_PASSWORD: "password"
-      POSTGRES_USER: "avena"
-      POSTGRES_DB: "avena"
-      TIMESCALEDB_TELEMETRY: "off"
-    ports:
-      - 5432:5432
-    volumes:
-      - postgres:/var/lib/postgresql/data
-      - ./postgres/schema:/docker-entrypoint-initdb.d
   oada-upload:
     build:
-      context: ./oada_upload
+      context: ./
     restart: always
     environment:
       isoblue_id: "ib999"
@@ -31,5 +17,3 @@ services:
       db_port: "5432"
     depends_on:
       - postgres
-volumes:
-  postgres:

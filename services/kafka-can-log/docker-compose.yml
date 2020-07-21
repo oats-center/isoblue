@@ -1,4 +1,4 @@
-version: '2'
+version: '3.1'
 services:
   kafka:
     image: konradmalik/kafka-armhf
@@ -14,11 +14,6 @@ services:
     image: konradmalik/zookeeper-armhf
     ports:
       - "2181:2181"
-  kafka-gps-log:
-    image: wang701/kafka-gps-log:latest-armhf
-    restart: always
-    environment:
-      kafka_topic: "${gps_topic}"
   kafka-can-log:
     image: wang701/kafka-can-log:latest-armhf
     restart: always
@@ -28,12 +23,3 @@ services:
     environment:
       can_dev: "${tra_interface}"
       kafka_topic: "${tra_interface}"
-  engine-rpm-pub:
-    image: wang701/engine-rpm-pub:latest-armhf
-    restart: always
-    environment:
-      isoblue_id: "${isoblue_id}"
-      kafka_topic: "${tra_interface}"
-      mqtt_topic: "${mqtt_topic}"
-      cloud_domain: "${avena_domain}"
-      mqtt_port: "${mqtt_port}"
