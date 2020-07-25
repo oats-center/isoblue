@@ -2,7 +2,7 @@ version: '3.1'
 services:
   oada-upload:
     build:
-      context: ./
+      context: ../oada_upload
     restart: always
     environment:
       isoblue_id: "ib999"

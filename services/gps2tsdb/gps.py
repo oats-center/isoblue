@@ -1,5 +1,4 @@
 #!/usr/bin/python3
-print("Hello")
 from gi.repository import GLib
 from dbus.mainloop.glib import DBusGMainLoop
 import dbus
@@ -13,11 +12,9 @@ def fix(*args):
     print("Finsihed inserting lat and lng for timestamp ", args[0])
 
 
-print("Initing db var")
 global db 
 print("Initing Postgres obj")
 db = postgres.Postgres(url='postgresql://avena:password@postgres/avena')
-print("finished initing Postgres obj: ", db)
 
 print("Ensuring timescaledb extension is activated")
 db.run("CREATE EXTENSION IF NOT EXISTS timescaledb;")
