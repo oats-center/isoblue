@@ -3,6 +3,7 @@ from gi.repository import GLib
 from dbus.mainloop.glib import DBusGMainLoop
 import dbus
 import postgres
+import os
 
 def fix(*args):
     #print(args)
@@ -12,9 +13,10 @@ def fix(*args):
     print("Finsihed inserting lat and lng for timestamp ", args[0])
 
 
-global db 
+global db
+connectionurl='postgresql://' + os.environ['db_user'] + ':' + os.environ['db_password'] + '@postgres:' + os.environ['db_port'] + '/' + os.environ['db_database']
 print("Initing Postgres obj")
-db = postgres.Postgres(url='postgresql://avena:password@postgres/avena')
+db = postgres.Postgres(url=connectionurl)
 
 print("Ensuring timescaledb extension is activated")
 db.run("CREATE EXTENSION IF NOT EXISTS timescaledb;")
