@@ -45,6 +45,8 @@ jobs:
       - name: Prepare
         id: prepare
         run: |
+          echo 'Porcessing git ref:' $GITHUB_REF
+          
           DOCKER_IMAGE=isoblue/${{ matrix.service }}
 
           if [[ $GITHUB_REF == refs/tags/* ]]; then
