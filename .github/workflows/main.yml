@@ -45,6 +45,8 @@ jobs:
       - name: Prepare
         id: prepare
         run: |
+          echo 'Porcessing git ref:' $GITHUB_REF
+          
           DOCKER_IMAGE=isoblue/${{ matrix.service }}
 
           if [[ $GITHUB_REF == refs/tags/* ]]; then
@@ -58,7 +60,11 @@ jobs:
               VERSION='latest'
             fi
 
-          elif [[ $GITHUB_REF == 'refs/remotes/pull/*/merge' ]]; then
+          elif [[ $GITHUB_REF == refs/pull/*/merge ]]; then
+            VERSION=${GITHUB_REF#refs/pull/}
+            VERSION="pr-${VERSION%/merge}"
+            
+          elif [[ $GITHUB_REF == refs/remotes/pull/*/merge ]]; then
             VERSION=${GITHUB_REF#refs/remotes/pull/}
             VERSION="pr-${VERSION%/merge}"
             

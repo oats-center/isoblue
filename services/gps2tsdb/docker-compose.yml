@@ -1,0 +1,18 @@
+version: '3.1'
+services:
+  # docker run -it -v /var/run/dbus:/var/run/dbus --rm --name my-running-app my-python-app
+  gps2tsdb:
+    build:
+      # Cannot use `./` due to this issue https://github.com/docker/compose/issues/3530#issuecomment-222490501
+      context: ../gps2tsdb
+    restart: always
+    environment:
+      db_user: "avena"
+      db_host: "postgres"
+      db_database: "avena"
+      db_password: "password"
+      db_port: "5432"
+    depends_on:
+      - postgres
+    volumes:
+      - /var/run/dbus:/var/run/dbus:rw
