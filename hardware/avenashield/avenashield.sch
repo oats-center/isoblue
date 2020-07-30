@@ -357,7 +357,7 @@ U 1 1 5E58DC75
 P 10100 5050
 F 0 "J4" H 10350 5100 50  0000 L CNN
 F 1 "CAN_IMP_HEADER" H 10350 5000 50  0000 L CNN
-F 2 "TerminalBlock_Phoenix:TerminalBlock_Phoenix_MKDS-1,5-3-5.08_1x03_P5.08mm_Horizontal" H 10100 5050 50  0001 C CNN
+F 2 "TerminalBlock_Phoenix:TerminalBlock_Phoenix_PT-1,5-3-3.5-H_1x03_P3.50mm_Horizontal" H 10100 5050 50  0001 C CNN
 F 3 "~" H 10100 5050 50  0001 C CNN
 	1    10100 5050
 	1    0    0    -1  
