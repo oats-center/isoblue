@@ -315,19 +315,19 @@ async function main(): Promise<void> {
         console.debug(`${data[path].epochs.length} points to OADA ${path}`);
         // Modified timeout await as described here https://stackoverflow.com/a/33292942
         res = await Promise.race( 
-	  [ 
+	        [ 
             oada.put({
               tree: isoblueDataTree,
               path,
               data: JSON.parse(JSON.stringify({data: data[path].locations})),
             }),
             sleep(5000) 
-	  ]
-	);
-	// Is there a better way to determine if the sleep is the one that expired
-	if( res === undefined){
+	        ]
+	      );
+	      // Is there a better way to determine if the sleep is the one that expired
+	      if( res === undefined){
           throw new Error(`oada.put timed out`);
-	}
+	      }
         //console.debug(`OADA put finished`);
       } catch (e) {
         // The PUT is not a success. This is either due to a misconfiguration or lack of internet.
