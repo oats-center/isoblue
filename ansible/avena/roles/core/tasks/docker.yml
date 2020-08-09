@@ -86,10 +86,11 @@
 - name: container-maintainer
   block:
     - name: Ensure container-maintainer directory is created
-    file:
-      path: /urs/local/bin/container-maintainer
-      state: directory
-      mode: '0755'
+      become: yes
+      file:
+        path: /urs/local/bin/container-maintainer
+        state: directory
+        mode: '0755'
 
     - name: Ensure container-maintainer script is installed
       become: yes

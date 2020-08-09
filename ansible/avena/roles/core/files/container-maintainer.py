@@ -73,3 +73,4 @@ if containers != []:
 # Use docker-compose to bring containers back up with new config
 print('Starting containers with docker-compose')
 subprocess.run(['docker-compose', '-f', 'docker-compose.yml', 'up', '-d'])
+
