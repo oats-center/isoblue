@@ -23,6 +23,7 @@ jobs:
       matrix:
         service:
           - gps2tsdb
+          - oada_upload
 
     runs-on: ubuntu-latest
     steps:
