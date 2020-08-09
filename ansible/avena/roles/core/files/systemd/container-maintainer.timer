@@ -1,0 +1,11 @@
+[Unit]
+Description=Run container-maintainer.service every 1 min
+Requires=container-maintainer.service
+
+[Timer]
+Unit=container-maintainer.service
+OnUnitInactiveSec=1m
+AccuracySec=1s
+
+[Install]
+WantedBy=timers.target
