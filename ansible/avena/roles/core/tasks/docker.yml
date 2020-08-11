@@ -88,14 +88,14 @@
     - name: Ensure container-maintainer directory is created
       become: yes
       file:
-        path: /urs/local/bin/container-maintainer
+        path: /usr/local/bin/container-maintainer
         state: directory
         mode: '0755'
 
     - name: Ensure container-maintainer script is installed
       become: yes
       copy:
-        dest: /usr/local/bin/container-maintainer
+        dest: /usr/local/bin/container-maintainer/
         src: container-maintainer.py
         owner: root
         group: root
@@ -113,8 +113,8 @@
     - name: Ensure container-maintainer systemd timer is installed
       become: yes
       copy:
-        dest: /etc/systemd/container-maintainer.timer
-        src: systemd/container-maintainer.service
+        dest: /etc/systemd/system/container-maintainer.timer
+        src: systemd/container-maintainer.timer
         owner: root
         group: root
         mode: '644'
@@ -122,7 +122,14 @@
     - name: Ensure container-maintainer.service is enabled
       become: yes
       systemd:
-        name: container-maintainer
+        name: container-maintainer.service
+        daemon_reload: yes
+        enabled: yes
+        state: started
+    - name: Ensure container-maintainer.timer is started
+      become: yes
+      systemd:
+        name: container-maintainer.timer
         daemon_reload: yes
         enabled: yes
         state: started

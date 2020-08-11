@@ -8,7 +8,7 @@ import socket     # Used to get hostname
 
 # Get current docker-compose from the server
 hostname = socket.gethostname()
-url = 'http://172.16.0.1:8006/' + 'avena-apalis-dev06' + '/docker-compose.yml'
+url = 'http://172.16.0.1:8006/' + hostname + '/docker-compose.yml'
 print('Querying server for docker-compose file')
 response = requests.get(url)
 

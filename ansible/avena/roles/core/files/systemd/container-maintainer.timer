@@ -1,11 +1,11 @@
 [Unit]
-Description=Run container-maintainer.service every 1 min
+Description=Run container-maintainer.service every day
 Requires=container-maintainer.service
 
 [Timer]
 Unit=container-maintainer.service
-OnUnitInactiveSec=1m
-AccuracySec=1s
+OnCalendar=daily
+Persistent=true
 
 [Install]
 WantedBy=timers.target
