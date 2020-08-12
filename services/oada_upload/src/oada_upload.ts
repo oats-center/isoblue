@@ -330,8 +330,8 @@ async function main(): Promise<void> {
                 console.debug(`oada.put timed out`);
                 process.exit(-1);
 
-                oada = await connect({ domain, token, concurrency: 5 });
-                throw new Error(`oada.put timed out`);
+                //oada = await connect({ domain, token, concurrency: 5 });
+                //throw new Error(`oada.put timed out`);
 	      }
         //console.debug(`OADA put finished`);
       } catch (e) {
