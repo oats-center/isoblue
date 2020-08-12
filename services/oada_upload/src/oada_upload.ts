@@ -327,6 +327,9 @@ async function main(): Promise<void> {
 	      // Is there a better way to determine if the sleep is the one that expired
 	      if( res === undefined){
                 // Try to reconnect?
+                console.debug(`oada.put timed out`);
+                process.exit(-1);
+
                 oada = await connect({ domain, token, concurrency: 5 });
                 throw new Error(`oada.put timed out`);
 	      }
