@@ -15,6 +15,7 @@ import docker     # For interacting with the docker containers
 # 4. Check if any docker containers can been update. Pull images if so. 
 # 5. If docker-compose.yml files differ or if any docker containers were updated, shut down all containers and restart them
 
+# Don't restart the containers unless there is an update to the containers or docker-compose
 restartcontainers=False
 
 # Get current docker-compose from the server
@@ -45,6 +46,7 @@ if not os.path.isfile('./docker-compose.yml'):
     # If no current docker-compose, write it
     print('Writing initial docker-compose from server')
     os.rename('./docker-compose.yml.new', './docker-compose.yml')
+    restartcontainers=True 
 else:
     print('docker-compose file found, comparing to server version')
 
@@ -61,24 +63,19 @@ else:
         restartcontainers = True
         print('New docker-compose written')
 
+# Check if any container needs updates
+
+
 if restartcontainers:
-    # Get a list of the currently running docker containers
-    print('Getting current containers')
-    dockerps = subprocess.run(['docker', 'ps', '-a', '-q'], capture_output=True)
-    
-    containers = dockerps.stdout.decode('ascii').split('\n')
-    if containers[-1] == '':
-        del containers[-1]
-    print(containers)
-    
-    if containers != []:
-        # Stop all containers
-        print('Stopping and removing current containers')
-        subprocess.run(['docker', 'stop'] + containers ) 
-        
-        # Remove all containers
-        print('Removing current containers')
-        subprocess.run(['docker', 'rm'] + containers)
+
+    print('Connecting to docker daemon')
+    # Connect to docker daemon
+    client = docker.from_env()
+
+    print('Stopping and removing currently running containers')
+    for container in client.containers.list():
+        container.stop()
+        container.remove()
     
     # Use docker-compose to bring containers back up with new config
     print('Starting containers with docker-compose')
