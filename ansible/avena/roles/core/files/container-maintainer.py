@@ -5,6 +5,17 @@ import os         # Used to check for existence of docker-compose files, move, a
 import sys        # Used to exit the program
 import subprocess # Used to interact with docker-compose
 import socket     # Used to get hostname
+import docker     # For interacting with the docker containers
+
+# General program flow:
+# 1. Get docker-compose.yml from server use `docker-compose config` to validate
+#    a. If server docker-compose.yml file is not valid, exit
+# 2. Use `docker-compose config` to generate 'validated' version of local config
+# 3. Check if generated docker-compose.yml files differnt
+# 4. Check if any docker containers can been update. Pull images if so. 
+# 5. If docker-compose.yml files differ or if any docker containers were updated, shut down all containers and restart them
+
+restartcontainers=False
 
 # Get current docker-compose from the server
 hostname = socket.gethostname()
@@ -24,8 +35,8 @@ serverdc = response.content.decode('ascii')
 # Validate docker-compose
 open('./docker-compose.yml.new', 'w').write(serverdc)
 print('Validating new docker-compose')
-valid = subprocess.run(['docker-compose', '-f', './docker-compose.yml.new', 'config'])
-if valid.returncode != 0:
+serverdc_config = subprocess.run(['docker-compose', '-f', './docker-compose.yml.new', 'config'], capture_output=True)
+if serverdc_config.returncode != 0:
     print('Return code is not valid! Not using new docker-compose')
     os.remove('./docker-compose.yml.new')
     sys.exit()
@@ -38,39 +49,38 @@ else:
     print('docker-compose file found, comparing to server version')
 
     # Get docker-compose config
-    localdc = ''
-    with open ("./docker-compose.yml", "r") as openfile:
-        localdc = openfile.read()
+    localdc_config = subprocess.run(['docker-compose', '-f', './docker-compose.yml', 'config'], capture_output=True)
 
     # If they are the same, exit
-    if localdc == serverdc:
-        print('Server and local docker-compose files are the same. Exiting')
-        sys.exit()
+    if localdc_config.stdout.decode('ascii') == serverdc_config.stdout.decode('ascii'):
+        print('Server and local docker-compose files are equivalent')
+    else:
+        # Write the new docker-compose
+        print('Server and local docker-compose files are not the same. Replacing docker-compose and restarting all docker containers')
+        os.rename('./docker-compose.yml.new', './docker-compose.yml')
+        restartcontainers = True
+        print('New docker-compose written')
 
-    # Write the new docker-compose
-    print('Server and local docker-compose files are not the same. Replacing docker-compose and restarting all docker containers')
-    os.rename('./docker-compose.yml.new', './docker-compose.yml')
-    print('New docker-compose written. Stopping and removing all docker containers')
-
-# Get a list of the currently running docker containers
-print('Getting current containers')
-dockerps = subprocess.run(['docker', 'ps', '-a', '-q'], capture_output=True)
-
-containers = dockerps.stdout.decode('ascii').split('\n')
-if containers[-1] == '':
-    del containers[-1]
-print(containers)
-
-if containers != []:
-    # Stop all containers
-    print('Stopping and removing current containers')
-    subprocess.run(['docker', 'stop'] + containers ) 
+if restartcontainers:
+    # Get a list of the currently running docker containers
+    print('Getting current containers')
+    dockerps = subprocess.run(['docker', 'ps', '-a', '-q'], capture_output=True)
     
-    # Remove all containers
-    print('Removing current containers')
-    subprocess.run(['docker', 'rm'] + containers)
-
-# Use docker-compose to bring containers back up with new config
-print('Starting containers with docker-compose')
-subprocess.run(['docker-compose', '-f', 'docker-compose.yml', 'up', '-d'])
+    containers = dockerps.stdout.decode('ascii').split('\n')
+    if containers[-1] == '':
+        del containers[-1]
+    print(containers)
+    
+    if containers != []:
+        # Stop all containers
+        print('Stopping and removing current containers')
+        subprocess.run(['docker', 'stop'] + containers ) 
+        
+        # Remove all containers
+        print('Removing current containers')
+        subprocess.run(['docker', 'rm'] + containers)
+    
+    # Use docker-compose to bring containers back up with new config
+    print('Starting containers with docker-compose')
+    subprocess.run(['docker-compose', '-f', 'docker-compose.yml', 'up', '-d'])
 
