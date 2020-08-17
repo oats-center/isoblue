@@ -79,5 +79,9 @@ if restartcontainers:
     
     # Use docker-compose to bring containers back up with new config
     print('Starting containers with docker-compose')
-    subprocess.run(['docker-compose', '-f', 'docker-compose.yml', 'up', '-d'])
+    dcup = subprocess.run(['docker-compose', '-f', 'docker-compose.yml', 'up', '-d'])
+    
+    if dcup.returncode != 0:
+        print("WARNING: docker-compose up command unsuccessful")
+        sys.exit(-1)
 
