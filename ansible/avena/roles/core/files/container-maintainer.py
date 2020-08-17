@@ -12,10 +12,9 @@ import docker     # For interacting with the docker containers
 #    a. If server docker-compose.yml file is not valid, exit
 # 2. Use `docker-compose config` to generate 'validated' version of local config
 # 3. Check if generated docker-compose.yml files differnt
-# 4. Check if any docker containers can been update. Pull images if so. 
-# 5. If docker-compose.yml files differ or if any docker containers were updated, shut down all containers and restart them
+# 4. If docker-compose.yml files differ, shut down all containers and restart them
 
-# Don't restart the containers unless there is an update to the containers or docker-compose
+# Boolean to track if a container restart is needed
 restartcontainers=False
 
 # Get current docker-compose from the server
@@ -37,8 +36,9 @@ serverdc = response.content.decode('ascii')
 open('./docker-compose.yml.new', 'w').write(serverdc)
 print('Validating new docker-compose')
 serverdc_config = subprocess.run(['docker-compose', '-f', './docker-compose.yml.new', 'config'], capture_output=True)
+
 if serverdc_config.returncode != 0:
-    print('Return code is not valid! Not using new docker-compose')
+    print('docker-compose validation return code is not valid! Not using new docker-compose')
     os.remove('./docker-compose.yml.new')
     sys.exit()
 
@@ -48,12 +48,12 @@ if not os.path.isfile('./docker-compose.yml'):
     os.rename('./docker-compose.yml.new', './docker-compose.yml')
     restartcontainers=True 
 else:
-    print('docker-compose file found, comparing to server version')
+    print('local docker-compose file found, comparing to server version')
 
     # Get docker-compose config
     localdc_config = subprocess.run(['docker-compose', '-f', './docker-compose.yml', 'config'], capture_output=True)
 
-    # If they are the same, exit
+    # Check if docker-compose files are the same
     if localdc_config.stdout.decode('ascii') == serverdc_config.stdout.decode('ascii'):
         print('Server and local docker-compose files are equivalent')
     else:
@@ -63,11 +63,7 @@ else:
         restartcontainers = True
         print('New docker-compose written')
 
-# Check if any container needs updates
-
-
 if restartcontainers:
-
     print('Connecting to docker daemon')
     # Connect to docker daemon
     client = docker.from_env()
@@ -81,6 +77,7 @@ if restartcontainers:
     print('Starting containers with docker-compose')
     dcup = subprocess.run(['docker-compose', '-f', 'docker-compose.yml', 'up', '-d'])
     
+    # Check return code
     if dcup.returncode != 0:
         print("WARNING: docker-compose up command unsuccessful")
         sys.exit(-1)
