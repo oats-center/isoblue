@@ -1,0 +1,136 @@
+- name: ensure distribution docker packages are not installed
+  become: yes
+  apt:
+    name:
+      - docker
+      - docker-engine
+      - docker.io
+      - containerd
+      - runc
+    state: absent
+
+- name: ensure required packages for docker repository are installed
+  become: yes
+  apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg-agent
+      - software-properties-common
+    state: present
+
+- name: ensure docker apt key is installed
+  become: yes
+  apt_key:
+    url: https://download.docker.com/linux/debian/gpg
+    state: present
+
+# TODO: Resolve "buster" correctly?
+- name: ensure docker apt repository is installed
+  become: yes
+  apt_repository:
+    repo: 'deb https://download.docker.com/linux/debian buster stable'
+    state: present
+    filename: docker
+
+- name: ensure docker is installed
+  become: yes
+  apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+    state: present
+
+- name: ensure docker group exists
+  become: yes
+  group:
+    name: "{{ avena_docker_group }}"
+    state: present
+
+- name: ensure {{ ansible_user }} is part of the docker group
+  become: yes
+  user:
+    name: "{{ ansible_user }}"
+    groups: "{{ avena_docker_group }}"
+    append: yes
+    state: present
+
+- name: ensure docker is configured
+  become: yes
+  template:
+    src: templates/docker/daemon.json.j2
+    dest: /etc/docker/daemon.json
+    owner: root
+    group: root
+    mode: '0600'
+  notify: restart docker
+
+- name: ensure python packages needed for docker-compose are installed
+  become: yes
+  apt:
+    name:
+      - python3-pip
+      - python3-setuptools
+      - libffi-dev
+      - libssl-dev
+    state: present
+
+# TODO: Ansible is using python 2.0 ... what shouild we use?
+- name: use pip to ensure docker-compose is installed
+  become: yes
+  command:
+    cmd: python3 -m pip install -IU docker-compose
+
+- name: container-maintainer
+  block:
+    - name: Ensure container-maintainer directory is created
+      become: yes
+      file:
+        path: /usr/local/bin/container-maintainer
+        state: directory
+        mode: '0755'
+
+    - name: Ensure container-maintainer script is installed
+      become: yes
+      copy:
+        dest: /usr/local/bin/container-maintainer/
+        src: container-maintainer.py
+        owner: root
+        group: root
+        mode: '0700'
+
+    - name: Ensure container-maintainer systemd service is installed
+      become: yes
+      copy:
+        dest: /etc/systemd/system/container-maintainer.service
+        src: systemd/container-maintainer.service
+        owner: root
+        group: root
+        mode: '644'
+
+    - name: Ensure container-maintainer systemd timer is installed
+      become: yes
+      copy:
+        dest: /etc/systemd/system/container-maintainer.timer
+        src: systemd/container-maintainer.timer
+        owner: root
+        group: root
+        mode: '644'
+
+    - name: Ensure container-maintainer.service is enabled
+      become: yes
+      systemd:
+        name: container-maintainer.service
+        daemon_reload: yes
+        enabled: yes
+        state: started
+    - name: Ensure container-maintainer.timer is started
+      become: yes
+      systemd:
+        name: container-maintainer.timer
+        daemon_reload: yes
+        enabled: yes
+        state: started
+        
