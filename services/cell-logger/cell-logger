@@ -1,0 +1,72 @@
+#!/usr/bin/env python3
+
+import dbus
+import re
+import time
+import csv
+
+bus = dbus.SystemBus()
+
+def get_modem_rssi():
+
+    modem_signal_iface = 'org.freedesktop.ModemManager1.Modem.Signal'
+
+    modem_manager_object = bus.get_object('org.freedesktop.ModemManager1', 
+                                          '/org/freedesktop/ModemManager1')
+    modem_manager_iface = dbus.Interface(modem_manager_object, 
+                                         'org.freedesktop.DBus.ObjectManager')
+
+    modem_data = modem_manager_iface.GetManagedObjects()
+    
+    modem_data_str = str(modem_manager_iface.GetManagedObjects())
+
+    modem_path = list(modem_data.keys())[0]    
+    
+    if(list(modem_data[dbus.ObjectPath(modem_path)][
+                       dbus.String(modem_signal_iface)][
+                           dbus.String('Lte')].keys())):
+        
+        cell_tech = 'Lte'
+
+    else:
+
+        cell_tech = 'Umts'
+
+    try:
+        
+        rssi = modem_data[dbus.ObjectPath(modem_path)][
+                          dbus.String(modem_signal_iface)][
+                          dbus.String(cell_tech)][dbus.String('rssi')]
+        
+    except(KeyError):
+        
+        set_update_rate(modem_path)
+
+        return ''
+
+    return [int(float(rssi)),cell_tech]
+
+def set_update_rate(modem_path):
+
+    modem_object = bus.get_object('org.freedesktop.ModemManager1', modem_path)
+    modem_iface = dbus.Interface(modem_object,
+                                 'org.freedesktop.ModemManager1.Modem.Signal')
+    modem_iface.Setup(dbus.UInt32(1))
+
+while(True):
+
+    timestamp = int(time.time()) 
+
+    [signal, cell_tech] = get_modem_rssi()
+    
+    if (signal != ''):
+
+        with open('/data/log/cell.csv', mode = 'a') as log:
+
+            log = csv.writer(log, delimiter = ',', quotechar = '"',
+                             quoting = csv.QUOTE_MINIMAL)
+
+            log.writerow([timestamp, signal, cell_tech])
+            print(timestamp, signal, cell_tech)
+
+    time.sleep(1)
