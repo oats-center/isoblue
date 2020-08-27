@@ -5,7 +5,11 @@ import re
 import time
 import csv
 
+#Initialize DBus system bus 
+
 bus = dbus.SystemBus()
+
+#Query modem data using the ModemManager DBus object. 
 
 def get_modem_rssi():
 
@@ -14,14 +18,17 @@ def get_modem_rssi():
     modem_manager_object = bus.get_object('org.freedesktop.ModemManager1', 
                                           '/org/freedesktop/ModemManager1')
     modem_manager_iface = dbus.Interface(modem_manager_object, 
-                                         'org.freedesktop.DBus.ObjectManager')
+                                         'org.freedesktop.DBus.ObjectManager'
 
     modem_data = modem_manager_iface.GetManagedObjects()
-    
-    modem_data_str = str(modem_manager_iface.GetManagedObjects())
+
+#Extract modem path from the DBus data dictionary
 
     modem_path = list(modem_data.keys())[0]    
-    
+
+#Check if the 'Lte' dictionary has signal values assigned. If no values are 
+#found, assume the modem is connected via 'Umts'
+
     if(list(modem_data[dbus.ObjectPath(modem_path)][
                        dbus.String(modem_signal_iface)][
                            dbus.String('Lte')].keys())):
@@ -32,19 +39,25 @@ def get_modem_rssi():
 
         cell_tech = 'Umts'
 
+#Get RSSI data from the dictionary. If there is still no data, assume the modem 
+#ID has changed and needs to have the signal info update rate set. 
+
     try:
         
         rssi = modem_data[dbus.ObjectPath(modem_path)][
                           dbus.String(modem_signal_iface)][
                           dbus.String(cell_tech)][dbus.String('rssi')]
         
-    except(KeyError):
-        
+    except(KeyError): 
+
         set_update_rate(modem_path)
 
         return ''
 
     return [int(float(rssi)),cell_tech]
+
+#Assign a signal quality retrieval refresh rate of 1 second using the 'Setup()'
+#method of the 'Signal' object for the modem in modem_path.
 
 def set_update_rate(modem_path):
 
