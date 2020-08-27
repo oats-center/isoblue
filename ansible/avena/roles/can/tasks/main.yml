@@ -37,32 +37,3 @@
         owner: root
         group: root
         mode: "0755"
-
-    - name: Can watchdog
-      block:
-        - name: ensure can-watchdog.service is installed
-          become: yes
-          copy:
-            dest: /etc/systemd/system/can-watchdog.service
-            src: systemd/can-watchdog.service
-            owner: root
-            group: root
-            mode: "0644"
-          notify: reload systemd
-
-        - name: ensure can_watchdog is installed
-          become: yes
-          copy:
-            dest: /usr/local/bin
-            src: can_watchdog
-            owner: root
-            group: root
-            mode: "0700"
-
-        - name: ensure can-watchdog.service is enabled
-          become: yes
-          systemd:
-            name: can-watchdog
-            daemon_reload: yes
-            enabled: "{{ 'yes' if oats_can_watchdog == 'yes' else 'no' }}"
-            state: "{{ 'started' if oats_can_watchdog == 'yes' else 'stopped' }}"
