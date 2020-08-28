@@ -1,0 +1,8 @@
+avena_docker_bip: "172.17.0.1/16"
+avena_docker_data_root: '/data/docker'
+avena_docker_default_address_pool:
+  - base: "172.18.0.0/16"
+    size: "24"
+  - base: "172.19.0.0/16"
+    size: "24"
+avena_docker_group: 'docker'

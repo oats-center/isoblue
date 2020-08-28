@@ -1,0 +1,6 @@
+- name: Run docker tasks
+  include_tasks:
+    file: docker.yml
+    apply:
+      tags: docker
+  tags: docker

@@ -1,0 +1,11 @@
+[Unit]
+Description=Run container-maintainer.service every day
+Requires=container-maintainer.service
+
+[Timer]
+Unit=container-maintainer.service
+OnCalendar=daily
+Persistent=true
+
+[Install]
+WantedBy=timers.target
