@@ -37,13 +37,14 @@ print('CAN Watchdog has started')
 print('Gathering all can interfaces')
 
 rx_paths = []
+sysclass = '/mnt/host/sys/class/net/'
 
 # Iterate through all links listed in /sys/class/net
-for network in os.listdir('/sys/class/net'):
-    path = '/sys/class/net/' + network + '/type'
+for network in os.listdir(sysclass):
+    path = sysclass + network + '/type'
     print('Checking network ', network, ' type at path ', path)
     if not os.path.isfile(path):
-        print(network, ' does not have a type. Skipping')
+        print(network, ' does not have a type file. Skipping')
         continue
     with open(path) as typefile:
         networktype = typefile.read().strip()
@@ -52,7 +53,7 @@ for network in os.listdir('/sys/class/net'):
     # https://elixir.bootlin.com/linux/latest/source/include/uapi/linux/if_arp.h#L56
     if networktype.isdigit() and int(networktype) == 280:
         print('\t', network, ' appears to be a CAN link')
-        rx_paths.append('/sys/class/net/' + network + '/statistics/rx_bytes')
+        rx_paths.append(sysclass + network + '/statistics/rx_bytes')
 
 if len(rx_paths) <= 0:
     print('FATAL: No CAN interfaces found')

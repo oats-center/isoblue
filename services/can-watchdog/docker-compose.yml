@@ -6,8 +6,8 @@ services:
     restart: always
     volumes:
       - /var/run/dbus:/var/run/dbus:rw
-      - /sys/class/net:/sys/class/net:ro
-        #      - /sys/devices:/sys/devices:ro
+      - /sys/class/net:/mnt/host/sys/class/net:ro
+      - /sys/devices:/mnt/host/sys/devices:ro
 
 volumes:
   can-watchdog:
