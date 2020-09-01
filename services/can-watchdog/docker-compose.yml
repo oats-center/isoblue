@@ -4,6 +4,10 @@ services:
     build:
       context: ../can-watchdog
     restart: always
-      volumes:
+    volumes:
       - /var/run/dbus:/var/run/dbus:rw
-      - /sys/class/net/can*/statistics/rx_bytes:/sys/class/net/can*/statistics/rx_bytes:r
+      - /sys/class/net:/sys/class/net:ro
+        #      - /sys/devices:/sys/devices:ro
+
+volumes:
+  can-watchdog:
