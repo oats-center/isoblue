@@ -27,5 +27,5 @@ COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 # Copy script over and run
-COPY can-watchdog.py .
-CMD [ "python", "./can-watchdog.py" ]
+COPY can_watchdog.py .
+CMD [ "python", "./can_watchdog.py" ]

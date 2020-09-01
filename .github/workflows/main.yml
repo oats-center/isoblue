@@ -24,7 +24,7 @@ jobs:
         service:
           - gps2tsdb
           - oada_upload
-          - can-watchdog
+          - can_watchdog
 
     runs-on: ubuntu-latest
     steps:

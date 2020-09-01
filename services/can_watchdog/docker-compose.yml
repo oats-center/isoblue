@@ -1,8 +1,8 @@
 version: '3.1'
 services:
-  can-watchdog:
+  can_watchdog:
     build:
-      context: ../can-watchdog
+      context: ../can_watchdog
     restart: always
     volumes:
       - /var/run/dbus:/var/run/dbus:rw
@@ -10,4 +10,4 @@ services:
       - /sys/devices:/mnt/host/sys/devices:ro
 
 volumes:
-  can-watchdog:
+  can_watchdog:
