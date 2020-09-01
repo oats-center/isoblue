@@ -90,3 +90,5 @@ while True:
         prev_rx = curr_rx
         curr_rx = 0
 
+    sys.stdout.flush()
+
