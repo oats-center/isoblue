@@ -37,4 +37,4 @@ ENV PATH="/opt/venv/bin:$PATH"
 
 # Copy script over and run
 COPY cell-logger .
-CMD [ "./cell-logger" ]
+CMD [ "./cell_logger" ]

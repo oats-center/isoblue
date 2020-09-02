@@ -2,7 +2,7 @@ version: '3.1'
 services:
   cell-logger:
     build:
-      context: ../cell-logger
+      context: ../cell_logger
     restart: always
     environment:
       db_user: "avena"

@@ -24,7 +24,7 @@ jobs:
         service:
           - gps2tsdb
           - oada_upload
-          - cell-logger
+          - cell_logger
 
     runs-on: ubuntu-latest
     steps:
