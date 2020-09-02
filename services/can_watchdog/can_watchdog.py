@@ -49,6 +49,8 @@ sysclass = '/mnt/host/sys/class/net/'
 check_interval = 5
 if os.environ['inactivity_threshold'].strip().isdigit():
     check_interval = int(os.environ['inactivity_threshold'].strip())
+else:
+    print('inactivity threshold value `', os.environ['inactivity_threshold'].strip(), '` could not be coerced into an int, using default value')
 
 # Iterate through all links listed in /sys/class/net
 for network in os.listdir(sysclass):
