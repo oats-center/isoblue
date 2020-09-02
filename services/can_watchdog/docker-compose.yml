@@ -4,6 +4,8 @@ services:
     build:
       context: ../can_watchdog
     restart: always
+    environment:
+      inactivity_threshold: 5
     volumes:
       - /var/run/dbus:/var/run/dbus:rw
       - /sys/class/net:/mnt/host/sys/class/net:ro
