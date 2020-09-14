@@ -66,7 +66,7 @@ def set_update_rate(modem_path):
 def write_to_csv(timestamp, signal, cell_tech):
 
 
-    with open('/data/log/cell.csv', mode = 'a') as log:
+    with open('/data/log/cell.csv', mode = 'a+') as log:
 
         log = csv.writer(log, delimiter = ',', quotechar = '"',
                          quoting = csv.QUOTE_MINIMAL)
