@@ -76,7 +76,7 @@ def write_to_csv(timestamp, signal, cell_tech):
 
 def write_to_db(timestamp, signal, cell_tech):
 
-    db.run("INSERT INTO cell (time, signal, cell_tech) VALUES (to_timestamp(%s),
+    db.run("INSERT INTO cell (time, signal, cell_tech) VALUES (to_timestamp(%s), \
             %s, %s)", (timestamp, signal, cell_tech))
 
     print("Finished inserting cell signal power data for timestamp ", timestamp)
@@ -85,12 +85,12 @@ def write_to_db(timestamp, signal, cell_tech):
 
 global db
 
-connection_url = 'postgresql://' + os.environ['db_user'] + ':' + 
+connection_url = ('postgresql://' + os.environ['db_user'] + ':' + 
                  os.environ['db_password'] + '@postgres:' + 
-                 os.environ['db_port'] + '/' + os.environ['db_database']
+                 os.environ['db_port'] + '/' + os.environ['db_database'] )
 
 print('Initializing Postgres Object...')
-db = postgres.Postgres(url = connectionurl)
+db = postgres.Postgres(url = connection_url)
 
 print('Ensuring timescaledb ext. is enabled')
 db.run("CREATE EXTENSION IF NOT EXISTS timescaledb;")
@@ -102,8 +102,9 @@ db.run("""
           cell_tech text NOT NULL);""")
 
 print("Ensuring cell data table is a timescaledb hypertable")
-db.run("SELECT create_hypertable('cell', 'time', if_not_exists => TRUE, 
-        migrate_data => TRUE);")
+db.run("""
+        SELECT create_hypertable('cell', 'time', if_not_exists => TRUE,  
+        migrate_data => TRUE);""")
 
 print("Finished setting up tables")
 
