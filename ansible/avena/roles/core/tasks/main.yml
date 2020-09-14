@@ -33,13 +33,6 @@
       tags: time
   tags: time
 
-- name: Run docker tasks
-  include_tasks:
-    file: docker.yml
-    apply:
-      tags: docker
-  tags: docker
-
 - name: Run networking tasks
   include_tasks:
     file: networking.yml

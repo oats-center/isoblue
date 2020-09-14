@@ -1,0 +1,13 @@
+[Unit]
+Description=Keeps Docker containers up to date via remote docker-compose.yml
+Documentation=https://isoblue.org/
+Wants=container-maintainer.timer
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/container-maintainer/container-maintainer.py
+WorkingDirectory=/usr/local/bin/container-maintainer
+
+[Install]
+WantedBy=multi-user.target
+

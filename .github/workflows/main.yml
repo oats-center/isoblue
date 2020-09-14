@@ -25,7 +25,7 @@ jobs:
           - gps2tsdb
           - oada_upload
           - cell_logger
-
+          - can_watchdog
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
