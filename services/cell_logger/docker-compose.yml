@@ -14,4 +14,4 @@ services:
       - postgres
     volumes: 
       - /var/run/dbus:/var/run/dbus:rw
-      - /data/logs:/data/logs:rw
+      - /data/log:/data/log:rw
