@@ -5,6 +5,7 @@ import dbus
 import postgres
 import os
 
+
 def fix(*args):
     #print(args)
     print("Time: ", args[0], "\tLat: ", args[3], "\tLng: ", args[4])
