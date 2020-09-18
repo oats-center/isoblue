@@ -4,14 +4,26 @@ from dbus.mainloop.glib import DBusGMainLoop
 import dbus
 import postgres
 import os
+from prometheus_client import start_http_server, Gauge
 
 def fix(*args):
     #print(args)
     print("Time: ", args[0], "\tLat: ", args[3], "\tLng: ", args[4])
+    lat_gauge.set(args[3])
+    lng_gauge.set(args[4])
+    time_gauge.set(args[0])
+
     print("Inserting lat and lng for timestanp ", args[0])
     db.run("INSERT INTO gps (time, lat, lng) VALUES (to_timestamp(%s), %s, %s)", (float(args[0]), float(args[3]), float(args[4]) ) )
     print("Finsihed inserting lat and lng for timestamp ", args[0])
 
+global lat_gauge
+lat_gauge = Gauge('position_lat', 'Last know fix latitude')
+global lng_gauge
+lng_gauge = Gauge('position_lng', 'Last know fix longitude')
+global time_gauge
+time_gauge = Gauge('position_time', 'Last know fix time')
+start_http_server(10001)
 
 global db
 connectionurl='postgresql://' + os.environ['db_user'] + ':' + os.environ['db_password'] + '@postgres:' + os.environ['db_port'] + '/' + os.environ['db_database']
