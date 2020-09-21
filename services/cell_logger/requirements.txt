@@ -1,2 +1,3 @@
 postgres
 dbus-python
+prometheus_client
