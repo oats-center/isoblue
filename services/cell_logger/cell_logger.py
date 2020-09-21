@@ -85,7 +85,7 @@ def write_to_db(timestamp, signal, cell_tech):
 
 #Create a metric to track cell signal
 
-signal_gauge = Gauge('received_cell_signal_power', 'Received cell signal power')
+signal_gauge = Gauge('avena_cell_signal_power', 'Received cell signal power')
 
 #Initialize postgres database
 
