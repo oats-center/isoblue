@@ -18,11 +18,11 @@ def fix(*args):
     print("Finsihed inserting lat and lng for timestamp ", args[0])
 
 global lat_gauge
-lat_gauge = Gauge('position_lat', 'Last know fix latitude')
+lat_gauge = Gauge('avena_position_lat', 'Last know fix latitude')
 global lng_gauge
-lng_gauge = Gauge('position_lng', 'Last know fix longitude')
+lng_gauge = Gauge('avena_position_lng', 'Last know fix longitude')
 global time_gauge
-time_gauge = Gauge('position_time', 'Last know fix time')
+time_gauge = Gauge('avena_position_time', 'Last know fix time')
 start_http_server(10001)
 
 global db
