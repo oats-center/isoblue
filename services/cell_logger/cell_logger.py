@@ -5,6 +5,7 @@ import time
 import csv
 import postgres
 import os
+from prometheus_client import start_http_server, Gauge
 
 #Query modem data using the ModemManager DBus object
 
@@ -81,6 +82,11 @@ def write_to_db(timestamp, signal, cell_tech):
 
     print("Finished inserting cell signal power data for timestamp ", timestamp)
 
+
+#Create a metric to track cell signal
+
+signal_gauge = Gauge('received_cell_signal_power', 'Received cell signal power')
+
 #Initialize postgres database
 
 global db
@@ -107,10 +113,14 @@ db.run("""
         migrate_data => TRUE);""")
 
 print("Finished setting up tables")
-
+ 
 #Initialize DBus system bus
 
 bus = dbus.SystemBus()
+
+#Initialize HTTP server to expose metrics
+
+start_http_server(9101)
 
 while(True):
 
@@ -119,8 +129,9 @@ while(True):
     [signal, cell_tech] = get_modem_rssi()
     
     if (signal != ''):
-
+        
         write_to_csv(timestamp, signal, cell_tech)
         write_to_db(timestamp, signal, cell_tech)
-
+        signal_gauge.set(signal)
+        
     time.sleep(1)
