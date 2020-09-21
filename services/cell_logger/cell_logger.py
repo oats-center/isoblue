@@ -120,7 +120,7 @@ bus = dbus.SystemBus()
 
 #Initialize HTTP server to expose metrics
 
-start_http_server(9101)
+start_http_server(10002)
 
 while(True):
 
