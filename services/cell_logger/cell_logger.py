@@ -95,6 +95,8 @@ signal_gauge = Gauge('avena_cell_signal_power', 'Received cell signal power')
 
 if((log_env == 'DB') or (log_env == 'DB,CSV') or (log_env == 'CSV,DB')):
 
+    import postgres
+
     global db
 
     connection_url = ('postgresql://' + os.environ['db_user'] + ':' + 
@@ -119,7 +121,7 @@ if((log_env == 'DB') or (log_env == 'DB,CSV') or (log_env == 'CSV,DB')):
             migrate_data => TRUE);""")
 
     print("Finished setting up tables")
- 
+
 #Initialize DBus system bus
 
 bus = dbus.SystemBus()
