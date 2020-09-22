@@ -3,7 +3,6 @@
 import dbus
 import time
 import csv
-import postgres
 import os
 from prometheus_client import start_http_server, Gauge
 
@@ -82,37 +81,44 @@ def write_to_db(timestamp, signal, cell_tech):
 
     print("Finished inserting cell signal power data for timestamp ", timestamp)
 
+#Read enviroment variables. If no env. variable is set, assume CSV logging. 
+
+default_value = 'CSV'
+log_env = os.getenv('CELL_LOG', default_value)
 
 #Create a metric to track cell signal
 
 signal_gauge = Gauge('avena_cell_signal_power', 'Received cell signal power')
 
-#Initialize postgres database
+#Initialize postgres database if "CELL_LOG" environment variable is set to log
+#to database.
 
-global db
+if((log_env == 'DB') or (log_env == 'DB,CSV') or (log_env == 'CSV,DB')):
 
-connection_url = ('postgresql://' + os.environ['db_user'] + ':' + 
-                 os.environ['db_password'] + '@postgres:' + 
-                 os.environ['db_port'] + '/' + os.environ['db_database'] )
+    global db
 
-print('Initializing Postgres Object...')
-db = postgres.Postgres(url = connection_url)
+    connection_url = ('postgresql://' + os.environ['db_user'] + ':' + 
+                     os.environ['db_password'] + '@postgres:' + 
+                     os.environ['db_port'] + '/' + os.environ['db_database'] )
 
-print('Ensuring timescaledb ext. is enabled')
-db.run("CREATE EXTENSION IF NOT EXISTS timescaledb;")
-print("Ensuring tables are setup properly")
-db.run("""
-        CREATE TABLE IF NOT EXISTS cell (
-          time timestamptz UNIQUE NOT NULL,
-          signal int2 NOT NULL,
-          cell_tech text NOT NULL);""")
+    print('Initializing Postgres Object...')
+    db = postgres.Postgres(url = connection_url)
 
-print("Ensuring cell data table is a timescaledb hypertable")
-db.run("""
-        SELECT create_hypertable('cell', 'time', if_not_exists => TRUE,  
-        migrate_data => TRUE);""")
+    print('Ensuring timescaledb ext. is enabled')
+    db.run("CREATE EXTENSION IF NOT EXISTS timescaledb;")
+    print("Ensuring tables are setup properly")
+    db.run("""
+            CREATE TABLE IF NOT EXISTS cell (
+              time timestamptz UNIQUE NOT NULL,
+            signal int2 NOT NULL,
+            cell_tech text NOT NULL);""")
 
-print("Finished setting up tables")
+    print("Ensuring cell data table is a timescaledb hypertable")
+    db.run("""
+            SELECT create_hypertable('cell', 'time', if_not_exists => TRUE,  
+            migrate_data => TRUE);""")
+
+    print("Finished setting up tables")
  
 #Initialize DBus system bus
 
@@ -130,8 +136,14 @@ while(True):
     
     if (signal != ''):
         
-        write_to_csv(timestamp, signal, cell_tech)
-        write_to_db(timestamp, signal, cell_tech)
+        if((log_env == 'CSV') or (log_env == 'CSV,DB') or (log_env  == 'DB,CSV')):
+            
+            write_to_csv(timestamp, signal, cell_tech)
+        
+        if((log_env == 'DB') or (log_env == 'CSV,DB') or (log_env  == 'DB,CSV')):
+            
+            write_to_db(timestamp, signal, cell_tech)
+        
         signal_gauge.set(signal)
         
     time.sleep(1)
