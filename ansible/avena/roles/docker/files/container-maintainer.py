@@ -69,7 +69,7 @@ else:
 
 
 print('Connecting to docker daemon')
-# Connect to docker daemon
+# Connect to docker daemon:
 client = docker.from_env()
 
 # Sanity check - the number of currently running containers should match the number of services 
@@ -80,8 +80,15 @@ if len(client.containers.list()) != len(running_services.stdout.decode('ascii').
     print('Restarting containers due to mismatch in number of running containers (running: ', len(client.containers.list()), ' config: ', len(running_services.stdout.decode('ascii').strip().split('\n')), ')' )
     restartcontainers = True
     
-
+# Containers need to be restarted to ensure containers no longer in docker-compose.yml are removed
 if restartcontainers:
+    print('Executing docker-compose pull');
+    dcpull = subprocess.run(['docker-compose', '-f', 'docker-compose.yml', 'pull'])
+    
+    # Check return code
+    if dcpull.returncode != 0:
+        print('WARNING: docker-compose pull command unsuccessful. Attempting to continue');
+
     print('Stopping and removing currently running containers')
     for container in client.containers.list():
         container.stop()
@@ -93,6 +100,23 @@ if restartcontainers:
     
     # Check return code
     if dcup.returncode != 0:
-        print("WARNING: docker-compose up command unsuccessful")
+        print("FATAL: docker-compose up command unsuccessful")
+        sys.exit(-1)
+
+# Ensure that all current containers are the newest version
+else:
+    print('Executing docker-compose pull to get new versions of current containers');
+    dcpull = subprocess.run(['docker-compose', '-f', 'docker-compose.yml', 'pull'])
+    
+    # Check return code
+    if dcpull.returncode != 0:
+        print('WARNING: docker-compose pull command unsuccessful. Attempting to continue');
+
+    print('Updating containers with docker-compose up -d')
+    dcup = subprocess.run(['docker-compose', '-f', 'docker-compose.yml', 'up', '-d'])
+    
+    # Check return code
+    if dcup.returncode != 0:
+        print("FATAL: docker-compose up command unsuccessful")
         sys.exit(-1)
 
