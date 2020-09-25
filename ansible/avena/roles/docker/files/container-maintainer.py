@@ -5,17 +5,13 @@ import os         # Used to check for existence of docker-compose files, move, a
 import sys        # Used to exit the program
 import subprocess # Used to interact with docker-compose
 import socket     # Used to get hostname
-import docker     # For interacting with the docker containers
 
 # General program flow:
 # 1. Get docker-compose.yml from server use `docker-compose config` to validate
 #    a. If server docker-compose.yml file is not valid, exit
 # 2. Use `docker-compose config` to generate 'validated' version of local config
-# 3. Check if generated docker-compose.yml files differnt
-# 4. If docker-compose.yml files differ, shut down all containers and restart them
-
-# Boolean to track if a container restart is needed
-restartcontainers=False
+# 3. Check if generated docker-compose.yml files differnt. Replace docker-compose file if it differs
+# 4. Run docker-compose pull && docker-compose up -d --remove orphans to update contianers
 
 # Get current docker-compose from the server
 hostname = socket.gethostname()
@@ -47,7 +43,6 @@ if not os.path.isfile('./docker-compose.yml'):
     # If no current docker-compose, write it
     print('Writing initial docker-compose from server')
     os.rename('./docker-compose.yml.new', './docker-compose.yml')
-    restartcontainers=True
 
 else:
     print('local docker-compose file found, comparing to server version')
@@ -62,61 +57,24 @@ else:
 
     else:
         # Write the new docker-compose
-        print('Server and local docker-compose files are not the same. Replacing docker-compose and restarting all docker containers')
+        print('Server and local docker-compose files are not the same. Replacing docker-compose and running docker-compose up')
         os.rename('./docker-compose.yml.new', './docker-compose.yml')
-        restartcontainers = True
         print('New docker-compose written')
 
-
-print('Connecting to docker daemon')
-# Connect to docker daemon:
-client = docker.from_env()
-
-# Sanity check - the number of currently running containers should match the number of services 
-# defined in the docker-compose file. There is probabally a more elegant way to do this, but the
-# docker api does not appear to let you find the name of each service
-running_services = subprocess.run(['docker-compose', '-f', './docker-compose.yml', 'config', '--services'], capture_output=True)
-if len(client.containers.list()) != len(running_services.stdout.decode('ascii').strip().split('\n')):
-    print('Restarting containers due to mismatch in number of running containers (running: ', len(client.containers.list()), ' config: ', len(running_services.stdout.decode('ascii').strip().split('\n')), ')' )
-    restartcontainers = True
-    
-# Containers need to be restarted to ensure containers no longer in docker-compose.yml are removed
-if restartcontainers:
-    print('Executing docker-compose pull');
-    dcpull = subprocess.run(['docker-compose', '-f', 'docker-compose.yml', 'pull'])
-    
-    # Check return code
-    if dcpull.returncode != 0:
-        print('WARNING: docker-compose pull command unsuccessful. Attempting to continue');
-
-    print('Stopping and removing currently running containers')
-    for container in client.containers.list():
-        container.stop()
-        container.remove()
-    
-    # Use docker-compose to bring containers back up with new config
-    print('Starting containers with docker-compose')
-    dcup = subprocess.run(['docker-compose', '-f', 'docker-compose.yml', 'up', '-d'])
-    
-    # Check return code
-    if dcup.returncode != 0:
-        print("FATAL: docker-compose up command unsuccessful")
-        sys.exit(-1)
-
 # Ensure that all current containers are the newest version
-else:
-    print('Executing docker-compose pull to get new versions of current containers');
-    dcpull = subprocess.run(['docker-compose', '-f', 'docker-compose.yml', 'pull'])
-    
-    # Check return code
-    if dcpull.returncode != 0:
-        print('WARNING: docker-compose pull command unsuccessful. Attempting to continue');
+print('Executing docker-compose pull to get new versions of current containers');
 
-    print('Updating containers with docker-compose up -d')
-    dcup = subprocess.run(['docker-compose', '-f', 'docker-compose.yml', 'up', '-d'])
-    
-    # Check return code
-    if dcup.returncode != 0:
-        print("FATAL: docker-compose up command unsuccessful")
-        sys.exit(-1)
+dcpull = subprocess.run(['docker-compose', '-f', 'docker-compose.yml', 'pull'])
+
+# Check return code
+if dcpull.returncode != 0:
+    print('WARNING: docker-compose pull command unsuccessful. Attempting to continue');
+
+print('Updating containers with docker-compose up -d --remove-orphans')
+dcup = subprocess.run(['docker-compose', '-f', 'docker-compose.yml', 'up', '-d', '--remove-orphans'])
+
+# Check return code
+if dcup.returncode != 0:
+    print("FATAL: docker-compose up command unsuccessful")
+    sys.exit(-1)
 
