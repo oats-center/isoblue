@@ -188,6 +188,15 @@ async function main(): Promise<void> {
     $$;
   `);
 
+  // Remove old triggers and procedures if they exist
+  console.log(`Removing old triggers and functions`);
+  await db.query(`
+    DROP TRIGGER IF EXISTS create_sent_row_trig on public.gps;
+    DROP FUNCTION IF EXISTS create_sent_row_procedure;
+    DROP TRIGGER IF EXISTS delete_sent_row_trig on public.gps;
+    DROP FUNCTION IF EXISTS delete_sent_row_procedure;
+  `);
+
   // To keep data synced in our sent table, we need to add triggers that will automagically
   // insert/delete a row in out table when one is inserted into the gps table. We cannot use
   // foreign keys easily due to timescaledb restrictions
@@ -196,7 +205,6 @@ async function main(): Promise<void> {
   console.log(`Ensuring triggers to sync gps ids to sent db are created`);
   console.debug(`\tCreating sent row procedure`);
   await db.query(`
-    DROP FUNCTION IF EXISTS create_sent_row_procedure;
     CREATE OR REPLACE FUNCTION avena_oada_upload_create_sent_row_procedure() RETURNS trigger AS $$
     BEGIN
     INSERT INTO gps_sent(g_time, sent)
@@ -214,7 +222,6 @@ async function main(): Promise<void> {
   // Also drop old trigger names
   console.debug(`\tCreating trigger for creating rows`);
   await db.query(`
-    DROP TRIGGER IF EXISTS create_sent_row_trig on public.gps;
     DROP TRIGGER IF EXISTS avena_oada_upload_create_sent_row on public.gps;
     CREATE TRIGGER avena_oada_upload_create_sent_row
            AFTER INSERT on gps
@@ -225,7 +232,6 @@ async function main(): Promise<void> {
   // Same as previous two for when rows are deleted
   console.debug(`\tCreating delete row procedure`);
   await db.query(`
-    DROP FUNCTION IF EXISTS delete_sent_row_procedure;
     CREATE OR REPLACE FUNCTION avena_oada_upload_delete_sent_row_procedure() RETURNS trigger AS $$
     BEGIN
     DELETE FROM gps_sent where g_time = OLD.time;
@@ -238,7 +244,6 @@ async function main(): Promise<void> {
 
   console.debug('\tCreating trigger for deleting rows');
   await db.query(`
-    DROP TRIGGER IF EXISTS delete_sent_row_trig on public.gps;
     DROP TRIGGER IF EXISTS avena_oada_upload_delete_sent_row on public.gps;
     CREATE TRIGGER avena_oada_upload_delete_sent_row
            BEFORE DELETE on gps
