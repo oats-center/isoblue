@@ -173,6 +173,29 @@ async function main(): Promise<void> {
     SELECT create_hypertable('gps_sent', 'g_time', if_not_exists => TRUE, migrate_data => TRUE);
   `);
 
+  // Create index on sent table. This causes an extreme performance increase as table grows
+  // For whatever reason 'CREAT INDEX IF NOT EXISTS' does not work. Should re-investigate on
+  // when timescaledb is eventually updated
+  console.log(`Ensuring sent table index exists`);
+  await db.query(`
+    DO
+    $$
+    BEGIN
+       IF to_regclass('index_sent') IS NULL THEN
+          CREATE INDEX index_sent ON gps_sent (sent, g_time DESC);
+       END IF;
+    END
+    $$;
+  `);
+
+  // Remove old triggers and procedures if they exist
+  console.log(`Removing old triggers and functions`);
+  await db.query(`
+    DROP TRIGGER IF EXISTS create_sent_row_trig on public.gps;
+    DROP FUNCTION IF EXISTS create_sent_row_procedure;
+    DROP TRIGGER IF EXISTS delete_sent_row_trig on public.gps;
+    DROP FUNCTION IF EXISTS delete_sent_row_procedure;
+  `);
 
   // To keep data synced in our sent table, we need to add triggers that will automagically
   // insert/delete a row in out table when one is inserted into the gps table. We cannot use
@@ -182,7 +205,7 @@ async function main(): Promise<void> {
   console.log(`Ensuring triggers to sync gps ids to sent db are created`);
   console.debug(`\tCreating sent row procedure`);
   await db.query(`
-    CREATE OR REPLACE FUNCTION create_sent_row_procedure() RETURNS trigger AS $$
+    CREATE OR REPLACE FUNCTION avena_oada_upload_create_sent_row_procedure() RETURNS trigger AS $$
     BEGIN
     INSERT INTO gps_sent(g_time, sent)
     VALUES(NEW.time, FALSE);
@@ -196,19 +219,20 @@ async function main(): Promise<void> {
   // TODO: Currently we delete the trigger and recreate it. Apparently there is no
   // 'CREATE TRIGGER IF NOT EXISTS'. Is there a better way to ensure a trigger is 
   // created that may already exist?
+  // Also drop old trigger names
   console.debug(`\tCreating trigger for creating rows`);
   await db.query(`
-    DROP TRIGGER IF EXISTS create_sent_row_trig on public.gps;
-    CREATE TRIGGER create_sent_row_trig
+    DROP TRIGGER IF EXISTS avena_oada_upload_create_sent_row on public.gps;
+    CREATE TRIGGER avena_oada_upload_create_sent_row
            AFTER INSERT on gps
            FOR EACH ROW
-           EXECUTE FUNCTION create_sent_row_procedure();`
+           EXECUTE FUNCTION avena_oada_upload_create_sent_row_procedure();`
   );
 
   // Same as previous two for when rows are deleted
   console.debug(`\tCreating delete row procedure`);
   await db.query(`
-    CREATE OR REPLACE FUNCTION delete_sent_row_procedure() RETURNS trigger AS $$
+    CREATE OR REPLACE FUNCTION avena_oada_upload_delete_sent_row_procedure() RETURNS trigger AS $$
     BEGIN
     DELETE FROM gps_sent where g_time = OLD.time;
     
@@ -220,11 +244,11 @@ async function main(): Promise<void> {
 
   console.debug('\tCreating trigger for deleting rows');
   await db.query(`
-    DROP TRIGGER IF EXISTS delete_sent_row_trig on public.gps;
-    CREATE TRIGGER delete_sent_row_trig
+    DROP TRIGGER IF EXISTS avena_oada_upload_delete_sent_row on public.gps;
+    CREATE TRIGGER avena_oada_upload_delete_sent_row
            BEFORE DELETE on gps
            FOR EACH ROW
-           EXECUTE FUNCTION delete_sent_row_procedure();`
+           EXECUTE FUNCTION avena_oada_upload_delete_sent_row_procedure();`
   );
 
   // I notice that occasionally the first few rows of the gps database
