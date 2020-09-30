@@ -21,6 +21,15 @@
         mode: "0644"
       notify: reload udev
 
+    - name: ensure can interface bitrate and options are set
+      become: yes
+      copy:
+        dest: /etc/can.conf
+        src: can.j2
+        owner: root
+        group: root
+        mode: "0644"
+ 
     - name: ensure can interfaces are started
       become: yes
       systemd:
