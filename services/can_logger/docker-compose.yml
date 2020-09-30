@@ -1,0 +1,20 @@
+version: '3.1'
+services:
+  can-logger:
+    build:
+      context: ../can_logger
+    restart: always
+    environment:
+      db_user: "avena"
+      db_host: "postgres"
+      db_database: "avena"
+      db_password: "password"
+      db_port: "5432"
+      host_ip: "172.17.0.1"
+      host_port: "20001"
+      host_interface: "can0"
+      log: "db,csv"
+    depends_on:
+      - postgres
+    volumes: 
+      - /data/log:/data/log:rw

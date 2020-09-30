@@ -1,0 +1,8 @@
+version: '3.1'
+services:
+  socketcand:
+    build:
+      context: ../socketcand
+    restart: always
+    command: socketcand -v -p 20001 -l docker0
+    network_mode: host
