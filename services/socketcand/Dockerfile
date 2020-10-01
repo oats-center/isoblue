@@ -5,14 +5,16 @@ WORKDIR /usr/src/app
 
 RUN apt-get -y update
 
-RUN apt-get install -y --no-install-recommends autoconf autotools-dev automake make build-essential libconfig-dev linux-headers-$(uname -r) 
+RUN apt-get install -y --no-install-recommends autoconf autotools-dev automake make build-essential libconfig-dev linux-headers-$(uname -r) git ca-certificates  
 
-COPY socketcand-src ./
+RUN git clone https://github.com/linux-can/socketcand.git
 
-RUN ./autogen.sh
+WORKDIR /usr/src/app/socketcand
 
-RUN ./configure
+RUN ./autogen.sh && ./configure
 
 RUN make && make install
+
+
 
 CMD ["socketcand"]

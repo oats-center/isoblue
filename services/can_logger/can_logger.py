@@ -5,27 +5,25 @@ import postgres
 import csv
 import os
 
-def write_to_csv(timestamp, can_id, can_data, host_interface):
+def csv_init(host_interface):
 
+    log = open('/data/log/' + host_interface + '.csv', mode = 'a') 
 
-    with open('/data/log/' + host_interface + '.csv', mode = 'a') as log:
+    return log
+
+def write_to_csv(timestamp, can_id, can_data, log):
 
         log = csv.writer(log, delimiter = ',', quotechar = '"',
                          quoting = csv.QUOTE_MINIMAL)
 
         log.writerow([timestamp, can_id, can_data])
 
-def write_to_db(timestamp, can_id, can_data):
+def write_to_db(rx_buff, db):
 
-    db.run("INSERT INTO cell (time, can_id, can_data) VALUES (to_timestamp(%s), \
-            %s, %s)", (timestamp, can_id, can_data))
-
-    print("Finished inserting CAN bus data for timestamp ", timestamp)
+    db.run("INSERT INTO can (time, can_id, can_data) VALUES (%s)", (rx_buff))
 
 def db_init():
     
-    global db
-
     connection_url = ('postgresql://' + os.environ['db_user'] + ':' + 
                  os.environ['db_password'] + '@postgres:' + 
                  os.environ['db_port'] + '/' + os.environ['db_database'] )
@@ -37,33 +35,44 @@ def db_init():
     db.run("CREATE EXTENSION IF NOT EXISTS timescaledb;")
     print("Ensuring tables are setup properly")
     db.run("""
-           CREATE TABLE IF NOT EXISTS cell (
+           CREATE TABLE IF NOT EXISTS can (
                time timestamptz UNIQUE NOT NULL,
                can_id text NOT NULL,
                can_data text NOT NULL);""")
 
-    print("Ensuring cell data table is a timescaledb hypertable")
+    print("Ensuring can data table is a timescaledb hypertable")
     db.run("""
-           SELECT create_hypertable('cell', 'time', if_not_exists => TRUE,  
+           SELECT create_hypertable('can', 'time', if_not_exists => TRUE,  
            migrate_data => TRUE);""")
 
     print("Finished setting up tables")
 
+    return db
 
-#Get host info using environment variables
+# Get host info using environment variables
 
 host_ip = os.environ['socketcand_ip']
 host_port = os.environ['socketcand_port']
 host_interface = os.environ['can_interface']
 logging = os.environ['log']
 
-#Initialize postgres database if database logging is enabled
+# Initialize received frame buffer
+
+rx_buf = []
+
+# Initialize postgres database if database logging is enabled
 
 if(logging.find('db') != -1):
     
-    db_init()
+    db = db_init()
 
-#Initialize host socket
+# Initialize CSV file if CSV logging is enabled
+
+if(logging.find('csv') != -1):
+
+    csv_log = csv_init()
+
+# Initialize host socket
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -71,25 +80,44 @@ s.connect((host_ip, host_port))
 
 print (s.recv(32))
 
-#Connect to exposed CAN interface
+# Connect to exposed CAN interface
 
 s.sendall(b'< open ' + host_interface.encode('utf-8') + b' >')
 
+# DEBUG: Print socketcand's answer to the sent request
+
 print (s.recv(32))
+
+# Set socket to 'rawmode' to receive every frame on the bus.
 
 s.sendall(b'< rawmode >')
 
 print(s.recv(32))
 
+# Receive frames in a 32-byte buffer and then decode the bytes object. Then
+# strip some characters to clean up the received frame and then split the 
+# resulting string to get the timestamp, CAN ID and CAN frame. 
+
 while(True):
     
-    frame = s.recv(128).decode("utf-8").strip("<>''").split(' ')
-    [timestamp, can_id, can_data] = (frame[3], frame[2], frame[4])
+    frame = s.recv(32).decode("utf-8").strip("<>''").split(' ')
+
+    (timestamp, can_id, can_data) = (frame[3], frame[2], frame[4])
+
+    rx_buff.append((timestamp, can_id, can_data)) 
     
-    if(logging.find('db') != -1):
+    # When the receive buffer reaches 100 entries, copy data from receive 
+    # buffer to write buffer, then write to database from write buffer and
+    # clear receive buffer to continue receiving data
+
+    if(len(rx_buff) == 100):
+
+        if(logging.find('db') != -1):
         
-        write_to_db(timestamp, can_id, can_data)
+            # TODO: Write to database in a separate thread/process.
+            wr_buff = rx_buff.copy()
+            write_to_db(wr_buff)
     
-    else:
+    if(logging.find('csv') != -1):
         
-        write_to_csv(timestamp, can_id, can_data, host_interface)
+        write_to_csv(timestamp, can_id, can_data, csv_log)
