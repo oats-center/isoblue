@@ -1,4 +1,6 @@
 
+# Builder
+
 FROM debian:buster-backports
 
 WORKDIR /usr/src/app
@@ -15,6 +17,12 @@ RUN ./autogen.sh && ./configure
 
 RUN make && make install
 
+# Runtime
 
+FROM debian:buster-backports
+
+WORKDIR /usr/src/app
+
+COPY --from=0 /usr/src/app/socketcand/socketcand .
 
 CMD ["socketcand"]
