@@ -26,6 +26,7 @@ jobs:
           - oada_upload
           - cell_logger
           - can_watchdog
+          - can_logger  
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
