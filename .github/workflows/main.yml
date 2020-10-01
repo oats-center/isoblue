@@ -27,6 +27,7 @@ jobs:
           - cell_logger
           - can_watchdog
           - can_logger  
+          - socketcand
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

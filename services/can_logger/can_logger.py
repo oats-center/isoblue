@@ -6,16 +6,14 @@ import csv
 import os
 
 def csv_init(host_interface):
-
-    log = open('/data/log/' + host_interface + '.csv', mode = 'a') 
-
-    return log
+    # Open the log file
+    logfd = open('/data/log/' + host_interface + '.csv', mode = 'a') 
+    # Make csv writer object using log file
+    logcsv = csv.writer(log, delimiter = ',', quotechar = '"',
+                         quoting = csv.QUOTE_MINIMAL)
+    return logcsv
 
 def write_to_csv(timestamp, can_id, can_data, log):
-
-        log = csv.writer(log, delimiter = ',', quotechar = '"',
-                         quoting = csv.QUOTE_MINIMAL)
-
         log.writerow([timestamp, can_id, can_data])
 
 def write_to_db(rx_buff, db):
@@ -60,16 +58,19 @@ logging = os.environ['log']
 
 rx_buf = []
 
-# Initialize postgres database if database logging is enabled
+logtodb = False
+logtocsv = False
+if logging.find('db') != -1:
+    logtodb = True
+if logging.find('csv') != -1:
+    logtocsv = True
 
-if(logging.find('db') != -1):
-    
+# Initialize postgres database if database logging is enabled
+if logtodb:
     db = db_init()
 
 # Initialize CSV file if CSV logging is enabled
-
-if(logging.find('csv') != -1):
-
+if logtocsv:
     csv_log = csv_init()
 
 # Initialize host socket
