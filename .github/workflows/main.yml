@@ -54,8 +54,8 @@ jobs:
 
           # Release version is just the release number
           if [[ $GITHUB_REF == refs/heads/release/* ]]; then
-            VERSION=${GITHUB_REF#refs/heads/release/}
-            RELEASE=true
+              VERSION=${GITHUB_REF#refs/heads/release/}
+              RELEASE=true
 
           # Branch version is branch name (with '/' -> '-')
           elif [[ $GITHUB_REF == refs/heads/* ]]; then
@@ -78,9 +78,14 @@ jobs:
           TAGS="${DOCKER_IMAGE}:${VERSION}"
 
           if [[ $RELEASE ]]; then
-            MINOR=${VERSION%.*}
-            MAJOR=${MINOR.*}
-            TAGS="$TAGS,${DOCKER_IMAGE}:${MAJOR},${DOCKER_IMAGE}:${MINOR},${DOCKER_IMAGE}:latest"
+            if [[ $VERSION =~ ^v[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+              MINOR=${VERSION%.*}
+              MAJOR=${MINOR.*}
+              TAGS="$TAGS,${DOCKER_IMAGE}:${MAJOR},${DOCKER_IMAGE}:${MINOR},${DOCKER_IMAGE}:latest"
+            else
+              echo ::error ::Version does not follow semantic versioning. Stopping.
+              exit 1
+            fi
           fi
 
           if [ "${{ github.event_name }}" = "push" ]; then
