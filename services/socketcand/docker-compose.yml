@@ -8,3 +8,4 @@ services:
     environment:
       interface: "docker0"
       port: "20001" 
+      can-interfaces: "can0,can1"
