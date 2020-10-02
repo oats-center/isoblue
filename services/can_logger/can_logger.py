@@ -4,21 +4,33 @@ import socket
 import postgres
 import csv
 import os
+import multiprocessing as mp
 
 def csv_init(host_interface):
+    
     # Open the log file
+    
     logfd = open('/data/log/' + host_interface + '.csv', mode = 'a') 
+    
     # Make csv writer object using log file
+    
     logcsv = csv.writer(log, delimiter = ',', quotechar = '"',
-                         quoting = csv.QUOTE_MINIMAL)
+                        quoting = csv.QUOTE_MINIMAL)
+    
     return logcsv
 
-def write_to_csv(timestamp, can_id, can_data, log):
-        log.writerow([timestamp, can_id, can_data])
+def write_to_csv(log, wr_buff):
+    
+    # Write to CSV from write buffer. First item is timestamp, second is
+    # can_id and third is can_data
 
-def write_to_db(rx_buff, db):
+    for row in wr_buff:
+    
+        log.writerow([row[0], row[1], row[2])
 
-    db.run("INSERT INTO can (time, can_id, can_data) VALUES (%s)", (rx_buff))
+def write_to_db(db, wr_buff):
+
+    db.run("INSERT INTO can (time, can_id, can_data) VALUES (%s)", (wr_buff))
 
 def db_init():
     
@@ -54,23 +66,33 @@ host_port = os.environ['socketcand_port']
 host_interface = os.environ['can_interface']
 logging = os.environ['log']
 
-# Initialize received frame buffer
+# Initialize received and write frame buffers and log selection variables
 
 rx_buf = []
-
+wr_buf = []
 logtodb = False
 logtocsv = False
-if logging.find('db') != -1:
+
+# Check log selection from env. variables
+
+if (logging.find('db') != -1):
+    
     logtodb = True
-if logging.find('csv') != -1:
+
+if (logging.find('csv') != -1):
+    
     logtocsv = True
 
 # Initialize postgres database if database logging is enabled
-if logtodb:
+
+if (logtodb):
+    
     db = db_init()
 
 # Initialize CSV file if CSV logging is enabled
-if logtocsv:
+
+if (logtocsv):
+
     csv_log = csv_init()
 
 # Initialize host socket
@@ -112,13 +134,18 @@ while(True):
     # clear receive buffer to continue receiving data
 
     if(len(rx_buff) == 100):
+        
+        wr_buff.clear()
+        wr_buff = rx_buff.copy()
+        rx_buff.clear()
 
-        if(logging.find('db') != -1):
-        
-            # TODO: Write to database in a separate thread/process.
-            wr_buff = rx_buff.copy()
-            write_to_db(wr_buff)
+        if(logtodb):
+ 
+            p_db = mp.Process(target=write_to_db, args=(db, wr_buff,))
+            p_db.start()
     
-    if(logging.find('csv') != -1):
+        if(logtocsv):
         
-        write_to_csv(timestamp, can_id, can_data, csv_log)
+            p_csv = mp.Process(target=write_to_csv, args=(csv_log, wr_buff,))
+            p_csv.start()
+

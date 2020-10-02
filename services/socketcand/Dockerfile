@@ -1,28 +1,32 @@
 
 # Builder
 
-FROM debian:buster-backports
+FROM buildpack-deps:buster
+
+ARG commit=ae0af08
 
 WORKDIR /usr/src/app
 
 RUN apt-get -y update
 
-RUN apt-get install -y --no-install-recommends autoconf autotools-dev automake make build-essential libconfig-dev linux-headers-$(uname -r) git ca-certificates  
-
 RUN git clone https://github.com/linux-can/socketcand.git
 
 WORKDIR /usr/src/app/socketcand
 
+RUN git checkout $commit 
+
 RUN ./autogen.sh && ./configure
 
-RUN make && make install
+RUN make 
 
 # Runtime
 
-FROM debian:buster-backports
+FROM debian:buster-slim
 
 WORKDIR /usr/src/app
 
 COPY --from=0 /usr/src/app/socketcand/socketcand .
 
-CMD ["socketcand"]
+COPY socketcand.sh .
+
+CMD ["./socketcand.sh"]

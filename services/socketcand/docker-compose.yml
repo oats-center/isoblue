@@ -3,6 +3,8 @@ services:
   socketcand:
     build:
       context: ../socketcand
-    restart: always
-    command: socketcand -v -p 20001 -l docker0
+    restart: unless-stopped
     network_mode: host
+    environment:
+      interface: "docker0"
+      port: "20001" 
