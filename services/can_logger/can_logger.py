@@ -14,7 +14,7 @@ def csv_init(host_interface):
     
     # Make csv writer object using log file
     
-    logcsv = csv.writer(log, delimiter = ',', quotechar = '"',
+    logcsv = csv.writer(logfd, delimiter = ',', quotechar = '"',
                         quoting = csv.QUOTE_MINIMAL)
     
     return logcsv
