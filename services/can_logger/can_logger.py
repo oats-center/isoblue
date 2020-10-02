@@ -99,7 +99,7 @@ if (logtocsv):
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-s.connect((host_ip, host_port))
+s.connect((host_ip, int(host_port)))
 
 print (s.recv(32))
 
