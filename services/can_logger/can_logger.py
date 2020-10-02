@@ -68,8 +68,8 @@ logging = os.environ['log']
 
 # Initialize received and write frame buffers and log selection variables
 
-rx_buf = []
-wr_buf = []
+rx_buff = []
+wr_buff = []
 logtodb = False
 logtocsv = False
 
