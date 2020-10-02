@@ -14,22 +14,7 @@ from time import sleep # For sleeping between pings to the docker-compose server
 # 3. Check if generated docker-compose.yml files differnt. Replace docker-compose file if it differs
 # 4. Run docker-compose pull && docker-compose up -d --remove orphans to update contianers
 
-# Ensure we can reach the server (sometimes wireguard takes some time to boot up)
-print('Ensuring we can reach the server')
-failcnt = 0
-pingretcode = os.system("ping -c 1 172.16.0.1 2>&1 >/dev/null")
-while pingretcode != 0 and failcnt < 60:
-    print('Server unreachable, retry num', failcnt, 'in 10 seconds')
-    sleep(10)
-    failcnt = failcnt + 1
-    print('Retrying...')
-    pingretcode = os.system("ping -c 1 172.16.0.1")
-
-if pingretcode:
-    print("Docker compose server is unreachable but we might still be able to pull new images. Doing so now")
-else:
-    print('Server reachable, continuing')
-
+def update_compose_file():
     # Get current docker-compose from the server
     hostname = socket.gethostname()
     url = 'http://172.16.0.1:8006/' + hostname + '/docker-compose.yml'
@@ -40,8 +25,8 @@ else:
     print('Ensuring we got a valid response')
     if response.status_code != 200:
         print('Got a HTTP response code ', response, '. Is there a docker-compose.yml file in the right location?')
-        sys.exit()
-    
+        return
+
     # Extract the docker-compose
     serverdc = response.content.decode('ascii')
     
@@ -53,7 +38,7 @@ else:
     if serverdc_config.returncode != 0:
         print('docker-compose validation return code is not valid! Not using new docker-compose')
         os.remove('./docker-compose.yml.new')
-        sys.exit()
+        return
     
     # Write new docker-compose file if it differs
     if not os.path.isfile('./docker-compose.yml'):
@@ -79,8 +64,7 @@ else:
             print('New docker-compose written')
 
 
-if os.path.isfile('./docker-compose.yml'):
-    
+def update_containers():
     # Ensure that all current containers are the newest version
     print('Executing docker-compose pull to get new versions of current containers');
     
@@ -97,6 +81,28 @@ if os.path.isfile('./docker-compose.yml'):
     if dcup.returncode != 0:
         print("FATAL: docker-compose up command unsuccessful")
         sys.exit(-1)
+
+
+# Ensure we can reach the server (sometimes wireguard takes some time to boot up)
+print('Ensuring we can reach the server')
+failcnt = 0
+pingretcode = os.system("ping -c 1 172.16.0.1 2>&1 >/dev/null")
+while pingretcode != 0 and failcnt < 60:
+    print('Server unreachable, retry num', failcnt, 'in 10 seconds')
+    sleep(10)
+    failcnt = failcnt + 1
+    print('Retrying...')
+    pingretcode = os.system("ping -c 1 172.16.0.1")
+
+if pingretcode:
+    print("Docker compose server is unreachable but we might still be able to pull new images. Doing so now")
+else:
+    print('Server reachable, continuing')
+    update_compose_file()
+
+
+if os.path.isfile('./docker-compose.yml'):
+    update_containers()   
 else:
     print('FATAL: No docker-compose file available')
     sys.exit(-1)
