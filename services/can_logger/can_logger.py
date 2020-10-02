@@ -26,7 +26,7 @@ def write_to_csv(log, wr_buff):
 
     for row in wr_buff:
     
-        log.writerow([row[0], row[1], row[2])
+        log.writerow(row[0], row[1], row[2])
 
 def write_to_db(db, wr_buff):
 
