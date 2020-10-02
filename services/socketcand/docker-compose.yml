@@ -1,0 +1,11 @@
+version: '3.1'
+services:
+  socketcand:
+    build:
+      context: ../socketcand
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      interface: "docker0"
+      port: "20001" 
+      can-interfaces: "can0,can1"
