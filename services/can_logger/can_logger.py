@@ -93,7 +93,7 @@ if (logtodb):
 
 if (logtocsv):
 
-    csv_log = csv_init()
+    csv_log = csv_init("can0")
 
 # Initialize host socket
 
