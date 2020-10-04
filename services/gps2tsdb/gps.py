@@ -4,6 +4,7 @@ from dbus.mainloop.glib import DBusGMainLoop
 import dbus
 import postgres
 import os
+import sys
 from prometheus_client import start_http_server, Gauge
 
 def fix(*args):
@@ -16,6 +17,8 @@ def fix(*args):
     print("Inserting lat and lng for timestanp ", args[0])
     db.run("INSERT INTO gps (time, lat, lng) VALUES (to_timestamp(%s), %s, %s)", (float(args[0]), float(args[3]), float(args[4]) ) )
     print("Finsihed inserting lat and lng for timestamp ", args[0])
+
+    sys.stdout.flush()
 
 global lat_gauge
 lat_gauge = Gauge('avena_position_lat', 'Last know fix latitude')
@@ -47,5 +50,6 @@ DBusGMainLoop(set_as_default=True)
 bus = dbus.SystemBus()
 bus.add_signal_receiver(fix, signal_name='fix', dbus_interface="org.gpsd")
 
+sys.stdout.flush()
 loop = GLib.MainLoop()
 loop.run()
