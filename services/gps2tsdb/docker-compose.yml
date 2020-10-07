@@ -14,7 +14,7 @@ services:
       db_database: "avena"
       db_password: "password"
       db_port: "5432"
-      #    depends_on:
-      #      - postgres
+    depends_on:
+      - postgres
     volumes:
       - /var/run/dbus:/var/run/dbus:rw
