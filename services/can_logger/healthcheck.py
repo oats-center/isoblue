@@ -25,10 +25,11 @@ threshold = 5
 # Get environmental variable determining logging to csv or db or both
 default_value = 'CSV'
 log_env = os.getenv('CELL_LOG', default_value)
+host_interface = os.environ['can_interface']
 
 # If the container is logging to csv
 if 'CSV' in log_env.upper():
-    logpath = '/data/log/cell.csv'
+    logpath = '/data/log/' + host_interface + '.csv'
     # Ensure the file exists in the first place
     if not os.path.exists(logpath):
          print('Log file did not exist or was not able to be opened')
@@ -45,7 +46,7 @@ if 'DB' in log_env.upper():
     db = postgres.Postgres(url=connectionurl)
 
     # Query the most recent timestamp
-    rst = db.one("SELECT * FROM cell ORDER BY time DESC LIMIT 1;")
+    rst = db.one("SELECT * FROM can ORDER BY time DESC LIMIT 1;")
 
     # Handle if the database is empty
     if rst == None:
@@ -54,5 +55,5 @@ if 'DB' in log_env.upper():
 
     # First column is the timestamp, in datetime format
     lastupdate = rst[0]
-    checktimestamp('Cell signal database table', lastupdate, threshold)
+    checktimestamp('CAN signal database table', lastupdate, threshold)
 
