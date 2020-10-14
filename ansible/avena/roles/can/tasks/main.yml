@@ -1,15 +1,14 @@
 - name: ensure CAN interfaces
   when: oats_can_interfaces is defined
   block:
-    - name: ensure can@ service is installed
+    - name: ensure can interface bitrate and options are set
       become: yes
-      copy:
-        dest: /etc/systemd/system/can@.service
-        src: systemd/can@.service
+      template:
+        dest: /etc/can.conf
+        src: config/can.j2
         owner: root
         group: root
         mode: "0644"
-      notify: reload systemd
 
     - name: ensure can interfaces are enabled and configured
       become: yes
@@ -21,15 +20,16 @@
         mode: "0644"
       notify: reload udev
 
-    - name: ensure can interface bitrate and options are set
+    - name: ensure can@ service is installed
       become: yes
       copy:
-        dest: /etc/can.conf
-        src: can.j2
+        dest: /etc/systemd/system/can@.service
+        src: systemd/can@.service
         owner: root
         group: root
         mode: "0644"
- 
+      notify: reload systemd
+
     - name: ensure can interfaces are started
       become: yes
       systemd:

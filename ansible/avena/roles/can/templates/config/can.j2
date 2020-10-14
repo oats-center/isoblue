@@ -1,4 +1,4 @@
-{% for interface in oats_can_interfaces %}
-{{ interface }}_BITRATE={{ interface_bitrate }}
-{{ interface }}_OPTIONS={{ interface_options }}
+{% for interface in can_interfaces %}
+{{ interface.name }}_BITRATE={{ interface.bitrate }}
+{{ interface.name }}_OPTIONS={{ interface.options }}
 {% endfor %}
