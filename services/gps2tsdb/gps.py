@@ -5,6 +5,7 @@ import dbus
 import postgres
 import os
 from prometheus_client import start_http_server, Gauge
+import sys
 
 def fix(*args):
     #print(args)
@@ -16,6 +17,7 @@ def fix(*args):
     print("Inserting lat and lng for timestanp ", args[0])
     db.run("INSERT INTO gps (time, lat, lng) VALUES (to_timestamp(%s), %s, %s)", (float(args[0]), float(args[3]), float(args[4]) ) )
     print("Finsihed inserting lat and lng for timestamp ", args[0])
+    sys.stdout.flush()
 
 global lat_gauge
 lat_gauge = Gauge('avena_position_lat', 'Last know fix latitude')
@@ -41,7 +43,7 @@ db.run("""
 print("Ensuring GPS point table is a timescaledb hypertable")
 db.run("SELECT create_hypertable('gps', 'time', if_not_exists => TRUE, migrate_data => TRUE);")
 print("Finished settting up tables")
-
+sys.stdout.flush()
 
 DBusGMainLoop(set_as_default=True)
 bus = dbus.SystemBus()
