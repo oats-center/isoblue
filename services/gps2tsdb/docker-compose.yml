@@ -13,15 +13,15 @@ services:
     depends_on:
       - postgres
     volumes:
-      - /var/run/dbus:/var/run/dbus:rw
-#      - ../gpsfake/dbus:/var/run/dbus:rw
+#      - /var/run/dbus:/var/run/dbus:rw
+      - ../gpsverify/dbus:/var/run/dbus:rw
 
-  gpsfake:
+  gpsverify:
     build:
-      context: ../gpsfake
+      context: ../gpsverify
     volumes:
-      - /var/run/dbus:/var/run/dbus:rw
-#      - ../gpsfake/dbus:/var/run/dbus:rw
+#      - /var/run/dbus:/var/run/dbus:rw
+      - ../gpsverify/dbus:/var/run/dbus:rw
 
   postgres:
     image: timescale/timescaledb:latest-pg12
@@ -33,8 +33,8 @@ services:
     ports:
       - 5432:5432/tcp
     restart: always
-    volumes:
-      - postgres:/var/lib/postgresql/data:rw
+#    volumes:
+#      - postgres:/var/lib/postgresql/data:rw
 
   adminer:
     image: adminer
@@ -42,5 +42,5 @@ services:
     ports:
       - 8080:8080
 
-volumes:
-  postgres: {}
+#volumes:
+#  postgres: {}
