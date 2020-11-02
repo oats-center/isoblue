@@ -13,14 +13,13 @@ services:
     depends_on:
       - postgres
     volumes:
-#      - /var/run/dbus:/var/run/dbus:rw
       - ../gpsverify/dbus:/var/run/dbus:rw
 
   gpsverify:
     build:
       context: ../gpsverify
     volumes:
-#      - /var/run/dbus:/var/run/dbus:rw
+#      - ../gpsverfiy/test_points.log:/opt/test_points.log
       - ../gpsverify/dbus:/var/run/dbus:rw
 
   postgres:

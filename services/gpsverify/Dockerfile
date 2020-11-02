@@ -31,5 +31,6 @@ ENV PATH="/opt/venv/bin:$PATH"
 
 # Copy script over and run
 COPY setup_dbus.sh .
+COPY test_points.log /opt/
 COPY gpsverify.py .
 CMD [ "bash", "./setup_dbus.sh" ]
