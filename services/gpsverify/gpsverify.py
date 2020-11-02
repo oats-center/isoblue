@@ -1,19 +1,21 @@
 #!/usr/bin/python3
 
-from time import sleep # For sleeping between rx_bytes checks
-import sys             # Used to exit if no CAN interfaces are found
-import os              # Used to list /sys/class/net directory, reading envrion vars
+from time import sleep # For sleeping between dbus messages
+import sys             # Used to exit in error conditions and flushing the buffer
+import os              # Used for reading envrion vars
 import json            # For reading test_points.log file
 import datetime        # For converting posix timestamp to epoc
 import math            # For converting x and y error to total hoiz error
+import postgres        # For checking that the data was properly uploaded
 
-# For interacting with dbus to request system sleep
+# For interacting with dbus to send messages
 from jeepney import DBusAddress, new_signal
 from jeepney.integrate.blocking import connect_and_authenticate
 
+# Location of log file to insert into database
 testpointsloc = '/opt/test_points.log'
 
-# Equalivent to 
+# Equivalent to 
 #
 # sudo dbus-send --system --type=signal /org/gpsd org.gpsd.fix \
 # double:{Seconds since unix epoc} \
@@ -47,7 +49,7 @@ def gps_to_dbus(dbusargs):
 
     # Construct a new D-Bus message. new_method_call takes the address, the
     # method name, the signature string, and a tuple of arguments.
-    # 'signature string' is not documented well, it's bascally the argument types. More info here
+    # 'signature string' is not documented well, it's basically the argument types. More info here
     #    https://dbus.freedesktop.org/doc/dbus-specification.html#type-system
     msg = new_signal(gps, 'fix', 'didddddddddddds', dbusargs )
 
@@ -63,29 +65,48 @@ if not os.path.isfile(testpointsloc):
 
 print('Waiting 10s for gps2tsdb and postgres to startup')
 sleep(10)
-arg = (1.6041e+09 ,3 ,0.005 ,40.4295 ,-86.9124 ,150.935 ,215.974 ,198.49 ,96.4534 ,float('nan') ,0.06926 ,0.59 ,0.0245572 ,396.98 ,"/dev/Neust")
+
+
+print('Connecting to the database')
+connectionurl='postgresql://' + os.environ['db_user'] + ':' + os.environ['db_password'] + '@postgres:' + os.environ['db_port'] + '/' + os.environ['db_database']
+print("Initing Postgres obj")
+db = postgres.Postgres(url=connectionurl)
+
 
 with open(testpointsloc) as f:
     for line in f:
+        point = ''
+        try:
+             point = json.loads(line)
+        except ValueError as e:
+             continue;
+        # Read the line in as JSON and convert it to python object
         point = json.loads(line)
-        #print('Line:', point)
+        # Skip points that do not have a full 3D fix 
         if point['class'] == 'TPV' and point['mode'] == 3:
-            tm = point['time']
-            if tm[-1] == 'Z':
-              tm = tm[:-1]
-            time_epoch = datetime.datetime.fromisoformat(tm).timestamp()
+
+            # Convert ISO time string into posix epoch time
+            timeraw = point['time']
+            if timeraw[-1] == 'Z':
+              timeraw = timeraw[:-1]
+            time_epoch = datetime.datetime.fromisoformat(timeraw).timestamp()
 
 
-            # So this gets really nasty. Basically we have a list of key - value pairs that we need to put into an ordered tuple.
-            # We are not guarenteed the order or even existence of any given key ( I am assuming that time, mode, and device will always exist as the 
-            # points are pretty useless without time plus mode and device _should_ always be known as they are independed of the device habing a gps fix). 
+            # So this gets really nasty. Basically we have a list of key - value pairs and  we need to put the values into an ordered tuple.
+            # We are not guaranteed the order or even existence of any given key ( I am assuming that time, mode, and device will always exist as the 
+            # points are pretty useless without time plus mode and device _should_ always be known as they are independent of the device having a gps fix). 
             # If the key does not exist 'NaN' should be inserted instead
-            # I am creating a list that I will insert each item from the json tuple into and then convert into a tuple. There may be a better way
+            # I am creating a list that I will insert each item from the json tuple into and then convert into a tuple. I check for the existence of each
+            # point and insert nan or the point. There may be a better way. I considered a tuple of all the keys and then iterating through them but some
+            # points require special attention (ex horizontal uncertainty). There is little documentation on the mapping of native gps sentences -> dbus
+            # so I made my best guesses. At the end of the day it does not matter as we are just testing that the data on the dbus ends up in the database
+            # unchanged but using realistic data is not a bad idea. At some point the data log should be modified to add extreme values as well
 
             dbuslist = []
             dbuslist.append(time_epoch)
             dbuslist.append(point['mode'])
             if 'ept' in point:
+                # Assuming ept is time error
                 dbuslist.append(point['ept'])
             else:
                 dbuslist.append(float('nan'))
@@ -101,6 +122,8 @@ with open(testpointsloc) as f:
                 dbuslist.append(float('nan'))
 
             if 'epx' in point and 'epy' in point:
+                # Assuming epx and epy are error x and y 
+                # Using pythagorean to convert to single vector. v = sqrt(x^2 + y^2)
                 horiz_uncertain = math.sqrt(math.pow(point['epx'], 2) + math.pow(point['epy'], 2))
                 dbuslist.append(horiz_uncertain)
             else: 
@@ -112,16 +135,19 @@ with open(testpointsloc) as f:
                 dbuslist.append(float('nan'))
 
             if 'epv' in point:
+                # Assuming epv is vertical error
                 dbuslist.append(point['epv'])
             else:
                 dbuslist.append(float('nan'))
 
             if 'track' in point:
+                # Assuming track is course
                 dbuslist.append(point['track'])
             else:
                 dbuslist.append(float('nan'))
 
             if 'epd' in point:
+                # Assuming epd is direction/course error
                 dbuslist.append(point['epd'])
             else:
                 dbuslist.append(float('nan'))
@@ -132,6 +158,7 @@ with open(testpointsloc) as f:
                 dbuslist.append(float('nan'))
 
             if 'eps' in point:
+                # Assuming eps is speed error
                 dbuslist.append(point['eps'])
             else:
                 dbuslist.append(float('nan'))
@@ -142,18 +169,28 @@ with open(testpointsloc) as f:
                 dbuslist.append(float('nan'))
 
             if 'epc' in point:
+                # Assuming epc is climb error
                 dbuslist.append(point['epc'])
             else:
                 dbuslist.append(float('nan'))
 
-            dbuslist.append('test')
+            # Using a constant to ensure this is never confused for real data
+            dbuslist.append('fake-data-for-verification')
 
+            # convert to tuple to send to dbus method
             tup = tuple(dbuslist)
 		    
             print('Tuple:', tup)
             gps_to_dbus(tup)
-        #else:
-            #print("Not a TPV point with location data. Skipping")
-        sys.stdout.flush()
-        #sleep(1)
         
+            # Don't overpower gps2tsdb
+            sleep(.1)
+            # Check database that point was added
+            rst = db.one("SELECT * FROM gps where time = %s;", (point['time'],) )
+            if rst is not None and len(rst) == 3 and rst.lat == point['lat'] and rst.lng == point['lon']:
+              print('Timestamp', point['time'], 'successful')
+            else:
+              print('Line', line, '\nwas not successfully entered into database!\ndb entry:', rst)
+              sys.exit(-1)
+            sys.stdout.flush()
+print("All points successfully inserted into database. Exiting")
