@@ -72,6 +72,9 @@ connectionurl='postgresql://' + os.environ['db_user'] + ':' + os.environ['db_pas
 print("Initing Postgres obj")
 db = postgres.Postgres(url=connectionurl)
 
+# This should be replaced query that deletes all lines from the device "fake gps" or whatever but until
+# gps device is recorded this is what we got 
+db.run("TRUNCATE gps;")
 
 with open(testpointsloc) as f:
     for line in f:
@@ -92,21 +95,20 @@ with open(testpointsloc) as f:
             time_epoch = datetime.datetime.fromisoformat(timeraw).timestamp()
 
 
-            # So this gets really nasty. Basically we have a list of key - value pairs and  we need to put the values into an ordered tuple.
-            # We are not guaranteed the order or even existence of any given key ( I am assuming that time, mode, and device will always exist as the 
+            # So this gets really nasty. Basically we have a list of key-value pairs and we need to put the values into an ordered tuple.
+            # We are not guaranteed the order or even existence of any given key (I am assuming that time, mode, and device will always exist as the 
             # points are pretty useless without time plus mode and device _should_ always be known as they are independent of the device having a gps fix). 
             # If the key does not exist 'NaN' should be inserted instead
             # I am creating a list that I will insert each item from the json tuple into and then convert into a tuple. I check for the existence of each
             # point and insert nan or the point. There may be a better way. I considered a tuple of all the keys and then iterating through them but some
-            # points require special attention (ex horizontal uncertainty). There is little documentation on the mapping of native gps sentences -> dbus
-            # so I made my best guesses. At the end of the day it does not matter as we are just testing that the data on the dbus ends up in the database
-            # unchanged but using realistic data is not a bad idea. At some point the data log should be modified to add extreme values as well
+            # points require special attention (ex altitude). Mappings were found from here: https://gitlab.com/gpsd/gpsd/-/blob/release-3.20/dbusexport.c#L55
+            #  At some point the data log should be modified to add extreme values as well
 
             dbuslist = []
             dbuslist.append(time_epoch)
+
             dbuslist.append(point['mode'])
             if 'ept' in point:
-                # Assuming ept is time error
                 dbuslist.append(point['ept'])
             else:
                 dbuslist.append(float('nan'))
@@ -121,33 +123,29 @@ with open(testpointsloc) as f:
             else:
                 dbuslist.append(float('nan'))
 
-            if 'epx' in point and 'epy' in point:
-                # Assuming epx and epy are error x and y 
-                # Using pythagorean to convert to single vector. v = sqrt(x^2 + y^2)
-                horiz_uncertain = math.sqrt(math.pow(point['epx'], 2) + math.pow(point['epy'], 2))
-                dbuslist.append(horiz_uncertain)
+            if 'eph' in point:
+                dbuslist.append(point['eph'])
             else: 
                 dbuslist.append(float('nan'))
 
             if 'alt' in point:
                 dbuslist.append(point['alt'])
+            elif 'altMSL' in point:
+                dbuslist.append(point['altMSL'])
             else:
                 dbuslist.append(float('nan'))
 
             if 'epv' in point:
-                # Assuming epv is vertical error
                 dbuslist.append(point['epv'])
             else:
                 dbuslist.append(float('nan'))
 
             if 'track' in point:
-                # Assuming track is course
                 dbuslist.append(point['track'])
             else:
                 dbuslist.append(float('nan'))
 
             if 'epd' in point:
-                # Assuming epd is direction/course error
                 dbuslist.append(point['epd'])
             else:
                 dbuslist.append(float('nan'))
@@ -158,7 +156,6 @@ with open(testpointsloc) as f:
                 dbuslist.append(float('nan'))
 
             if 'eps' in point:
-                # Assuming eps is speed error
                 dbuslist.append(point['eps'])
             else:
                 dbuslist.append(float('nan'))
@@ -169,13 +166,12 @@ with open(testpointsloc) as f:
                 dbuslist.append(float('nan'))
 
             if 'epc' in point:
-                # Assuming epc is climb error
                 dbuslist.append(point['epc'])
             else:
                 dbuslist.append(float('nan'))
 
             # Using a constant to ensure this is never confused for real data
-            dbuslist.append('fake-data-for-verification')
+            dbuslist.append('fake-data-verification')
 
             # convert to tuple to send to dbus method
             tup = tuple(dbuslist)

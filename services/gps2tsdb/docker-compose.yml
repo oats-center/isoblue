@@ -12,6 +12,7 @@ services:
       db_port: "5432"
     depends_on:
       - postgres
+      - gpsverify
     volumes:
       - ../gpsverify/dbus:/var/run/dbus:rw
 
@@ -38,8 +39,8 @@ services:
     ports:
       - 5432:5432/tcp
     restart: always
-    volumes:
-      - postgres:/var/lib/postgresql/data:rw
+#    volumes:
+#      - postgres:/var/lib/postgresql/data:rw
 
   adminer:
     image: adminer
@@ -47,5 +48,5 @@ services:
     ports:
       - 8080:8080
 
-volumes:
-  postgres: {}
+#volumes:
+#  postgres: {}
