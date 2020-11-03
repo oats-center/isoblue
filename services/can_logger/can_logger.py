@@ -6,6 +6,7 @@ import csv
 import os
 import time
 import sys
+import collections
 import multiprocessing as mp
 from datetime import datetime
 from psycopg2 import OperationalError
@@ -135,11 +136,13 @@ def check_can_interface(interface, avail_interfaces):
 def log_can(can_interface):
 
     print(f'Logging {can_interface}')
-
+    
+    frame = ''
     rx_buff = []
     wr_buff = []
     socket_connected = False
-
+    buff = collections.deque(maxlen=3)
+    
     # Initialize socket
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -179,13 +182,21 @@ def log_can(can_interface):
     s.recv(32)
 
     # Receive frames in a 128-byte buffer and then decode the bytes object.
-    # Then strip some characters to clean up the received frame and then split 
+    # Then strip some characters to clean up the received frame and then split
     # the resulting string to get the timestamp, CAN ID and CAN frame.
 
     while(True):
 
-        frame = s.recv(64)
-        frame = frame.decode("utf-8").strip("<>''").split(' ')
+        socket_buff = s.recv(54)
+        buff.append(socket_buff)
+        
+        frame_buff = list(buff)
+        
+        if(len(frame_buff) > 2):
+           
+            frame = frame_buff[1] + frame_buff[2]
+            frame = frame.decode("utf-8").split("<")
+            frame = frame[1].strip('>').split(' ')
 
         try:
 
@@ -194,8 +205,7 @@ def log_can(can_interface):
 
         except(IndexError):
 
-            print(f'No CAN frames on {can_interface}. Waiting...')
-            time.sleep(1)
+            print(f'Error logging CAN frame at {can_interface}. Skipping...')
 
         else:
 
@@ -205,8 +215,8 @@ def log_can(can_interface):
         # When the receive buffer reaches 100 entries, copy data from receive
         # buffer to write buffer, then write to database from write buffer and
         # clear receive buffer to continue receiving data
-
-        if(len(rx_buff) == 100):
+        
+        if(len(rx_buff) == 1000):
 
             wr_buff.clear()
             wr_buff = rx_buff.copy()
@@ -297,16 +307,6 @@ if (logtodb):
         else:
 
             db_started = True
-
-# Initialize host socket
-
-#s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-# Connect to socketcand's socket. If refused, retry after 10 seconds.
-
-# Open multiprocessing pool to log frames in each selected CAN interface
-# simultaneously
-
 
 for can_bus in can_interfaces:
 
