@@ -10,12 +10,14 @@ import collections
 import multiprocessing as mp
 from datetime import datetime
 from psycopg2 import OperationalError
+from psycopg2.extras import execute_values
 
 
 def write_to_csv(wr_buff, can_bus):
 
     # Write to CSV from write buffer. First item is timestamp, second is
     # can_id and third is can_data
+
     with open(f'/data/log/{can_bus}.csv', mode='a') as logfd:
 
         logcsv = csv.writer(logfd, delimiter=',', quotechar='"',
@@ -27,21 +29,14 @@ def write_to_csv(wr_buff, can_bus):
 
 
 def write_to_db(db, wr_buff, can_bus):
-
-    # Convert from list into tuple and from tuple to string. Then remove
-    # the last comma from data.
-
-    def format_data(data):
-
-        return str(data) + ','
-
-    data = ''.join(map(format_data, tuple(wr_buff)))
-    data = data.rstrip(',')
-
+    
     try:
 
-        db.run(
-            "INSERT INTO can(time, can_interface, can_id, can_data) VALUES {0};".format(data))
+        with db.get_cursor() as cursor:
+            
+            execute_values(cursor,
+                           "INSERT INTO can(time, can_interface, can_id, can_data) \
+                           VALUES %s;", wr_buff)
 
     except(Exception, SyntaxError):
 
@@ -81,7 +76,6 @@ def db_init():
 
 # This detection function was taken from can_watchdog. Author: Aaron Neustedter
 
-
 def detect_can_interfaces():
 
     can_interfaces = []
@@ -120,18 +114,6 @@ def detect_can_interfaces():
 
     return can_interfaces
 
-# Return 'True' if the interface exists and 'False' if it does not.
-
-
-def check_can_interface(interface, avail_interfaces):
-
-    for i in avail_interfaces:
-
-        if(interface == i):
-            return True
-
-    return False
-
 
 def log_can(can_interface):
 
@@ -156,14 +138,15 @@ def log_can(can_interface):
 
         except(ConnectionRefusedError):
 
-            print('Could not connect to socketcand. Connection Refused. Retrying...')
+            print('Could not connect to socketcand. Connection Refused. \
+                    Retrying...')
             time.sleep(10)
             socket_connected = False
 
         else:
 
-            print(
-                f'Successfully connected to socketcand at {host_ip}: {host_port}')
+            print(f'Successfully connected to socketcand at',
+                  '{host_ip}: {host_port}')
             socket_connected = True
 
     # Receive socketcand's response
@@ -212,11 +195,11 @@ def log_can(can_interface):
             timestamp = datetime.fromtimestamp(float(timestamp)).isoformat()
             rx_buff.append((timestamp, can_bus, can_id, can_data))
 
-        # When the receive buffer reaches 100 entries, copy data from receive
+        # When the receive buffer reaches 1000 entries, copy data from receive
         # buffer to write buffer, then write to database from write buffer and
         # clear receive buffer to continue receiving data
         
-        if(len(rx_buff) == 1000):
+        if(len(rx_buff) >= 1000):
 
             wr_buff.clear()
             wr_buff = rx_buff.copy()
@@ -235,7 +218,6 @@ def log_can(can_interface):
                 p_csv.start()
 
 # Get host info using environment variables
-
 
 host_ip = os.environ['socketcand_ip']
 host_port = os.environ['socketcand_port']
@@ -274,9 +256,7 @@ print("Detected interfaces: " + str(avail_interfaces))
 
 for i in host_interfaces:
 
-    x = check_can_interface(i, avail_interfaces)
-
-    if (x is True):
+    if i in avail_interfaces:
 
         can_interfaces.append(i)
 
@@ -299,8 +279,8 @@ if (logtodb):
 
         except(OperationalError):
 
-            print(
-                "Error: Database system has not been started up or is starting up. Waiting...")
+            print('Error: Database system has not been started up', 
+                  'or is starting up. Waiting...')
             time.sleep(10)
             db_started = False
 
