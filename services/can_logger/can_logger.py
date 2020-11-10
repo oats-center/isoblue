@@ -118,11 +118,12 @@ def detect_can_interfaces():
 def log_can(can_interface):
 
     print(f'Logging {can_interface}')
-    
+     
     frame = ''
     rx_buff = []
     wr_buff = []
     socket_connected = False
+    # Python deque to store the last 3 received elements from the socket
     buff = collections.deque(maxlen=3)
     
     # Initialize socket
@@ -145,15 +146,19 @@ def log_can(can_interface):
 
         else:
 
-            print(f'Successfully connected to socketcand at',
-                  '{host_ip}: {host_port}')
+            print('Successfully connected to socketcand at',
+                  f'{host_ip}: {host_port}')
             socket_connected = True
 
-    # Receive socketcand's response
+    # Receive socketcand's response. After each command, socketcand replies
+    # < ok > if the command was successful. Each reply must be received before
+    # sending new commands, else, socketcand won't receive new commands. For
+    # more details about socketcand's protocol, please refer to: 
+    # https://github.com/linux-can/socketcand/blob/master/doc/protocol.md
 
     s.recv(32)
 
-    # Connect to exposed CAN interface
+    # Connect to exposed CAN interface and receive socketcand's respone.
 
     s.sendall(b'< open ' + can_interface.encode('utf-8') + b' >')
 
@@ -164,19 +169,34 @@ def log_can(can_interface):
 
     s.recv(32)
 
-    # Receive frames in a 128-byte buffer and then decode the bytes object.
-    # Then strip some characters to clean up the received frame and then split
-    # the resulting string to get the timestamp, CAN ID and CAN frame.
+    # Receive data in a 54-byte long socket buffer. Data may come split and 
+    # incomplete after each iteration, so data received from the socket 
+    # buffer is copied to a circular buffer (buff). This circular buffer
+    # stores up to three messages to ensure a complete frame can be obtained.
+    # After filling this buffer, information is converted to a list and stored
+    # in a "frame buffer". This buffer contains data received from the last 
+    # three iterations. After filling the frame_buffer, a complete frame is 
+    # obtained by concatenating the second and third elements of the frame buffer.
+    # Then the resulting bytes element is encoded to a UTF-8 string and its data
+    # obtained using string manipulation. New frames always start with "<", so
+    # the string is split after each occurence of this character. Afterwards,
+    # the second element of the resulting list will contain the full data.
+    # Finally, some characters are stripped to clean up the received frame 
+    # and then split the resulting string to get the timestamp, CAN ID 
+    # and CAN frame.
 
     while(True):
-
+        
+        # Buffer to store raw bytes received from the socket.
         socket_buff = s.recv(54)
         buff.append(socket_buff)
         
+        # List representation of buff
         frame_buff = list(buff)
         
         if(len(frame_buff) > 2):
-           
+
+            # Decoded and assembled version of frame_buff in string format 
             frame = frame_buff[1] + frame_buff[2]
             frame = frame.decode("utf-8").split("<")
             frame = frame[1].strip('>').split(' ')
@@ -252,7 +272,7 @@ avail_interfaces = detect_can_interfaces()
 
 print("Detected interfaces: " + str(avail_interfaces))
 
-# Check selected CAN interfacesin env variable are available.
+# Check selected CAN interfaces in env variable are available.
 
 for i in host_interfaces:
 
