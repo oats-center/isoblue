@@ -6,7 +6,8 @@ import os              # Used for reading envrion vars
 import json            # For reading test_points.log file
 import datetime        # For converting posix timestamp to epoc
 import math            # For converting x and y error to total hoiz error
-import postgres        # For checking that the data was properly uploaded
+#import postgres        # For checking that the data was properly uploaded
+import zmq             # For publishing gps points for verification containers
 
 # For interacting with dbus to send messages
 from jeepney import DBusAddress, new_signal
@@ -38,7 +39,7 @@ testpointsloc = '/opt/test_points.log'
 #   https://jeepney.readthedocs.io/en/latest/integrate.html
 def gps_to_dbus(dbusargs):
     if len(dbusargs) != 15:
-        print("tuple argument for gps_to_dbus was not valid. Expected 15 entries, got",len(dbusargs))
+        print('tuple argument for gps_to_dbus was not valid. Expected 15 entries, got',len(dbusargs))
         return -1
 
     gps = DBusAddress('/org/gpsd',
@@ -63,18 +64,31 @@ if not os.path.isfile(testpointsloc):
     print('Test points file does not exist in', testpointsloc, ', cannot insert test points')
     exit(-1)
 
-print('Waiting 10s for gps2tsdb and postgres to startup')
-sleep(10)
+print('Setting up zeromq')
+# Modified example from https://zguide.zeromq.org/docs/chapter2/#Node-Coordination
+subs_expected = 1
+context = zmq.Context()
 
+# Socket to talk to clients
+publisher = context.socket(zmq.PUB)
+# set SNDHWM, so we don't drop messages for slow subscribers
+publisher.sndhwm = 1100000
+publisher.bind('tcp://*:5561')
 
-print('Connecting to the database')
-connectionurl='postgresql://' + os.environ['db_user'] + ':' + os.environ['db_password'] + '@postgres:' + os.environ['db_port'] + '/' + os.environ['db_database']
-print("Initing Postgres obj")
-db = postgres.Postgres(url=connectionurl)
+# Socket to receive signals
+syncservice = context.socket(zmq.REP)
+syncservice.bind('tcp://*:5562')
 
-# This should be replaced query that deletes all lines from the device "fake gps" or whatever but until
-# gps device is recorded this is what we got 
-db.run("TRUNCATE gps;")
+# Get synchronization from subscribers
+print('awaiting', subs_expected, 'subs')
+subscribers = 0
+while subscribers < subs_expected:
+    # wait for synchronization request
+    msg = syncservice.recv()
+    # send synchronization reply
+    syncservice.send(b'')
+    subscribers += 1
+    print('+1 subscriber (%i/%i)' % (subscribers, subs_expected))
 
 with open(testpointsloc) as f:
     for line in f:
@@ -82,7 +96,7 @@ with open(testpointsloc) as f:
         try:
              point = json.loads(line)
         except ValueError as e:
-             continue;
+             continue
         # Read the line in as JSON and convert it to python object
         point = json.loads(line)
         # Skip points that do not have a full 3D fix 
@@ -181,12 +195,14 @@ with open(testpointsloc) as f:
         
             # Don't overpower gps2tsdb
             sleep(.1)
+            # Publish GPS point to nng or zeromq
             # Check database that point was added
-            rst = db.one("SELECT * FROM gps where time = %s;", (point['time'],) )
-            if rst is not None and len(rst) == 3 and rst.lat == point['lat'] and rst.lng == point['lon']:
-              print('Timestamp', point['time'], 'successful')
-            else:
-              print('Line', line, '\nwas not successfully entered into database!\ndb entry:', rst)
-              sys.exit(-1)
+            print('Publishing gps data')
+            publisher.send_json(point)
+
             sys.stdout.flush()
-print("All points successfully inserted into database. Exiting")
+
+publisher.send_json(json.dumps("END"))
+publisher.close()
+context.term()
+print('All points successfully inserted into database. Exiting')
