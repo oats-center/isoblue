@@ -8,6 +8,7 @@ import datetime        # For converting posix timestamp to epoc
 import math            # For converting x and y error to total hoiz error
 #import postgres        # For checking that the data was properly uploaded
 import zmq             # For publishing gps points for verification containers
+from pynng import Pub0, Rep0
 
 # For interacting with dbus to send messages
 from jeepney import DBusAddress, new_signal
@@ -87,6 +88,21 @@ while subscribers < subs_expected:
     msg = syncservice.recv()
     # send synchronization reply
     syncservice.send(b'')
+    subscribers += 1
+    print('+1 subscriber (%i/%i)' % (subscribers, subs_expected))
+
+print('Setting up nng')
+nngpub = Pub0(listen='tcp://*:6661')
+
+nngrep = Rep0(listen='tcp://*:6662')
+# Get synchronization from subscribers
+print('awaiting', subs_expected, 'subs')
+subscribers = 0
+while subscribers < subs_expected:
+    # wait for synchronization request
+    msg = nngrep.recv()
+    # send synchronization reply
+    nngrep.send(b'SYN ACK')
     subscribers += 1
     print('+1 subscriber (%i/%i)' % (subscribers, subs_expected))
 
@@ -199,10 +215,11 @@ with open(testpointsloc) as f:
             # Check database that point was added
             print('Publishing gps data')
             publisher.send_json(point)
-
+            nngpub.send(json.dumps(point).encode('utf-8'))
             sys.stdout.flush()
 
+print('Sending end messages')
 publisher.send_json(json.dumps("END"))
-publisher.close()
-context.term()
+nngpub.send(json.dumps("END").encode('utf-8'))
+
 print('All points successfully inserted into database. Exiting')

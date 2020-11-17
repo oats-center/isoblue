@@ -5,6 +5,7 @@ import time
 import os
 import sys
 import json
+from pynng import Sub0, Req0
 
 print('Waiting 10s for gps2tsdb and postgres to startup')
 time.sleep(10)
@@ -25,7 +26,7 @@ print('Setting up zeromq')
 context = zmq.Context()
 
 # First, connect our subscriber socket
-print('Connecting to sub socket')
+print('Connecting to zmq sub socket')
 subscriber = context.socket(zmq.SUB)
 subscriber.connect('tcp://gps_replay:5561')
 subscriber.setsockopt(zmq.SUBSCRIBE, b'')
@@ -33,35 +34,65 @@ subscriber.setsockopt(zmq.SUBSCRIBE, b'')
 time.sleep(1)
 
 # Second, synchronize with publisher
-print('Connecting to sync socket')
+print('Connecting to zmq sync socket')
 syncclient = context.socket(zmq.REQ)
 syncclient.connect('tcp://gps_replay:5562')
 
 # send a synchronization request
-print('Sending sync request')
+print('Sending sync zmq request')
 syncclient.send(b'')
 
 # wait for synchronization reply
-print('Awaiting sync reply')
+print('Awaiting zmq sync reply')
 syncclient.recv()
+
+print('Setting up nng')
+nngreq = Req0(dial='tcp://gps_replay:6662')
+
+print('Sending sync nng request')
+nngreq.send(b'SYN')
+
+print('Awaiting nng sync reply')
+nngreq.recv()
+
+print('Connecting to nng sub socket')
+nngsub = Sub0(dial='tcp://gps_replay:6661')
+nngsub.subscribe(b'')
 
 # Third, get our updates and report how many we got
 points_received = 0
 while True:
-  print('Awaiting gps point')
-  point = subscriber.recv_json()
-  if point == json.dumps("END"):
+  print('Awaiting zmq gps point')
+  
+  zmqpoint = subscriber.recv_json()
+  print('Awaiting nng gps point')
+  
+  nngpoint = json.loads(nngsub.recv().decode('utf-8'))
+
+  if zmqpoint == json.dumps("END") and nngpoint == "END":
     break
 
-  print('Verifying that', point['time'], ' is in the database')
-  rst = db.one('SELECT * FROM gps where time = %s;', (point['time'],) )
-  if rst is not None and len(rst) == 3 and rst.lat == point['lat'] and rst.lng == point['lon']:
-    print('Timestamp', point['time'], 'successfully entered into the database')
+  print('Verifying that zmq', zmqpoint['time'], ' is in the database')
+  
+  rst = db.one('SELECT * FROM gps where time = %s;', (zmqpoint['time'],) )
+  if rst is not None and len(rst) == 3 and rst.lat == zmqpoint['lat'] and rst.lng == zmqpoint['lon']:
+    print('zmq timestamp', zmqpoint['time'], 'successfully entered into the database')
     points_received
 
   else:
-    print('GPS point', point, '\nwas not successfully entered into database!\ndb entry:', rst)
+    print('zmq GPS point', zmqpoint, '\nwas not successfully entered into database!\ndb entry:', rst)
     sys.exit(-1)
+  
+  print('Verifying that zmq', nngpoint['time'], ' is in the database')
+  rst = db.one('SELECT * FROM gps where time = %s;', (nngpoint['time'],) )
+  if rst is not None and len(rst) == 3 and rst.lat == nngpoint['lat'] and rst.lng == nngpoint['lon']:
+    print('zmq timestamp', nngpoint['time'], 'successfully entered into the database')
+    points_received
+
+  else:
+    print('zmq GPS point', nngpoint, '\nwas not successfully entered into database!\ndb entry:', rst)
+    sys.exit(-1)
+  
   points_received = points_received + 1
   sys.stdout.flush()
 
