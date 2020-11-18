@@ -3,7 +3,7 @@ services:
   gps2tsdb:
     build:
       context: ../gps2tsdb
-    restart: always
+    restart: unless-stopped
     environment:
       db_user: "avena"
       db_host: "postgres"
@@ -12,8 +12,6 @@ services:
       db_port: "5432"
     depends_on:
       - postgres
-#      - gps_verify
-      - gps_replay
     volumes:
       - ../gps_replay/dbus:/var/run/dbus:rw
 
@@ -26,6 +24,9 @@ services:
       db_database: "avena"
       db_password: "password"
       db_port: "5432"
+    depends_on:
+      - gps_replay
+      - gps2tsdb
 
   gps_replay:
     build:
@@ -46,6 +47,12 @@ services:
     restart: always
 #    volumes:
 #      - postgres:/var/lib/postgresql/data:rw
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U avena"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
 
   adminer:
     image: adminer

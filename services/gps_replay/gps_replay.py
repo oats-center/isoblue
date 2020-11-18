@@ -6,9 +6,8 @@ import os              # Used for reading envrion vars
 import json            # For reading test_points.log file
 import datetime        # For converting posix timestamp to epoc
 import math            # For converting x and y error to total hoiz error
-#import postgres        # For checking that the data was properly uploaded
 import zmq             # For publishing gps points for verification containers
-from pynng import Pub0, Rep0
+from pynng import Pub0, Rep0 # For publishing gps points for verification
 
 # For interacting with dbus to send messages
 from jeepney import DBusAddress, new_signal
@@ -68,41 +67,41 @@ if not os.path.isfile(testpointsloc):
 print('Setting up zeromq')
 # Modified example from https://zguide.zeromq.org/docs/chapter2/#Node-Coordination
 subs_expected = 1
-context = zmq.Context()
+zmq_ctx = zmq.Context()
 
 # Socket to talk to clients
-publisher = context.socket(zmq.PUB)
+zmq_pub = zmq_ctx.socket(zmq.PUB)
 # set SNDHWM, so we don't drop messages for slow subscribers
-publisher.sndhwm = 1100000
-publisher.bind('tcp://*:5561')
+zmq_pub.sndhwm = 1100000
+zmq_pub.bind('tcp://*:5561')
 
 # Socket to receive signals
-syncservice = context.socket(zmq.REP)
-syncservice.bind('tcp://*:5562')
+zmq_sync = zmq_ctx.socket(zmq.REP)
+zmq_sync.bind('tcp://*:5562')
 
 # Get synchronization from subscribers
 print('awaiting', subs_expected, 'subs')
 subscribers = 0
 while subscribers < subs_expected:
     # wait for synchronization request
-    msg = syncservice.recv()
+    msg = zmq_sync.recv()
     # send synchronization reply
-    syncservice.send(b'')
+    zmq_sync.send(b'')
     subscribers += 1
     print('+1 subscriber (%i/%i)' % (subscribers, subs_expected))
 
 print('Setting up nng')
-nngpub = Pub0(listen='tcp://*:6661')
+nng_pub = Pub0(listen='tcp://*:6661')
+nng_sync = Rep0(listen='tcp://*:6662')
 
-nngrep = Rep0(listen='tcp://*:6662')
 # Get synchronization from subscribers
 print('awaiting', subs_expected, 'subs')
 subscribers = 0
 while subscribers < subs_expected:
     # wait for synchronization request
-    msg = nngrep.recv()
+    msg = nng_sync.recv()
     # send synchronization reply
-    nngrep.send(b'SYN ACK')
+    nng_sync.send(b'SYN ACK')
     subscribers += 1
     print('+1 subscriber (%i/%i)' % (subscribers, subs_expected))
 
@@ -211,15 +210,19 @@ with open(testpointsloc) as f:
         
             # Don't overpower gps2tsdb
             sleep(.1)
+
             # Publish GPS point to nng or zeromq
-            # Check database that point was added
             print('Publishing gps data')
-            publisher.send_json(point)
-            nngpub.send(json.dumps(point).encode('utf-8'))
+            zmq_pub.send_json(point)
+            # NNG will not automatically serialize python objects for us so we
+            # must do it outselves
+            nng_pub.send(json.dumps(point).encode('utf-8'))
             sys.stdout.flush()
 
 print('Sending end messages')
-publisher.send_json(json.dumps("END"))
-nngpub.send(json.dumps("END").encode('utf-8'))
+zmq_pub.send_json(json.dumps("END"))
+nng_pub.send(json.dumps("END").encode('utf-8'))
 
-print('All points successfully inserted into database. Exiting')
+print('All points successfully inserted into database. Staying alive so that exit code for gps_verify is used')
+while(True):
+    sleep(10000)

@@ -19,7 +19,7 @@ RUN pip install -r requirements.txt
 
 
 # RUNTIME
-FROM python:3 as runtime
+FROM python:3-slim as runtime
 
 WORKDIR /usr/src/app
 
@@ -36,4 +36,7 @@ ENV PATH="/opt/venv/bin:$PATH"
 COPY setup_dbus.sh .
 COPY test_points.log /opt/
 COPY gps_replay.py .
-CMD [ "bash", "./setup_dbus.sh" ]
+#RUN ./setup_dbus.sh
+#CMD ["python", "./gps_replay.py"]
+
+CMD ["bash", "./setup_dbus.sh"]

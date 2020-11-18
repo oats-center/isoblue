@@ -19,7 +19,7 @@ RUN pip install -r requirements.txt
 
 
 # RUNTIME
-FROM python:3 as runtime
+FROM python:3-slim as runtime
 
 WORKDIR /usr/src/app
 

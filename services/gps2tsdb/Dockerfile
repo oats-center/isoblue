@@ -25,12 +25,14 @@ RUN pip install -r requirements.txt
 
 
 # RUNTIME
-FROM python:3 as runtime
+FROM python:3-slim as runtime
 
 WORKDIR /usr/src/app
 
 # Install runtime deps
-RUN apt-get -y update && apt-get install -y --no-install-recommends python3-dbus
+# Last two are needed for switch to slim
+RUN apt-get -y update && apt-get install -y --no-install-recommends python3-dbus \
+    libgirepository-1.0-1 gir1.2-gtk-3.0
 
 # Copy compiled venv from builder
 COPY --from=builder /opt/venv /opt/venv
