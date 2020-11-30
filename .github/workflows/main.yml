@@ -134,6 +134,10 @@ jobs:
             cache-to: type=local,dest=/tmp/.buildx-cache
       - name: Integration tests
         id: test
+        with:
+          labels: |
+            cache-from: type=local,src=/tmp/.buildx-cache
+            cache-to: type=local,dest=/tmp/.buildx-cache
         run: |
           service=${{ matrix.service }}
           echo "Checking if test script is found for service $service"
@@ -143,6 +147,4 @@ jobs:
           else
             echo "No test script found for service $service, skipping"
           fi
-        labels: |
-            cache-from: type=local,src=/tmp/.buildx-cache
-            cache-to: type=local,dest=/tmp/.buildx-cache
+
