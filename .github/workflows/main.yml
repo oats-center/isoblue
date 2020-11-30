@@ -38,7 +38,7 @@ jobs:
         run: echo ${{ steps.buildx.outputs.platforms }}
 
       - name: Cache docker layers
-        if: ${{ !env.ACT }}  # Awaiting ACT version after 0.2.17 for this feature
+        #if: ${{ !env.ACT }}  # Awaiting ACT version after 0.2.17 for this feature
         uses: actions/cache@v2
         id: cache
         with:
@@ -133,7 +133,6 @@ jobs:
             cache-from: type=local,src=/tmp/.buildx-cache
             cache-to: type=local,dest=/tmp/.buildx-cache
       - name: Integration tests
-        id: test
         run: |
           service=${{ matrix.service }}
           echo "Checking if test script is found for service $service"
@@ -143,6 +142,3 @@ jobs:
           else
             echo "No test script found for service $service, skipping"
           fi
-        labels: |
-            cache-from: type=local,src=/tmp/.buildx-cache
-            cache-to: type=local,dest=/tmp/.buildx-cache
