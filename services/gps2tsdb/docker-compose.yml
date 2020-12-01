@@ -3,7 +3,7 @@ services:
   gps2tsdb:
     build:
       context: ../gps2tsdb
-    restart: unless-stopped
+    restart: "no"
     environment:
       db_user: "avena"
       db_host: "postgres"
@@ -18,6 +18,7 @@ services:
   gps_verify:
     build:
       context: ../gps_verify
+    restart: "no"
     environment:
       db_user: "avena"
       db_host: "postgres"
@@ -31,12 +32,14 @@ services:
   gps_replay:
     build:
       context: ../gps_replay
+    restart: "no"
     volumes:
 #      - ../gps_replay/test_points.log:/opt/test_points.log
       - ../gps_replay/dbus:/var/run/dbus:rw
 
   postgres:
     image: timescale/timescaledb:latest-pg12
+    restart: "no"
     environment:
       POSTGRES_DB: avena
       POSTGRES_PASSWORD: password
@@ -44,7 +47,7 @@ services:
       TIMESCALEDB_TELEMETRY: "off"
     ports:
       - 5432:5432/tcp
-    restart: always
+    restart: "no"
 #    volumes:
 #      - postgres:/var/lib/postgresql/data:rw
     healthcheck:
@@ -53,10 +56,9 @@ services:
       timeout: 5s
       retries: 5
 
-
   adminer:
     image: adminer
-    restart: always
+    restart: "no"
     ports:
       - 8080:8080
 
