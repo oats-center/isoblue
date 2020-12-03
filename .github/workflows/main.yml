@@ -135,10 +135,11 @@ jobs:
       - name: Integration tests
         run: |
           service=${{ matrix.service }}
+          compose_test_file=docker-compose-test.yml
           echo "Checking if test script is found for service $service"
-          if test -f "services/$service/docker-compose.yml"; then
+          if test -f "services/$service/$compose_test_file"; then
             echo "Running test for ${{ matrix.service }}"
-            docker-compose -f services/$service/docker-compose.yml up --build --exit-code-from=gps_verify --abort-on-container-exit
+            docker-compose -f services/$service/$compose_test_file up --build --exit-code-from=gps_verify --abort-on-container-exit
           else
             echo "No test script found for service $service, skipping"
           fi
