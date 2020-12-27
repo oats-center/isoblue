@@ -38,7 +38,7 @@ jobs:
         run: echo ${{ steps.buildx.outputs.platforms }}
 
       - name: Cache docker layers
-        #if: ${{ !env.ACT }}  # Awaiting ACT version after 0.2.17 for this feature
+        if: ${{ !env.ACT }}  # Awaiting ACT version after 0.2.17 for this feature
         uses: actions/cache@v2
         id: cache
         with:
@@ -132,14 +132,3 @@ jobs:
             org.opencontainers.image.licenses=${{ github.event.repository.license.spdx_id }}
             cache-from: type=local,src=/tmp/.buildx-cache
             cache-to: type=local,dest=/tmp/.buildx-cache
-      - name: Integration tests
-        run: |
-          service=${{ matrix.service }}
-          compose_test_file=docker-compose-test.yml
-          echo "Checking if test script is found for service $service"
-          if test -f "services/$service/$compose_test_file"; then
-            echo "Running test for ${{ matrix.service }}"
-            docker-compose -f services/$service/$compose_test_file up --build --exit-code-from=gps_verify --abort-on-container-exit
-          else
-            echo "No test script found for service $service, skipping"
-          fi

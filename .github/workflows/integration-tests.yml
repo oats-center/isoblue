@@ -1,0 +1,35 @@
+name: Integration Tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  integration-tests:
+    strategy:
+      matrix:
+        service:
+          - gps2tsdb
+          - oada_upload
+          - cell_logger
+          - can_watchdog
+          - can_logger  
+          - socketcand
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Integration tests
+        run: |
+          service=${{ matrix.service }}
+          compose_test_file=docker-compose-test.yml
+          echo "Checking if test script is found for service $service"
+          if test -f "services/$service/$compose_test_file"; then
+            echo "Running test for ${{ matrix.service }}"
+            docker-compose -f services/$service/$compose_test_file up --build --exit-code-from=gps_verify --abort-on-container-exit
+          else
+            echo "No test script found for service $service, skipping"
+          fi
