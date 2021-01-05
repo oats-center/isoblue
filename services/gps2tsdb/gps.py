@@ -21,6 +21,7 @@ def fix(*args):
     print("Finished inserting lat and lng for timestamp ", args[0])
     sys.stdout.flush()
 
+# Prometheus variables to export
 global lat_gauge
 lat_gauge = Gauge('avena_position_lat', 'Last know fix latitude')
 global lng_gauge
@@ -33,6 +34,9 @@ global db
 connectionurl='postgresql://' + os.environ['db_user'] + ':' + os.environ['db_password'] + '@postgres:' + os.environ['db_port'] + '/' + os.environ['db_database']
 print("Initing Postgres obj")
 
+
+# Try to connect to the DB. It may be starting up so we should try a few timees
+# before failing. Currently trying every second 60 times
 tries = 0
 maxtries = 60
 sleeptime = 1
@@ -42,12 +46,12 @@ while(not db_connected):
     db = postgres.Postgres(url=connectionurl)
   except OperationalError as e:
     if( tries < maxtries):
-      print("Database connection failed. Database may still be starting. Sleeping ", sleeptime, "s and trying again")
+      print("Database connection attempt", tries, "failed. Database may still be starting. Sleeping", sleeptime, "s and trying again")
       print(e)
-      maxtries = maxtries + 1
+      tries = tries + 1
       sleep(sleeptime)
     else:
-      print("FATAL: Could not connect to db after,", tries, ". Exiting")
+      print("FATAL: Could not connect to db after", tries, "tries. Exiting")
       sys.exit(-1)
   else:
     db_connected = True

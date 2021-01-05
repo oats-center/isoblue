@@ -5,6 +5,5 @@ services:
       context: ../gps_replay
     environment:
     volumes:
-#      - ../gps_replay/test_points.log:/opt/test_points.log
       - ../gps_replay/dbus:/var/run/dbus:rw
 

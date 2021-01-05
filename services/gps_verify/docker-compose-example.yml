@@ -10,6 +10,5 @@ services:
       db_password: "password"
       db_port: "5432"
     volumes:
-#      - ../gps_verify/test_points.log:/opt/test_points.log
       - ../gps_verify/dbus:/var/run/dbus:rw
 

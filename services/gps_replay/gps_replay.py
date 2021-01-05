@@ -7,7 +7,6 @@ import json            # For reading test_points.log file
 import datetime        # For converting posix timestamp to epoc
 import math            # For converting x and y error to total hoiz error
 import zmq             # For publishing gps points for verification containers
-from pynng import Pub0, Rep0 # For publishing gps points for verification
 
 # For interacting with dbus to send messages
 from jeepney import DBusAddress, new_signal
@@ -87,21 +86,6 @@ while subscribers < subs_expected:
     msg = zmq_sync.recv()
     # send synchronization reply
     zmq_sync.send(b'')
-    subscribers += 1
-    print('+1 subscriber (%i/%i)' % (subscribers, subs_expected))
-
-print('Setting up nng')
-nng_pub = Pub0(listen='tcp://*:6661')
-nng_sync = Rep0(listen='tcp://*:6662')
-
-# Get synchronization from subscribers
-print('awaiting', subs_expected, 'subs')
-subscribers = 0
-while subscribers < subs_expected:
-    # wait for synchronization request
-    msg = nng_sync.recv()
-    # send synchronization reply
-    nng_sync.send(b'SYN ACK')
     subscribers += 1
     print('+1 subscriber (%i/%i)' % (subscribers, subs_expected))
 
@@ -211,17 +195,13 @@ with open(testpointsloc) as f:
             # Don't overpower gps2tsdb
             sleep(.1)
 
-            # Publish GPS point to nng or zeromq
+            # Publish GPS point to zeromq
             print('Publishing gps data')
             zmq_pub.send_json(point)
-            # NNG will not automatically serialize python objects for us so we
-            # must do it outselves
-            nng_pub.send(json.dumps(point).encode('utf-8'))
             sys.stdout.flush()
 
 print('Sending end messages')
 zmq_pub.send_json(json.dumps("END"))
-nng_pub.send(json.dumps("END").encode('utf-8'))
 
 print('All points successfully inserted into database. Staying alive so that exit code for gps_verify is used')
 while(True):

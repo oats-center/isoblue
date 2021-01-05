@@ -5,7 +5,6 @@ import time
 import os
 import sys
 import json
-from pynng import Sub0, Req0
 
 print('Waiting 10s for gps2tsdb and postgres to startup')
 time.sleep(10)
@@ -45,20 +44,6 @@ zmq_sync.send(b'')
 print('Awaiting zmq sync reply')
 zmq_sync.recv()
 
-
-print('Setting up nng')
-nng_sync = Req0(dial='tcp://gps_replay:6662')
-
-print('Sending sync nng request')
-nng_sync.send(b'SYN')
-
-print('Awaiting nng sync reply')
-nng_sync.recv()
-
-print('Connecting to nng sub socket')
-nng_sub = Sub0(dial='tcp://gps_replay:6661')
-nng_sub.subscribe(b'')
-
 # Third, get our updates and report how many we got
 points_received = 0
 while True:
@@ -66,11 +51,8 @@ while True:
   print('Awaiting zmq gps point')
   zmq_gps_point = zmq_sub.recv_json()
 
-  print('Awaiting nng gps point')
-  nng_gps_point = json.loads(nng_sub.recv().decode('utf-8'))
-
   # Check if this is a control message signifying the end of the transmission
-  if zmq_gps_point == json.dumps("END") and nng_gps_point == "END":
+  if zmq_gps_point == json.dumps("END"): 
     print('End control message received. No more gps points to check')
     break
 
@@ -84,21 +66,10 @@ while True:
     print('zmq GPS point', zmq_gps_point, '\nwas not successfully entered into database!\ndb entry:', rst)
     sys.exit(-1)
   
-
-  # Check for nng's point
-  print('Verifying that zmq', nng_gps_point['time'], ' is in the database')
-  rst = db.one('SELECT * FROM gps where time = %s;', (nng_gps_point['time'],) )
-  if rst is not None and len(rst) == 3 and rst.lat == nng_gps_point['lat'] and rst.lng == nng_gps_point['lon']:
-    print('zmq timestamp', nng_gps_point['time'], 'successfully entered into the database')
-    points_received
-
-  else:
-    print('zmq GPS point', nng_gps_point, '\nwas not successfully entered into database!\ndb entry:', rst)
-    sys.exit(-1)
-  
   # Counter just for fun
   points_received = points_received + 1
   sys.stdout.flush()
 
 print('Successfully verified %d points' % points_received)
 sys.exit(0)
+

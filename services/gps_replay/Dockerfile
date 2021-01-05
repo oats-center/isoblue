@@ -9,9 +9,6 @@ RUN python -m venv /opt/venv
 # Make sure we use the virtualenv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Needed to build nng
-RUN apt-get -y update && apt-get install -y --no-install-recommends cmake && pip install wheel
-
 # Copy requirements and build with pip
 COPY requirements.txt ./
 RUN pip install -r requirements.txt
@@ -36,7 +33,5 @@ ENV PATH="/opt/venv/bin:$PATH"
 COPY setup_dbus.sh .
 COPY test_points.log /opt/
 COPY gps_replay.py .
-#RUN ./setup_dbus.sh
-#CMD ["python", "./gps_replay.py"]
 
 CMD ["bash", "./setup_dbus.sh"]

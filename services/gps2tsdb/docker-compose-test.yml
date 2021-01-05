@@ -34,7 +34,6 @@ services:
       context: ../gps_replay
     restart: "no"
     volumes:
-#      - ../gps_replay/test_points.log:/opt/test_points.log
       - ../gps_replay/dbus:/var/run/dbus:rw
 
   postgres:
@@ -48,8 +47,6 @@ services:
     ports:
       - 5432:5432/tcp
     restart: "no"
-#    volumes:
-#      - postgres:/var/lib/postgresql/data:rw
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U avena"]
       interval: 5s
@@ -61,6 +58,3 @@ services:
     restart: "no"
     ports:
       - 8081:8080
-
-#volumes:
-#  postgres: {}

@@ -1,3 +1,2 @@
 jeepney
 pyzmq
-pynng

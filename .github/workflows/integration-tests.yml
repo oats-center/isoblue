@@ -1,5 +1,9 @@
+# Name of the test. Shown on github as $name/$jobname
 name: Integration Tests
 
+# When should we run this file?
+# TODO: When a maintainer of the repo pushes to an open PR, it runs the file twice.
+# Should fix in the future. There are a lot of intricacies with non-maintainers
 on:
   push:
   pull_request:
@@ -7,6 +11,10 @@ on:
 jobs:
   integration-tests:
     strategy:
+      # So the matrix idea is that it runs the job for each service in parallel
+      # Our convention is that a service is a folder under the `services`  
+      # directory with the nessicary files to make a docker container plus a
+      # docker-compose-test.yml file for integration testing
       matrix:
         service:
           - gps2tsdb
@@ -19,9 +27,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+        # Checkout the latest pushed version of the test
       - name: Checkout
         uses: actions/checkout@v2
 
+        # If the service has a docker-compose-test.yml file, execute it and use the
+        # exit code as the exit code for the test
       - name: Integration tests
         run: |
           service=${{ matrix.service }}
