@@ -149,6 +149,7 @@ def log_can(can_interface):
             print('Successfully connected to socketcand at',
                   f'{host_ip}: {host_port}')
             socket_connected = True
+    sys.stdout.flush()
 
     # Receive socketcand's response. After each command, socketcand replies
     # < ok > if the command was successful. Each reply must be received before
@@ -186,6 +187,8 @@ def log_can(can_interface):
     # and CAN frame.
 
     while(True):
+        sys.stdout.flush()
+ 
         
         # Buffer to store raw bytes received from the socket.
         socket_buff = s.recv(54)
@@ -309,5 +312,5 @@ if (logtodb):
             db_started = True
 
 for can_bus in can_interfaces:
-
+    print('Creating process for', can_bus)
     mp.Process(target=log_can, args=(can_bus,)).start()

@@ -3,7 +3,7 @@ services:
   can_watchdog:
     build:
       context: ../can_watchdog
-    restart: always
+    restart: unless-stopped
     environment:
       inactivity_threshold: 5
     volumes:
