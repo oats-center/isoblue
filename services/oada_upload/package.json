@@ -16,20 +16,20 @@
     "@oada/client": "2.2.1",
     "@oada/formats": "1.2.0",
     "@oada/types": "1.2.0",
-    "@sindresorhus/is": "^2.1.1",
+    "@sindresorhus/is": "^4.0.0",
     "dotenv": "^8.2.0",
-    "ksuid": "^1.2.0",
-    "moment": "^2.25.3",
+    "ksuid": "^2.0.0",
+    "moment": "^2.29.1",
     "p-map": "^4.0.0",
-    "pg": "8.2.1"
+    "pg": "8.5.1"
   },
   "devDependencies": {
-    "@types/pg": "^7.14.3",
-    "@typescript-eslint/eslint-plugin": "^2.29.0",
-    "@typescript-eslint/parser": "^2.29.0",
-    "eslint": "^6.8.0",
-    "prettier": "^2.0.5",
-    "ts-node": "^8.10.1",
-    "typescript": "^3.8.3"
+    "@types/pg": "^7.14.9",
+    "@typescript-eslint/eslint-plugin": "^4.14.0",
+    "@typescript-eslint/parser": "^4.14.0",
+    "eslint": "^7.18.0",
+    "prettier": "^2.2.1",
+    "ts-node": "^9.1.1",
+    "typescript": "^4.1.3"
   }
 }
