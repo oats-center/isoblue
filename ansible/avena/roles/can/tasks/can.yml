@@ -35,7 +35,7 @@
       systemd:
         name: can@{{ item }}
         state: started
-      with_items: "{{ oats_can_interfaces }}"
+      with_items: "{{ can_interfaces }}"
 
     # TODO: This is just an apalis issue?
     - name: ensure can interfaces are reset after suspend (wakeup issues)
