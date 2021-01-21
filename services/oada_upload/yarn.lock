@@ -837,12 +837,12 @@
     "@nodelib/fs.scandir" "2.1.4"
     fastq "^1.6.0"
 
-"@oada/client@2.1.2-beta.0":
-  version "2.1.2-beta.0"
-  resolved "https://registry.yarnpkg.com/@oada/client/-/client-2.1.2-beta.0.tgz#09ee9c53a9f625a4999bd806d3d7c4fb63d69065"
-  integrity sha512-L8rdnlWWuwNc7ZuwISV8w+nN8LOCaWFyy14U5RJMwNYaYUyA9JwgCnHtECci+ENMwgKq0eztn+PKbkEaIoEvlQ==
+"@oada/client@2.2.1":
+  version "2.2.1"
+  resolved "https://registry.yarnpkg.com/@oada/client/-/client-2.2.1.tgz#eaad19ae8a85d1e2273e711cbfe1d0b43b960c4e"
+  integrity sha512-FEgiI9Bbi1/50o0VlxAuSktw4bdnoizO6T7qbzHmAFv+3qrSfBSvtdcLP1jHhNKC2Mvz9tQ7ssfv4N21xPvpOQ==
   dependencies:
-    "@oada/types" "^1.2.0-beta.18"
+    "@oada/types" "^1.2.0"
     cross-fetch "^3.0.6"
     debug "^4.1.1"
     isomorphic-ws "^4.0.1"
@@ -851,10 +851,10 @@
     reconnecting-websocket "^4.4.0"
     ws "^7.2.3"
 
-"@oada/formats@1.2.0-beta.18":
-  version "1.2.0-beta.18"
-  resolved "https://registry.yarnpkg.com/@oada/formats/-/formats-1.2.0-beta.18.tgz#8539de0c98da3cc207fb0e2403a20d5b23780e8c"
-  integrity sha512-RLy+nS/pxXsYjITDX5bxSAZPYUcw2VgUmBXAlPw86bIGvVAShS8x0mGDASKvU3+K/0D4tGA08IaWjCxVHklwbw==
+"@oada/formats@1.2.0":
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/@oada/formats/-/formats-1.2.0.tgz#b885936b43aa172801616cf78dfcf15da1f91cdf"
+  integrity sha512-GyG1u0uFP8T2KQbeu5UuZqpgGLotdaELGPDVasOJHLBSEhAIF73RitupnMoJoDz7QZEg6O/D+gAteTBTYuGQoA==
   dependencies:
     "@apidevtools/json-schema-ref-parser" "^9.0.1"
     "@stoplight/spectral" "^5.4.0"
@@ -866,10 +866,10 @@
     lerna "^3.22.0"
     mkdirp "^1.0.4"
 
-"@oada/types@1.2.0-beta.18", "@oada/types@^1.2.0-beta.18":
-  version "1.2.0-beta.18"
-  resolved "https://registry.yarnpkg.com/@oada/types/-/types-1.2.0-beta.18.tgz#24c356653b97ac57a492747e045d574a1062efe2"
-  integrity sha512-/bN5oW5emLyKX8nq5zj8D2p6sxjY6KsYar3iKhCyMEXjOIRjkGd3fbmjSD0TdG4EfVwpkNmZLu2nbHpr/FbBAQ==
+"@oada/types@1.2.0", "@oada/types@^1.2.0":
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/@oada/types/-/types-1.2.0.tgz#07a97f3ed05ec0e60f2d90111410a9eed1628cca"
+  integrity sha512-NvxaZ4R00e9D3OHbvedHQK3Tek6/qG3U7QqiAFiFpvS8kz4FIhZQc/bGDd7ama1vOPt/YkMLIQRBTC9KwzQ/ng==
   dependencies:
     ajv "^7.0.3"
     json-schema-merge-allof "^0.7.0"

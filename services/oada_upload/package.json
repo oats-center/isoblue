@@ -13,9 +13,9 @@
     "start": "ts-node src/oada_upload.ts"
   },
   "dependencies": {
-    "@oada/client": "2.1.2-beta.0",
-    "@oada/formats": "1.2.0-beta.18",
-    "@oada/types": "1.2.0-beta.18",
+    "@oada/client": "2.2.1",
+    "@oada/formats": "1.2.0",
+    "@oada/types": "1.2.0",
     "@sindresorhus/is": "^2.1.1",
     "dotenv": "^8.2.0",
     "ksuid": "^1.2.0",
