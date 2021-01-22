@@ -14,8 +14,8 @@
   },
   "dependencies": {
     "@oada/client": "2.2.1",
-    "@oada/formats": "1.2.0",
-    "@oada/types": "1.2.0",
+    "@oada/formats": "1.2.2",
+    "@oada/types": "1.2.2",
     "@sindresorhus/is": "^4.0.0",
     "dotenv": "^8.2.0",
     "ksuid": "^2.0.0",
