@@ -1,7 +1,7 @@
 - name: ensure CAN interfaces
   when: oats_can_interfaces is defined
   block:
-    - name: ensure can interface bitrate and options are set
+    - name: ensure can interface options config file is present
       become: yes
       template:
         dest: /etc/can.conf
@@ -9,6 +9,7 @@
         owner: root
         group: root
         mode: "0644"
+      register: result 
 
     - name: ensure can interfaces are enabled and configured
       become: yes
@@ -36,6 +37,14 @@
         name: can@{{ item }}
         state: started
       with_items: "{{ can_interfaces }}"
+
+    - name: ensure can interface configurations are applied
+      become: yes
+      systemd:
+        name: can@{{ item }}
+        state: restarted
+      with_items: "{{ can_interfaces }}"
+      when: result is changed
 
     # TODO: This is just an apalis issue?
     - name: ensure can interfaces are reset after suspend (wakeup issues)
