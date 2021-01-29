@@ -1,0 +1,40 @@
+# Code Owners Declaration
+# This file defines the code owners for files in this repository
+# See documentation here: https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/about-code-owners
+
+# Fabio Castilblanco is the leader of this project and will be the default 
+# reviewer if no one else is assigned
+* facastiblancor
+
+
+# Aaron Neustedter wrote the contributing.md and Andrew Balmos wrote the other
+# misc files in root
+CONTIBUTING.md aaron97neu
+.markdownlink.json abalmos
+notes.md abalmos
+notes.md abalmos
+
+# Andrew intially created all the files in .github with some additions by Aaron
+.github abalmos
+.github/CODEOWNERS aaron97neu
+
+# Andrew initally wrote the ansible scripts, with some additions by Aaron
+ansible abalmos
+ansible/avena/roles/docker/files aaron97neu
+
+# Fabio is responsible for the development of the shield and related hardware
+hardware facastiblancor
+
+# Andrew intially the installers
+installers aaron97neu
+
+Fabio wrote the cell/can logger containers
+services/can_logger
+services/cell_logger
+services/socketcand
+
+# Aaron wrote the gps, db, and oada related containers
+services/can_watchdog
+services/gps2tsdb
+services/oada_upload
+services/postgres
