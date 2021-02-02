@@ -4,37 +4,37 @@
 
 # Fabio Castilblanco is the leader of this project and will be the default 
 # reviewer if no one else is assigned
-* facastiblancor
+* @facastiblancor
 
 
 # Aaron Neustedter wrote the contributing.md and Andrew Balmos wrote the other
 # misc files in root
-CONTIBUTING.md     aaron97neu
-.markdownlink.json abalmos
-notes.md           abalmos
-notes.md           abalmos
+CONTIBUTING.md     @aaron97neu
+.markdownlink.json @abalmos
+notes.md           @abalmos
+README.md          @abalmos
 
 # Andrew intially created all the files in .github with some additions by Aaron
-.github            abalmos
-.github/CODEOWNERS aaron97neu
+.github            @abalmos
+.github/CODEOWNERS @aaron97neu
 
 # Andrew initally wrote the ansible scripts, with some additions by Aaron
-ansible abalmos
-ansible/avena/roles/docker/files aaron97neu
+ansible @abalmos
+ansible/avena/roles/docker/files @aaron97neu
 
 # Fabio is responsible for the development of the shield and related hardware
-hardware facastiblancor
+hardware @facastiblancor
 
-# Andrew intially the installers
-installers aaron97neu
+# Andrew intially created the installers
+installers @abalmos
 
 # Fabio wrote the cell/can logger containers
-services/can_logger   facastiblancor
-services/cell_logger  facastiblancor
-services/socketcand   facastiblancor
+services/can_logger   @facastiblancor
+services/cell_logger  @facastiblancor
+services/socketcand   @facastiblancor
 
 # Aaron wrote the gps, db, and oada related containers
-services/can_watchdog aaron97neu
-services/gps2tsdb     aaron97neu
-services/oada_upload  aaron97neu
-services/postgres     aaron97neu
+services/can_watchdog @aaron97neu
+services/gps2tsdb     @aaron97neu
+services/oada_upload  @aaron97neu
+services/postgres     @aaron97neu
