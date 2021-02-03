@@ -1,0 +1,31 @@
+name: Validate Codeowners file
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  validate-codeowners:
+    runs-on: ubuntu-latest
+
+    steps:
+        # Check out repo to be validated in enxt stop
+      - uses: actions/checkout@v2
+
+        # Ensure that the owners file is valid
+        # https://github.com/marketplace/actions/github-codeowners-validator
+      - name: GitHub CODEOWNERS Validator
+        uses: mszostok/codeowners-validator@v0.6.0
+        with:
+          # Explanation of checks
+          # files: Reports if codeowners file contains a filepath that does not exist in the repo
+          # owners Reports if codeowners file contains an invaid owner
+          #        The check to see if an owner is part of the organization does not appear to work,
+          #        so we will not be using it for now
+          # duppaterns: Reports if codeowners file contains duplicated lines
+          # syntax: Reports if file contains an invalid syntax definition
+          checks: "files,duppatterns,syntax"
+          experimental_checks: "notowned"
+
+          # GitHub access token is required only if the `owners` check is enabled
+          #github_access_token: "${{ secrets.OWNERS_VALIDATOR_PAC }}"
