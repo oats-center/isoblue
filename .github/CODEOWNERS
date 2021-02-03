@@ -25,6 +25,7 @@ ansible/avena/roles/docker/files @aaron97neu
 
 # Fabio is responsible for the development of the shield and related hardware
 hardware @facastiblancor
+hardware/lattepanda-enclosure @ericpokeefe
 
 # Andrew intially created the installers
 installers @abalmos
