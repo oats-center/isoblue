@@ -9,14 +9,15 @@
 
 # Aaron Neustedter wrote the contributing.md and Andrew Balmos wrote the other
 # misc files in root
-CONTIBUTING.md     @aaron97neu
-.markdownlink.json @abalmos
+CONTRIBUTING.md    @aaron97neu
+.markdownlint.json @abalmos
 notes.md           @abalmos
 README.md          @abalmos
 
 # Andrew intially created all the files in .github with some additions by Aaron
 .github            @abalmos
 .github/CODEOWNERS @aaron97neu
+.github/workflows/validate-codeowners.yml @aaron97neu
 
 # Andrew initally wrote the ansible scripts, with some additions by Aaron
 ansible @abalmos
