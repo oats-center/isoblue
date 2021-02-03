@@ -13,11 +13,11 @@ services:
     depends_on:
       - postgres
     volumes:
-      - ../gps_replay/dbus:/var/run/dbus:rw
+      - dbus-vol:/var/run/dbus:rw
 
   gps_verify:
     build:
-      context: ../gps_verify
+      context: ./test/gps_verify
     restart: "no"
     environment:
       db_user: "avena"
@@ -31,10 +31,10 @@ services:
 
   gps_replay:
     build:
-      context: ../gps_replay
+      context: ./test/gps_replay
     restart: "no"
     volumes:
-      - ../gps_replay/dbus:/var/run/dbus:rw
+      - dbus-vol:/var/run/dbus:rw
 
   postgres:
     image: timescale/timescaledb:latest-pg12
@@ -58,3 +58,6 @@ services:
     restart: "no"
     ports:
       - 8081:8080
+
+volumes:
+  dbus-vol:

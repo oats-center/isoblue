@@ -3,7 +3,7 @@ services:
   gps_replay:
     build:
       context: ../gps_replay
-    environment:
     volumes:
-      - ../gps_replay/dbus:/var/run/dbus:rw
-
+      - dbus-vol:/var/run/dbus:rw
+volumes:
+  dbus-vol:

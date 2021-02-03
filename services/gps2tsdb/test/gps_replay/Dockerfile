@@ -30,8 +30,8 @@ COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 # Copy script over and run
-COPY setup_dbus.sh .
-COPY test_points.log /opt/
-COPY gps_replay.py .
+COPY ./setup_dbus.sh .
+COPY ./test_points.log /opt/
+COPY ./gps_replay.py .
 
 CMD ["bash", "./setup_dbus.sh"]
