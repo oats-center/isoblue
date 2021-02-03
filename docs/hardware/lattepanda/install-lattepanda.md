@@ -15,7 +15,7 @@ Linux: Debian stable (at time of writing, Buster 10.7)
 
 1. An external SSD is installed.
    - _Note: If your LattePanda board has an internal MMC, you can modify
-      `preseed.cfg` to use the built in eMMC but at 32 - 64GB will be difficult 
+      `preseed.cfg` to use the built in eMMC but at 32 - 64GB will be difficult
       to use for an extended time without frequent log retrieval and removal._
    - We are assuming that if you are using a LattePanda Alpha, you are using a
       SATA SSD and if you are using a LattePanda Delta you are using a NVMe SSD.
