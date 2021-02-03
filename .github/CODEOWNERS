@@ -23,11 +23,18 @@ README.md          @abalmos
 ansible @abalmos
 ansible/avena/roles/docker/files @aaron97neu
 
+# Andrew created the original docs, with additions by Aaron
+docs @abalmos
+docs/hardware/lattepanda @aaron97neu
+
 # Fabio is responsible for the development of the shield and related hardware
 hardware @facastiblancor
 
-# Andrew intially created the installers
+# Andrew intially created the installers, Aaron added isntallers for the Lattepanda
+# devices
 installers @abalmos
+installers/lattepanda-alpha @aaron97neu
+installers/lattepanda-delta @aaron97neu
 
 # Fabio wrote the cell/can logger containers
 services/can_logger   @facastiblancor
