@@ -1,48 +1,6 @@
-- name: ensure CAN interfaces
-  when: oats_can_interfaces is defined
-  block:
-    - name: ensure can@ service is installed
-      become: yes
-      copy:
-        dest: /etc/systemd/system/can@.service
-        src: systemd/can@.service
-        owner: root
-        group: root
-        mode: "0644"
-      notify: reload systemd
-
-    - name: ensure can interfaces are enabled and configured
-      become: yes
-      copy:
-        dest: /etc/udev/rules.d/
-        src: udev/60-can.rules
-        owner: root
-        group: root
-        mode: "0644"
-      notify: reload udev
-
-    - name: ensure can interface bitrate and options are set
-      become: yes
-      copy:
-        dest: /etc/can.conf
-        src: can.j2
-        owner: root
-        group: root
-        mode: "0644"
- 
-    - name: ensure can interfaces are started
-      become: yes
-      systemd:
-        name: can@{{ item }}
-        state: started
-      with_items: "{{ oats_can_interfaces }}"
-
-    # TODO: This is just an apalis issue?
-    - name: ensure can interfaces are reset after suspend (wakeup issues)
-      become: yes
-      template:
-        src: system-sleep/reset-can-interfaces.j2
-        dest: /usr/lib/systemd/system-sleep/reset-can-interfaces
-        owner: root
-        group: root
-        mode: "0755"
+- name: Run can tasks
+  include_tasks:
+    file: can.yml
+    apply:
+      tags: can
+  tags: can

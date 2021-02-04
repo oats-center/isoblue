@@ -303,7 +303,7 @@ async function main(): Promise<void> {
       const hour = t.format('HH');
       const path = `/bookmarks/isoblue/device-index/${id}/location/day-index/${day}/hour-index/${hour}`;
       // Create a UUID that can be coarsely sorted by time of creation
-      const pId = ksuid.fromParts(p.time_epoch*1000, randomBytes(16)).string;
+      const pId = ksuid.fromParts(Math.round(p.time_epoch*1000), randomBytes(16)).string;
 
       // If the current bucket does not exist, create it
       if (!data[path]) {

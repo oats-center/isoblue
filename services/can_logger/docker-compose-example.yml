@@ -3,7 +3,7 @@ services:
   can-logger:
     build:
       context: ../can_logger
-    restart: always
+    restart: unless-stopped
     environment:
       db_user: "avena"
       db_host: "postgres"

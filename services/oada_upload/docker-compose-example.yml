@@ -3,7 +3,7 @@ services:
   oada-upload:
     build:
       context: ../oada_upload
-    restart: always
+    restart: unless-stopped
     environment:
       isoblue_id: "ib999"
       oada_server_batchsize: "1000"

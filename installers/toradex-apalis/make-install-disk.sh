@@ -46,7 +46,7 @@ d=$(mktemp -d)
 mount "$fsdev" "$d"
 
 # Build installer
-wget -P "$d/" https://cdimage.debian.org/debian-cd/current/armhf/iso-cd/debian-10.4.0-armhf-netinst.iso
+wget -P "$d/" https://cdimage.debian.org/debian-cd/current/armhf/iso-cd/debian-10.7.0-armhf-netinst.iso
 wget -O- http://http.us.debian.org/debian/dists/buster/main/installer-armhf/current/images/hd-media/hd-media.tar.gz | tar -zxf - -C "$d/"
 
 mkdir -p "${d}/avena"
