@@ -1,2 +1,2 @@
 jeepney
-pyzmq
+asyncio-nats-client
