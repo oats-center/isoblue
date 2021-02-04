@@ -18,6 +18,7 @@ README.md          @abalmos
 .github            @abalmos
 .github/CODEOWNERS @aaron97neu
 .github/workflows/validate-codeowners.yml @aaron97neu
+.github/workflows/integration-tests.yml @aaron97neu
 
 # Andrew initally wrote the ansible scripts, with some additions by Aaron
 ansible @abalmos
