@@ -9,17 +9,20 @@ import sys
 from time import sleep
 from psycopg2 import OperationalError
 
+
 def fix(*args):
-    #print(args)
+    # print(args)
     print("Time: ", args[0], "\tLat: ", args[3], "\tLng: ", args[4])
     lat_gauge.set(args[3])
     lng_gauge.set(args[4])
     time_gauge.set(args[0])
 
     print("Inserting lat and lng for timestamp ", args[0])
-    db.run("INSERT INTO gps (time, lat, lng) VALUES (to_timestamp(%s), %s, %s)", (float(args[0]), float(args[3]), float(args[4]) ) )
+    db.run("INSERT INTO gps (time, lat, lng) VALUES (to_timestamp(%s), %s, %s)",
+           (float(args[0]), float(args[3]), float(args[4])))
     print("Finished inserting lat and lng for timestamp ", args[0])
     sys.stdout.flush()
+
 
 # Prometheus variables to export
 global lat_gauge
@@ -31,7 +34,8 @@ time_gauge = Gauge('avena_position_time', 'Last know fix time')
 start_http_server(10001)
 
 global db
-connectionurl='postgresql://' + os.environ['db_user'] + ':' + os.environ['db_password'] + '@postgres:' + os.environ['db_port'] + '/' + os.environ['db_database']
+connectionurl = 'postgresql://' + os.environ['db_user'] + ':' + os.environ['db_password'] + \
+    '@postgres:' + os.environ['db_port'] + '/' + os.environ['db_database']
 print("Initing Postgres obj")
 
 
@@ -42,19 +46,21 @@ maxtries = 60
 sleeptime = 1
 db_connected = False
 while(not db_connected):
-  try:
-    db = postgres.Postgres(url=connectionurl)
-  except OperationalError as e:
-    if( tries < maxtries):
-      print("Database connection attempt", tries, "failed. Database may still be starting. Sleeping", sleeptime, "s and trying again")
-      print(e)
-      tries = tries + 1
-      sleep(sleeptime)
+    try:
+        db = postgres.Postgres(url=connectionurl)
+    except OperationalError as e:
+        if(tries < maxtries):
+            print("Database connection attempt", tries,
+                  "failed. Database may still be starting. Sleeping", sleeptime, "s and trying again")
+            print(e)
+            tries = tries + 1
+            sleep(sleeptime)
+        else:
+            print("FATAL: Could not connect to db after",
+                  tries, "tries. Exiting")
+            sys.exit(-1)
     else:
-      print("FATAL: Could not connect to db after", tries, "tries. Exiting")
-      sys.exit(-1)
-  else:
-    db_connected = True
+        db_connected = True
 
 print("Ensuring timescaledb extension is activated")
 db.run("CREATE EXTENSION IF NOT EXISTS timescaledb;")
@@ -75,18 +81,20 @@ tries = 0
 maxtries = 60
 dbus_connected = False
 while(not dbus_connected):
-  try:
-    bus = dbus.SystemBus()
-  except dbus.exceptions.DBusException as e:
-    if( tries < maxtries):
-      print("DBUS connection failed. This may be the case in a testing environment where dbus is being setup concurrently. Sleeping ", sleeptime, "s and trying again")
-      maxtries = maxtries + 1
-      sleep(sleeptime)
+    try:
+        bus = dbus.SystemBus()
+    except dbus.exceptions.DBusException as e:
+        if(tries < maxtries):
+            print("DBUS connection failed. This may be the case in a testing environment where dbus is being setup concurrently. Sleeping ",
+                  sleeptime, "s and trying again")
+            maxtries = maxtries + 1
+            sleep(sleeptime)
+        else:
+            print("FATAL: Could not connect to dbus after,",
+                  tries, ". Last error was", e, "Exiting")
+            sys.exit(-1)
     else:
-      print("FATAL: Could not connect to dbus after,", tries, ". Last error was",e,"Exiting")
-      sys.exit(-1)
-  else:
-    dbus_connected = True
+        dbus_connected = True
 
 bus.add_signal_receiver(fix, signal_name='fix', dbus_interface="org.gpsd")
 
