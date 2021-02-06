@@ -1,0 +1,67 @@
+version: '3.1'
+services:
+  gps2tsdb:
+    build:
+      context: ../gps2tsdb
+    restart: "no"
+    environment:
+      db_user: "avena"
+      db_host: "postgres"
+      db_database: "avena"
+      db_password: "password"
+      db_port: "5432"
+    depends_on:
+      - postgres
+    volumes:
+      - dbus-vol:/var/run/dbus:rw
+
+  gps_verify:
+    build:
+      context: ./test/gps_verify
+    restart: "no"
+    environment:
+      db_user: "avena"
+      db_host: "postgres"
+      db_database: "avena"
+      db_password: "password"
+      db_port: "5432"
+    depends_on:
+      - gps_replay
+      - gps2tsdb
+
+  gps_replay:
+    build:
+      context: ./test/gps_replay
+    restart: "no"
+    volumes:
+      - dbus-vol:/var/run/dbus:rw
+
+  postgres:
+    image: timescale/timescaledb:latest-pg12
+    restart: "no"
+    environment:
+      POSTGRES_DB: avena
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: avena
+      TIMESCALEDB_TELEMETRY: "off"
+    ports:
+      - 5432:5432/tcp
+    restart: "no"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U avena"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  nats:
+    image: nats:2
+    restart: "no"
+
+  adminer:
+    image: adminer
+    restart: "no"
+    ports:
+      - 8081:8080
+
+volumes:
+  dbus-vol:

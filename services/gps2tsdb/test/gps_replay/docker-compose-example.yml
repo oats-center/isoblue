@@ -1,0 +1,9 @@
+version: '3.1'
+services:
+  gps_replay:
+    build:
+      context: ../gps_replay
+    volumes:
+      - dbus-vol:/var/run/dbus:rw
+volumes:
+  dbus-vol:
