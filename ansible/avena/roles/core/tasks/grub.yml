@@ -9,6 +9,7 @@
         option: GRUB_DEFAULT
         value: "{{ avena_intel_grub_default }}"
         mode: '0644'
+        no_extra_spaces: yes
       notify: rebuild grub
 
     - name: Set grub timeout
@@ -19,6 +20,7 @@
         option: GRUB_TIMEOUT
         value: "{{ avena_intel_grub_timeout }}"
         mode: '0644'
+        no_extra_spaces: yes
       notify: rebuild grub
 
     - name: Set grub hidden timeout
@@ -29,4 +31,5 @@
         option: GRUB_HIDDEN_DEFAULT
         value: "{{ avena_intel_grub_hidden_timeout }}"
         mode: '0644'
+        no_extra_spaces: yes
       notify: rebuild grub
