@@ -25,8 +25,8 @@
   become: yes
   apt:
     name:
-      - linux-image-armmp
-      - linux-headers-armmp
+      - linux-image-armmp{{ '='+kernel_lock_version if kernel_lock_version is defined }}
+      - linux-headers-armmp{{ '='+kernel_lock_version if kernel_lock_version is defined }}
     state: latest
     default_release: "{{ 'buster-backports' if ansible_distribution_release == 'buster' | default(omit) }}"
   notify: reboot system
@@ -36,8 +36,8 @@
   become: yes
   apt:
     name:
-      - linux-image-amd64
-      - linux-headers-amd64
+      - linux-image-amd64{{ '='+kernel_lock_version if kernel_lock_version is defined }}
+      - linux-headers-amd64{{ '='+kernel_lock_version if kernel_lock_version is defined }}
     state: latest
     default_release: "{{ 'buster-backports' if ansible_distribution_release == 'buster' | default(omit) }}"
   notify: reboot system
