@@ -95,6 +95,16 @@
     state: present
   when: ansible_facts.architecture == "armv7l"
 
+# This is required for debian buster for Alpine docker containers to run
+# properly: https://wiki.alpinelinux.org/wiki/Release_Notes_for_Alpine_3.13.0#time64_requirements
+- name: Ensure that proper version of libseccomp2 is installed
+  become: yes
+  apt:
+    name:
+      - libseccomp2
+    state: present
+    default_release: "{{ 'buster-backports' if ansible_distribution_release == 'buster' | default(omit) }}"
+
 - name: use pip to ensure docker-compose is installed
   become: yes
   command:
