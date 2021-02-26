@@ -102,7 +102,7 @@
   apt:
     name:
       - libseccomp2
-    state: present
+    state: latest
     default_release: "{{ 'buster-backports' if ansible_distribution_release == 'buster' | default(omit) }}"
 
 - name: use pip to ensure docker-compose is installed
