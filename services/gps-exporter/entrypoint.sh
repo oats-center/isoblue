@@ -11,7 +11,7 @@ declare -p | grep -Ev 'BASHOPTS|BASH_VERSINFO|EUID|PPID|SHELLOPTS|UID' > /app/co
 # redirecting to proc/1/fd/1 prints to the docker log
 echo "SHELL=/bin/bash
 BASH_ENV=/app/container.env
-*/1 * * * * /app/run-gps-container.sh > /proc/1/fd/1 2>&1
+*/1 * * * * /app/run-gps-exporter.sh > /proc/1/fd/1 2>&1
 # This extra line makes it a valid cron" > /app/scheduler.txt
 
 crontab /app/scheduler.txt

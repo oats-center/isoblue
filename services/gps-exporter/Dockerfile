@@ -38,4 +38,4 @@ RUN chmod +x run-gps-exporter.sh entrypoint.sh
 
 COPY --from=builder /app/target/release/gps-exporter .
 
-ENTRYPOINT echo entrypoint.sh
+ENTRYPOINT ./entrypoint.sh
