@@ -1,26 +1,34 @@
-FROM --platform=$BUILDPLATFORM rust as planner
+#####
+## Source Stage
+#####
+#FROM --platform=$BUILDPLATFORM rust:slim-buster as sources
+FROM rust:slim-buster as sources
 WORKDIR /app
 
-RUN cargo install cargo-chef
-COPY . .
-RUN cargo chef prepare --recipe-path recipe.json
+RUN cargo init
+COPY ./Cargo.toml .
+COPY ./Cargo.lock .
 
-FROM --platform=$BUILDPLATFORM rust as cacher
+RUN mkdir -p /app/.cargo && cargo vendor /app/vendor > /app/.cargo/config
+
+#####
+## Build Stage
+#####
+FROM rust:slim-buster as builder
 WORKDIR /app
 
-RUN cargo install cargo-chef
-COPY --from=planner /app/recipe.json recipe.json
-RUN cargo chef cook --release --recipe-path recipe.json
+COPY ./Cargo.toml /app/Cargo.toml
+COPY ./Cargo.lock /app/Cargo.lock
+COPY ./src /app/src
+COPY --from=sources /app/.cargo /app/.cargo
+COPY --from=sources /app/vendor /app/vendor
 
-FROM rust as builder
-WORKDIR /app
-COPY . .
-COPY --from=cacher /app/target target
-COPY --from=cacher $CARGO_HOME $CARGO_HOME
+RUN cargo build --release --offline
 
-RUN cargo build --release
-
-FROM debian:buster-slim
+######
+### Runtime Stage
+######
+FROM debian:buster
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y cron && rm -rf /var/lib/apt/lists/*
@@ -35,5 +43,3 @@ RUN crontab /etc/cron.d/gps-exporter
 COPY --from=builder /app/target/release/gps-exporter .
 
 ENTRYPOINT echo "The time is $(date +%Y/%m/%d-%H:%M:%S)" && cron -f -l 8 -L /proc/1/fd/1
-
-
