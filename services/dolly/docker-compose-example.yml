@@ -1,5 +1,5 @@
 services:
-  periodic:
+  dolly:
     build:
       context: ../dolly
     restart: unless-stopped
