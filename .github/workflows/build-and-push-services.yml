@@ -15,7 +15,7 @@ jobs:
           - can_watchdog
           - can_logger
           - socketcand
-          - gps_exporter
+          - gps-exporter
 
     runs-on: ubuntu-latest
 
