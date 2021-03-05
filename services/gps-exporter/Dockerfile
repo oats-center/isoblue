@@ -1,11 +1,11 @@
-FROM rust as planner
+FROM --platform=$BUILDPLATFORM rust as planner
 WORKDIR /app
 
 RUN cargo install cargo-chef
 COPY . .
 RUN cargo chef prepare --recipe-path recipe.json
 
-FROM rust as cacher
+FROM --platform=$BUILDPLATFORM rust as cacher
 WORKDIR /app
 
 RUN cargo install cargo-chef
