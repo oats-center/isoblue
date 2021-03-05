@@ -1,0 +1,17 @@
+#!/bin/ash
+
+timestamp=`date +%Y/%m/%d-%H:%M:%S`
+echo "go-dolly: I was called at $timestamp"
+
+config_path="/config/rclone/rclone.conf"
+data_path="/data/test"
+remote_name="remotebox"
+remote_path="isoblue_rclone"
+
+if [ ! -f $config_path ] || [ "$override" == "1" ]
+then
+  mkdir -p /config/rclone
+  echo -en "[$remote_name]\ntype = ${type}\nbox_sub_type = ${box_sub_type}\ntoken = ${token}" > $config_path
+fi
+
+rclone copy --progress --local-no-check-updated --compress-level=$clvl --checkers=$numcheckers --bwlimit=$bwlimit --log-level DEBUG $data_path $remote_name:$remote_path

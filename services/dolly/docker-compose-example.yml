@@ -1,0 +1,19 @@
+services:
+  periodic:
+    build:
+      context: ../dolly
+    restart: unless-stopped
+    environment:
+      type: 'box'
+      box_sub_type: 'enterprise'
+      token: 'example-token'
+      override: '0'
+      bwlimit: '500k'
+      numcheckers: '2'
+      clvl: '0'
+    volumes:
+      - /data/log:/data:rw
+      - dolly_config:/config
+
+volumes:
+  dolly_config:
