@@ -1,8 +1,7 @@
 #####
 ## Source Stage
 #####
-#FROM --platform=$BUILDPLATFORM rust:slim-buster as sources
-FROM rust:slim-buster as sources
+FROM --platform=$BUILDPLATFORM rust:slim-buster as sources
 WORKDIR /app
 
 RUN cargo init
