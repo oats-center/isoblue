@@ -1,0 +1,3 @@
+#!/bin/bash
+
+/app/gps-exporter postgress://$db_user:$db_password@$db_host:$db_port/$db_database /data -f "$from" -l $segment_length --append > /proc/1/fd/1  2>&1
