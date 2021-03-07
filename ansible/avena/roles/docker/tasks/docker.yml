@@ -97,6 +97,12 @@
 
 # This is required for debian buster for Alpine docker containers to run
 # properly: https://wiki.alpinelinux.org/wiki/Release_Notes_for_Alpine_3.13.0#time64_requirements
+# Ensure that the cache is updated before installing anything with apt
+- name: Update apt cache
+  become: yes
+  apt:
+    update_cache: yes
+
 - name: Ensure that proper version of libseccomp2 is installed
   become: yes
   apt:
