@@ -21,6 +21,34 @@
   apt:
     update_cache: yes
 
+- name: Ensure the Linux Kernel headers as marked as held or not according to the kernel_lock_upgrades variable (arm)
+  become: yes
+  dpkg_selections:
+    name: linux-headers-armmp
+    selection: "{{ 'hold' if kernel_lock_upgrades is defined and kernel_lock_upgrades is sameas true else 'install' }}"
+  when: ansible_facts.architecture == "armv7l" 
+
+- name: Ensure the Linux Kernel image as marked as held or not according to the kernel_lock_upgrades variable (arm)
+  become: yes
+  dpkg_selections:
+    name: linux-image-armmp
+    selection: "{{ 'hold' if kernel_lock_upgrades is defined and kernel_lock_upgrades is sameas true else 'install' }}"
+  when: ansible_facts.architecture == "armv7l"
+
+- name: Ensure the Linux Kernel headers as marked as held or not according to the kernel_lock_upgrades variable (x86_64)
+  become: yes
+  dpkg_selections:
+    name: linux-headers-amd64
+    selection: "{{ 'hold' if kernel_lock_upgrades is defined and kernel_lock_upgrades is sameas true else 'install' }}"
+  when: ansible_facts.architecture == "x86_64"
+
+- name: Ensure the Linux Kernel image as marked as held or not according to the kernel_lock_upgrades variable (x86_64)
+  become: yes
+  dpkg_selections:
+    name: linux-image-amd64
+    selection: "{{ 'hold' if kernel_lock_upgrades is defined and kernel_lock_upgrades is sameas true else 'install' }}"
+  when: ansible_facts.architecture == "x86_64"
+
 - name: ensure Linux Kernel is up to date (arm)
   become: yes
   apt:
@@ -30,7 +58,7 @@
     state: latest
     default_release: "{{ 'buster-backports' if ansible_distribution_release == 'buster' | default(omit) }}"
   notify: reboot system
-  when: ansible_facts.architecture == "armv7l"
+  when: ansible_facts.architecture == "armv7l" and (kernel_lock_upgrades is not defined or not kernel_lock_upgrades)
 
 - name: ensure Linux Kernel is up to date (x86_64)
   become: yes
@@ -40,8 +68,8 @@
       - linux-headers-amd64
     state: latest
     default_release: "{{ 'buster-backports' if ansible_distribution_release == 'buster' | default(omit) }}"
-  notify: reboot system
-  when: ansible_facts.architecture == "x86_64"
+#  notify: reboot system
+  when: ansible_facts.architecture == "x86_64" and (kernel_lock_upgrades is not defined or not kernel_lock_upgrades)
 
 - name: ensure base operating system is up to date
   become: yes
