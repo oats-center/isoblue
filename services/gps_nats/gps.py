@@ -35,11 +35,10 @@ async def run(loop):
 
     for new_data in gps_socket:
         if new_data:
-            print(new_data)
-            data_stream.unpack(new_data)
-            print('Altitude = ', data_stream.TPV['alt'])
-            print('Latitude = ', data_stream.TPV['lat'])
-            await nc.publish("gps", bytes(new_data, 'utf-8'))
+            fix = json.loads(new_data)
+            topic = "gps." + str(fix["class"])
+            print("Publishing new data point to topic", topic, ": ", new_data)
+            await nc.publish(topic, bytes(new_data, 'utf-8'))
             sys.stdout.flush()
 
 
