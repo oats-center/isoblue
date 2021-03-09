@@ -1,0 +1,4 @@
+postgres
+gpsd-py3
+prometheus-client
+asyncio-nats-client

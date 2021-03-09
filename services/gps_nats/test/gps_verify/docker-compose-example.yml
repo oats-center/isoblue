@@ -1,0 +1,14 @@
+version: '3.1'
+services:
+  gps_verify:
+    build:
+      context: ../gps_verify
+    environment:
+      db_user: "avena"
+      db_host: "postgres"
+      db_database: "avena"
+      db_password: "password"
+      db_port: "5432"
+    volumes:
+      - ../gps_verify/dbus:/var/run/dbus:rw
+

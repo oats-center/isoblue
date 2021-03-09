@@ -1,0 +1,2 @@
+jeepney
+asyncio-nats-client
