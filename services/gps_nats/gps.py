@@ -12,8 +12,6 @@ from gps3 import gps3
 print("Starting GPS_NATS")
 sys.stdout.flush()
 
-sleep(2)
-
 async def run(loop):
     # Prometheus variables to export
     global lat_gauge
@@ -24,17 +22,9 @@ async def run(loop):
     time_gauge = Gauge('avena_position_time', 'Last know fix time')
     start_http_server(10001)
 
-    #addr = '172.17.0.1'
-    #addr = 'host.docker.internal'
-    addr= 'localhost'
-    port = 2947
-    print("Connecting to gpsd at", addr, ":", port )
-    sys.stdout.flush()
-
-    gpsd.connect(host=addr, port=port)
     gps_socket = gps3.GPSDSocket()
     data_stream = gps3.DataStream()
-    gps_socket.connect()
+    gps_socket.connect(host='127.0.0.1', port=2948)
     gps_socket.watch()
 
     # Create nats object and connect to local nats server
@@ -45,11 +35,11 @@ async def run(loop):
 
     for new_data in gps_socket:
         if new_data:
-            data_stream.unpack(new_data)
             print(new_data)
+            data_stream.unpack(new_data)
             print('Altitude = ', data_stream.TPV['alt'])
             print('Latitude = ', data_stream.TPV['lat'])
-            #await nc.publish("gps", new_data.encode())
+            await nc.publish("gps", bytes(new_data, 'utf-8'))
             sys.stdout.flush()
 
 

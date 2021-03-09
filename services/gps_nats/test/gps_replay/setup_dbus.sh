@@ -14,5 +14,6 @@ echo "Starting dbus daemon"
 mkdir -p /var/run/dbus
 dbus-daemon --config-file=/usr/share/dbus-1/system.conf --print-address
 
-exec python ./gps_replay.py
-
+#exec python ./gps_replay.py
+export GPSD_HOME='/usr/sbin/'
+exec gpsfake -1 -c 1 -l -v -P 2948 /opt/test_points.log 
