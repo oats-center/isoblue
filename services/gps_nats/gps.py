@@ -3,11 +3,11 @@ import os
 from prometheus_client import start_http_server, Gauge
 import sys
 from time import sleep
-import gpsd
 import asyncio
 from nats.aio.client import Client as NATS
 from nats.aio.errors import ErrConnectionClosed, ErrTimeout, ErrNoServers
 import json
+from gps3 import gps3
 
 print("Starting GPS_NATS")
 sys.stdout.flush()
@@ -32,6 +32,10 @@ async def run(loop):
     sys.stdout.flush()
 
     gpsd.connect(host=addr, port=port)
+    gps_socket = gps3.GPSDSocket()
+    data_stream = gps3.DataStream()
+    gps_socket.connect()
+    gps_socket.watch()
 
     # Create nats object and connect to local nats server
     print('Setting up NATS')
@@ -39,18 +43,14 @@ async def run(loop):
     nc = NATS()
     await nc.connect("nats://localhost:4222")
 
-    while True: 
-        packet = gpsd.get_current()
-        if packet.mode >= 2:
-            print("Time:", packet.time, "lat:", packet.lat, "lng:", packet.lon)
-            lat_gauge.set(packet.lat)
-            lng_gauge.set(packet.lon)
-            #time_gauge.set(packet.time)
-            await nc.publish("gps", json.dumps(packet).encode())
-
-        else:
-            print("GPS fix is only in mode", packet.mode, ", no location fix available")
-        sys.stdout.flush()
+    for new_data in gps_socket:
+        if new_data:
+            data_stream.unpack(new_data)
+            print(new_data)
+            print('Altitude = ', data_stream.TPV['alt'])
+            print('Latitude = ', data_stream.TPV['lat'])
+            #await nc.publish("gps", new_data.encode())
+            sys.stdout.flush()
 
 
 if __name__ == '__main__':
