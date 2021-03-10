@@ -17,10 +17,10 @@ def write_to_csv(wr_buff, can_bus):
     # can_bus, third is can_id, and last is can_data
     # Generate timestamp to rotate the log
     global log_path
-    timestamp = rotate_log()
+    #timestamp = rotate_log()
     while(not log_path):
         try:
-            with open(f'/data/log/can/{can_bus}-{timestamp}.csv', mode='a') as logfd:
+            with open(f'/data/log/can/{can_bus}.csv', mode='a') as logfd:
                 logcsv = csv.writer(logfd, delimiter=',', quotechar='"',
                                     quoting=csv.QUOTE_MINIMAL)
                 logcsv.writerows(wr_buff)
@@ -32,22 +32,65 @@ def write_to_csv(wr_buff, can_bus):
 
     print(f'{can_bus}: Wrote successfully to CSV')
 
-def rotate_log():
-    global firstRun
-    t = time.strftime('%H',time.localtime())
-    # Check if enough time has passed to rotate the log
-    if(firstRun):
-        timestamp = time.strftime('%m-%d-%Y-%H-%M',time.localtime())
-        last_time = t
-        firstRun = False
-    elif(t == last_time):
-        pass
+def rotate_log(can_bus, interval, frequency):
+    last_time = 0
+    f = 0
+    firstRun = True
+    # Check for a valid interval. If valid, set dt (update interval) to its
+    # equivalent in seconds, i.e., 60 seconds for minute rotation and 3600s for
+    # hourly rotation.
+    if(interval == 'S'):
+        dt = 1
+        interval_str = "second(s)"
+    if(interval == 'M'):
+        dt = 60
+        interval_str = 'minute(s)'
+    elif(interval == 'H'):
+        dt = 3600
+        interval_str = 'hour(s)'
+    elif(interval == 'D'):
+        dt = 86400
+        interval_str = 'day(s)'
     else:
-        last_time = t
-        # Save new timestamp
-        timestamp = time.strftime('%m-%d-%Y-%H-%M',time.localtime())
+        # Set interval to blank if the specified interval is not valid
+        interval = ''
+    # Enter to the loop if the interval is not blank
+    while(interval):
+        # Get the current value of the interval. Supported values are seconds 'S',
+        # minutes 'M', hours 'H', and days 'D'.
+        t = time.strftime(f'%{interval}',time.localtime())
+        # Run once to initialize last_time
+        if(firstRun):
+            last_time = t
+            print(f'Log set to rotate every {frequency} {interval_str}')
+            # Set flag to false to avoid running more than once
+            firstRun = False
+        # Check if there was a change since the last time and there has
+        elif not(t == last_time) and (f == frequency):
+            last_time = t
+            f = 0
+            # Get current timestamp
+            timestamp = time.strftime('%Y-%m-%d-%H-%M',time.localtime())
+            # Rename current log file to one with a timestamp. write_to_csv()
+            # will keep appending to {can_bus}.csv and  {can_bus}-{timestamp}.csv
+            # will contain previously logged data
+            try:
+                os.rename(f'/data/log/can/{can_bus}.csv',
+                          f'/data/log/can/{can_bus}-{timestamp}.csv')
+            except(FileNotFoundError):
+                # Print warning and keep the loop alive. This usually happens
+                # when the bus has not been active and there are no logs.
+                # Activity might come after, so the loop is kept alive in case
+                # of future activity.
+                print(f'WARNING: /data/log/can/{can_bus}.csv not found.')
+                continue
+        # Increment f by one every dt seconds.
+        f += 1
+        time.sleep(dt)
 
-    return timestamp
+    print('ERROR: Invalid interval. Log rotation disabled!')
+    # Return -1 if log rotation is disabled.
+    return -1
 
 def write_to_db(db, wr_buff, can_bus):
     try:
@@ -169,6 +212,7 @@ def log_can(can_interface):
     # Finally, some characters are stripped to clean up the received frame
     # and then split the resulting string to get the timestamp, CAN ID
     # and CAN frame.
+    #firstRun = True
     while(True):
         sys.stdout.flush()
         # Buffer to store raw bytes received from the socket.
@@ -210,6 +254,8 @@ host_ip = os.environ['socketcand_ip']
 host_port = os.environ['socketcand_port']
 host_interfaces = os.environ['can_interface']
 log_to = os.environ['log']
+frequency = int(os.environ['frequency'])
+interval = os.environ['rotation_interval']
 
 # Split host_interfaces string into a list of strings.
 host_interfaces = host_interfaces.split(',')
@@ -221,7 +267,6 @@ logtocsv = False
 socket_connected = False
 db_started = False
 log_path = False
-firstRun = True
 
 # Check log selection from env. variables
 if (log_to.find('db') != -1):
@@ -261,3 +306,4 @@ if(logtodb):
 for can_bus in can_interfaces:
     print('Creating process for', can_bus)
     mp.Process(target=log_can, args=(can_bus,)).start()
+    mp.Process(target=rotate_log, args=(can_bus,interval,frequency,)).start()
