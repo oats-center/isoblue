@@ -32,43 +32,61 @@ def write_to_csv(wr_buff, can_bus):
 
     print(f'{can_bus}: Wrote successfully to CSV')
 
-def rotate_log(can_bus, interval, frequency):
+def rotate_log(can_bus, interval, period):
+    # Initialize timekeeping variables. last_time keeps track of interval
+    # changes, while p is a counter that will be incremented by 1 every time
+    # a time interval passes.
     last_time = 0
-    f = 0
+    p = 0
     firstRun = True
+    # Validate period. If int parsing fails, print warning and exit.
+    try:
+        period = int(period)
+    except(TypeError, ValueError):
+        print(f'WARNING: {can_bus}: Invalid period. Log rotation disabled')
+        return -1
     # Check for a valid interval. If valid, set dt (update interval) to its
     # equivalent in seconds, i.e., 60 seconds for minute rotation and 3600s for
-    # hourly rotation.
-    if(interval == 'S'):
+    # hourly rotation. After every validation, ensure that interval is a capital
+    # letter, as time.strftime() will consider an lowercase 'm' as a month
+    # instead of a minute.
+    if(interval.lower() == 's'):
         dt = 1
+        interval = 'S'
         interval_str = "second(s)"
-    if(interval == 'M'):
+    elif(interval.lower() == 'm'):
         dt = 60
+        interval = 'M'
         interval_str = 'minute(s)'
-    elif(interval == 'H'):
+    elif(interval.lower() == 'h'):
         dt = 3600
+        interval = 'H'
         interval_str = 'hour(s)'
-    elif(interval == 'D'):
+    elif(interval.lower() == 'd'):
         dt = 86400
+        interval = 'D'
         interval_str = 'day(s)'
     else:
-        # Set interval to blank if the specified interval is not valid
+        # Set interval to blank if the specified interval is not valid. Print
+        # warning and exit.
         interval = ''
-    # Enter to the loop if the interval is not blank
-    while(interval):
+        print(f'WARNING: {can_bus}: Invalid interval. Log rotation disabled!')
+
+    # Enter to the loop if the interval is not blank. Else, skip and exit.
+    while(interval != ''):
         # Get the current value of the interval. Supported values are seconds 'S',
         # minutes 'M', hours 'H', and days 'D'.
         t = time.strftime(f'%{interval}',time.localtime())
         # Run once to initialize last_time
         if(firstRun):
             last_time = t
-            print(f'Log set to rotate every {frequency} {interval_str}')
+            print(f'Log set to rotate every {period} {interval_str}')
             # Set flag to false to avoid running more than once
             firstRun = False
         # Check if there was a change since the last time and there has
-        elif not(t == last_time) and (f == frequency):
+        elif not(t == last_time) and (p == period):
             last_time = t
-            f = 0
+            p = 0
             # Get current timestamp
             timestamp = time.strftime('%Y-%m-%d-%H-%M',time.localtime())
             # Rename current log file to one with a timestamp. write_to_csv()
@@ -84,12 +102,11 @@ def rotate_log(can_bus, interval, frequency):
                 # of future activity.
                 print(f'WARNING: /data/log/can/{can_bus}.csv not found.')
                 continue
-        # Increment f by one every dt seconds.
-        f += 1
+        # Increment p by one every dt seconds.
+        p += 1
         time.sleep(dt)
 
-    print('ERROR: Invalid interval. Log rotation disabled!')
-    # Return -1 if log rotation is disabled.
+    # Return -1 when log rotation is disabled.
     return -1
 
 def write_to_db(db, wr_buff, can_bus):
@@ -254,9 +271,15 @@ host_ip = os.environ['socketcand_ip']
 host_port = os.environ['socketcand_port']
 host_interfaces = os.environ['can_interface']
 log_to = os.environ['log']
-frequency = int(os.environ['frequency'])
-interval = os.environ['rotation_interval']
-
+# Check if the log rotation environment variables are present. If not, initialize
+# both period and interval with default values that will disable log rotation.
+try:
+    period = os.environ['rotation_period']
+    interval = os.environ['rotation_interval']
+except(KeyError):
+    print('WARNING: No rotation period and interval specified. Log rotation disabled')
+    period = 0
+    interval = ''
 # Split host_interfaces string into a list of strings.
 host_interfaces = host_interfaces.split(',')
 
@@ -306,4 +329,4 @@ if(logtodb):
 for can_bus in can_interfaces:
     print('Creating process for', can_bus)
     mp.Process(target=log_can, args=(can_bus,)).start()
-    mp.Process(target=rotate_log, args=(can_bus,interval,frequency,)).start()
+    mp.Process(target=rotate_log, args=(can_bus, interval, period,)).start()
