@@ -9,6 +9,7 @@ from nats.aio.errors import ErrConnectionClosed, ErrTimeout, ErrNoServers
 import json
 from gps3 import gps3
 
+sleep(2)
 print("Starting GPS_NATS")
 sys.stdout.flush()
 
@@ -36,11 +37,14 @@ async def run(loop):
     for new_data in gps_socket:
         if new_data:
             fix = json.loads(new_data)
-            topic = "gps." + str(fix["class"])
-            print("Publishing new data point to topic", topic, ": ", new_data)
-            await nc.publish(topic, bytes(new_data, 'utf-8'))
+            subject = "gps." + str(fix["class"])
+            #subject = "gps"
+            print("Publishing new data point to subject", subject, ": ", new_data)
+            await nc.publish(subject, bytes(new_data, 'utf-8'))
+            await nc.flush(1)
+            print("NC flushed")
             sys.stdout.flush()
-
+            
 
 if __name__ == '__main__':
     loop = asyncio.get_event_loop()

@@ -6,5 +6,8 @@ services:
     volumes:
       - dbus-vol:/var/run/dbus:rw
     network_mode: "host"
-volumes:
-  dbus-vol:
+    volumes:
+      - type: bind
+        source: test/gps_replay/test_points.log
+        target: /opt/test_points.log
+        read_only: true
