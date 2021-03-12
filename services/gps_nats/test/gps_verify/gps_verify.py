@@ -19,20 +19,36 @@ async def run(loop):
     # Yeah I know it's not pythonic. Open a PR smart guy
     fin = asyncio.Future()
 
-    testpoints_file = open('/opt/test_points/test_points.log', 'r')
+    testpoints_lines = open('/opt/test_points/test_points.log', 'r').readlines()
+    
+    # Remove device lines that we are not checking
+    cleaned = 0
+    for line in testpoints_lines[:]:
+      if not ('"class":"TPV"' in line or '"class":"SKY"' in line or '"class":"PPS"' in line):
+        print("Removing", line[:-1])
+        testpoints_lines.remove(line)
+        cleaned = cleaned + 1
+    print("Cleaned",cleaned,"lines")
 
     async def message_handler(msg):
         nats_gps_point = msg.data.decode()
-        file_gps_point = testpoints_file.readline()
-
-        while not 'class":"TPV"' in file_gps_point:
-          print("skipping", file_gps_point)
-          file_gps_point = testpoints_file.readline()
 
         # Debugging
         print('Recieved on subject:',msg.subject)
-        print('NATS type:', type(nats_gps_point), '\nmessage:', nats_gps_point)
-        print('line type:', type(file_gps_point), '\nmessage:', file_gps_point) 
+        print('NATS type:', type(nats_gps_point), '\nmessage:', nats_gps_point.strip())
+
+        if nats_gps_point in testpoints_lines:
+          testpoints_lines.remove(nats_gps_point)
+          print("Points match.", len(testpoints_lines), "lines left")
+          #print(testpoints_lines)
+
+        else:
+          print("!!!!!!!!!!!!!!!!!\n!Point not found!\n!!!!!!!!!!!!!!!!!")
+          #print('Recieved on subject:',msg.subject)
+          #print('NATS type:', type(nats_gps_point), '\nmessage:', nats_gps_point.strip())
+          #print(testpoints_lines)
+        if len(testpoints_lines) < 26:
+          print(testpoints_lines)
 
         '''
         if nats_gps_point == 'END':
@@ -52,8 +68,22 @@ async def run(loop):
         sys.stdout.flush()
         return
 
+    async def end_handler(msg):
+       data = json.loads(msg.data.decode())
+       
+       print("End handler msg:", data)
+       if data["activated"] == 0:
+         fin.set_result(1)
+         print("Finished")
+         print(testpoints_lines)
+         sys.stdout.flush()
+         return
+
     print('setting up gps message callback')
     sid = await nc.subscribe('gps.TPV', cb=message_handler)
+    sid = await nc.subscribe('gps.SKY', cb=message_handler)
+    sid = await nc.subscribe('gps.PPS', cb=message_handler)
+    sid = await nc.subscribe('gps.DEVICE',cb=end_handler)
     print('gps message callback setup')
     sys.stdout.flush()
 
