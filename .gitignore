@@ -109,3 +109,9 @@ fp-info-cache
 # Rescue files
 *-rescue.dcm
 *-rescue.lib
+
+########
+# Rust #
+########
+
+target/
