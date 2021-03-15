@@ -105,3 +105,7 @@ fp-info-cache
 # Exported BOM files
 *.xml
 *.csv
+
+# Rescue files
+*-rescue.dcm
+*-rescue.lib
