@@ -55,7 +55,6 @@ fn main() -> Result<()> {
 
     let mut i = 0;
     loop {
-        println!("Start loop");
         let (f, ts) = s
             .read_frame_with_timestamp()
             .with_context(|| "Failed to read from socketcan.")?;
@@ -69,8 +68,6 @@ fn main() -> Result<()> {
         if f.is_extended() && !f.is_rtr() {
             // TODO: Make a PR to socktcan to move ts into CanFrame
             let msg = Message::from((ts, f));
-
-            println!("Received: {}", msg.data);
 
             let sub = format!(
                 "j1939.{}.{}.{}",
