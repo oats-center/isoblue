@@ -53,13 +53,18 @@ fn main() -> Result<()> {
 
     // TODO: Ensure CAN interface is configured and up? Auto baud?
 
+    let mut i = 0;
     loop {
         println!("Start loop");
         let (f, ts) = s
             .read_frame_with_timestamp()
             .with_context(|| "Failed to read from socketcan.")?;
 
-        println!("Got can msg");
+        i = i + 1;
+        if i > 1000 {
+            println!("Processed 1000 can messages");
+            i = 0;
+        }
         // Is j1939?
         if f.is_extended() && !f.is_rtr() {
             // TODO: Make a PR to socktcan to move ts into CanFrame
