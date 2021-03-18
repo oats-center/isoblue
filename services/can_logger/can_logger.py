@@ -30,7 +30,7 @@ def write_to_csv(wr_buff, can_bus):
             os.mkdir(path)
             print(f'Logging path set to {path}')
 
-    print(f'{can_bus}: Wrote successfully to CSV')
+    # DEBUG: print(f'{can_bus}: Wrote successfully to CSV')
 
 def rotate_log(can_bus, interval, period):
     # Initialize timekeeping variables. last_time keeps track of interval
@@ -117,8 +117,8 @@ def write_to_db(db, wr_buff, can_bus):
                            VALUES %s;", wr_buff)
     except(Exception, SyntaxError):
         print(f'{can_bus}: An error occured while inserting data to database')
-    else:
-        print(f'{can_bus}: Wrote successfully to DB')
+
+        # DEBUG: print(f'{can_bus}: Wrote successfully to DB')
 
 
 def db_init():
