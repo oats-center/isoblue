@@ -1,0 +1,37 @@
+services:
+  sms_notify:
+    build:
+      context: ../sms_notify
+    restart: "no"
+    depends_on:
+      - nats
+    environment:
+      - DEST_NUMBER=""
+      # Secrets to be translated
+      - TWILIO_ACCOUNT_SID_FILE=/run/secrets/sid
+      - TWILIO_AUTH_TOKEN_FILE=/run/secrets/authtoken
+      - TWILIO_ACCT_NUMBER_FILE=/run/secrets/acctnumber
+    secrets:
+      - sid
+      - authtoken
+      - acctnumber
+  sms_test:
+    build:
+      context: test/sms_test
+    restart: "no"
+    depends_on:
+      - nats
+      - sms_notify
+    environment:
+      Hello: "World"
+  nats:
+    image: nats:2
+    restart: "no"
+
+secrets:
+  sid:
+    file: ./sid.txt
+  authtoken:
+    file: ./authtoken.txt
+  acctnumber:
+    file: ./acctnumber.txt
