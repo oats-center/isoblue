@@ -39,7 +39,7 @@ impl<'a> From<*const cmsghdr> for ControlMessage<'a> {
             (SOL_SOCKET, SCM_TIMESTAMP) => {
                 let p = unsafe { libc::CMSG_DATA(hdr) };
                 let tv: libc::timeval = unsafe { ptr::read_unaligned(p as *const _) };
-                let time = NaiveDateTime::from_timestamp(tv.tv_sec, tv.tv_usec as u32 * 1000);
+                let time = NaiveDateTime::from_timestamp(tv.tv_sec.into(), tv.tv_usec as u32 * 1000);
 
                 Self::Timestamp(time)
             }
