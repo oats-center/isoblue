@@ -6,7 +6,6 @@ services:
     depends_on:
       - nats
     environment:
-      - DEST_NUMBER=""
       # Secrets to be translated
       - TWILIO_ACCOUNT_SID_FILE=/run/secrets/sid
       - TWILIO_AUTH_TOKEN_FILE=/run/secrets/authtoken
@@ -22,8 +21,15 @@ services:
     depends_on:
       - nats
       - sms_notify
-    environment:
-      Hello: "World"
+  subscribe:
+    build:
+      context: test/subscribe
+    restart: "no"
+    depends_on:
+      - nats
+      - sms_notify
+    ports:
+      - "1117:1117"
   nats:
     image: nats:2
     restart: "no"
