@@ -8,7 +8,7 @@ edition = "2018"
 
 [dependencies]
 anyhow = "1.0.38"
-canparse = { path = "../../../../../../canparse" }
+canparse = { git = "https://github.com/oats-center/canparse" }
 chrono = "0.4.19"
 clap = "2.33.3"
 libc = "0.2.86"
