@@ -1,0 +1,18 @@
+[package]
+name = "j1939d"
+version = "0.1.0"
+authors = ["Andrew Balmos <abalmos@purdue.edu>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0.38"
+canparse = { path = "../../../../../../canparse" }
+chrono = "0.4.19"
+clap = "2.33.3"
+libc = "0.2.86"
+nats = "0.9.7"
+serde = "1.0.124"
+serde_json = "1.0.64"
+thiserror = "1.0.24"
