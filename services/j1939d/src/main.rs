@@ -55,6 +55,11 @@ fn main() -> anyhow::Result<()> {
         .value_of("nats_sub_prefix")
         .with_context(|| "NATS subject prefix not provided?")?;
 
+    let dbc_file = matches.value_of("dbc_file").with_context(|| {
+        "No dbc file was
+    provided?"
+    })?;
+
     println!("Connecting to NATS");
     let nc = nats::connect(nats_server)
         .with_context(|| format!("Could not connect to NATS at {}", nats_server))?;
@@ -68,7 +73,9 @@ fn main() -> anyhow::Result<()> {
     s.set_timestamp(true)?;
     println!("Connected to CAN");
 
-    let lib = PgnLibrary::from_dbc_file("./j1939.dbc")?;
+    println!("Loading DBC file");
+    let lib = PgnLibrary::from_dbc_file(dbc_file)?;
+    println!("Loaded DBC file");
 
     loop {
         let msg = s.recv()?;
