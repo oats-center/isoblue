@@ -83,6 +83,7 @@ fn main() -> anyhow::Result<()> {
                     serde_json::to_vec(&json!({
                         "pgn": msg.pgn,
                         "name": s,
+                        "time": msg.timestamp.map(|t| t.timestamp_nanos() as f64 / 1_000_000_000.0),
                         "value": value,
                         "units": spn.units,
                         "min_value": spn.min_value,

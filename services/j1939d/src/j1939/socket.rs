@@ -222,14 +222,14 @@ impl J1939Socket {
         let mut dest_addr = None;
         let mut dest_name = None;
         let mut dest_priority = None;
-        let mut dest_timestamp = None;
+        let mut timestamp = None;
 
         for cm in cms {
             match cm {
                 ControlMessage::DestAddr(addr) => dest_addr = Some(addr),
                 ControlMessage::DestName(name) => dest_name = Some(name),
                 ControlMessage::Priority(priority) => dest_priority = Some(priority),
-                ControlMessage::Timestamp(time) => dest_timestamp = Some(time),
+                ControlMessage::Timestamp(time) => timestamp = Some(time),
                 ControlMessage::Unknown() => {}
             }
         }
@@ -242,7 +242,7 @@ impl J1939Socket {
             dest_addr,
             dest_name,
             dest_priority,
-            dest_timestamp,
+            timestamp,
         })
     }
 }

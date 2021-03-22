@@ -33,7 +33,7 @@ impl J1939MessageData {
 
 #[derive(Debug)]
 pub struct J1939Message<'a> {
-    pub dest_timestamp: Option<NaiveDateTime>,
+    pub timestamp: Option<NaiveDateTime>,
     pub pgn: u32,
     pub src_addr: u8,
     pub src_name: u64,
