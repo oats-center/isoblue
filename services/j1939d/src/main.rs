@@ -7,7 +7,17 @@ use serde_json::json;
 
 use clap::{crate_authors, crate_description, crate_name, crate_version, App, Arg};
 
-fn main() -> anyhow::Result<()> {
+use prometheus::{
+    core::{AtomicF64, GenericGauge},
+    opts, register_gauge, Encoder, TextEncoder,
+};
+
+use std::{str::FromStr, thread};
+use tiny_http::{Header, HeaderField, Response, Server};
+
+use anyhow::Result;
+
+fn main() -> Result<()> {
     let matches = App::new(crate_name!())
         .version(crate_version!())
         .author(crate_authors!())
@@ -41,6 +51,14 @@ fn main() -> anyhow::Result<()> {
                 .default_value("j1939")
                 .help("NATS subject prefix"),
         )
+        .arg(
+            Arg::with_name("prom_listen")
+                .long("prom_listen")
+                .env("PROM_LISTEN")
+                .takes_value(true)
+                .default_value("0.0.0.0:10000")
+                .help("Listen string for Prometheus reporting"),
+        )
         .get_matches();
 
     let can_interface = matches
@@ -55,10 +73,15 @@ fn main() -> anyhow::Result<()> {
         .value_of("nats_sub_prefix")
         .with_context(|| "NATS subject prefix not provided?")?;
 
-    let dbc_file = matches.value_of("dbc_file").with_context(|| {
-        "No dbc file was
-    provided?"
-    })?;
+    let prom_listen = matches
+        .value_of("prom_listen")
+        .with_context(|| "Prom listen not provided?")?
+        .to_owned();
+
+    // TODO: make not required?
+    let dbc_file = matches
+        .value_of("dbc_file")
+        .with_context(|| "No dbc file was provided?")?;
 
     println!("Connecting to NATS");
     let nc = nats::connect(nats_server)
@@ -77,15 +100,40 @@ fn main() -> anyhow::Result<()> {
     let lib = PgnLibrary::from_dbc_file(dbc_file)?;
     println!("Loaded DBC file");
 
+    let mut gauges = std::collections::HashMap::<String, GenericGauge<AtomicF64>>::new();
+
+    thread::spawn(move || -> Result<()> {
+        loop {
+            let server = Server::http(prom_listen.clone()).unwrap();
+
+            for request in server.incoming_requests() {
+                println!("Prometheus polled us.");
+
+                let encoder = TextEncoder::new();
+                let metrics = prometheus::gather();
+                let mut buffer = vec![];
+
+                encoder.encode(&metrics, &mut buffer)?;
+
+                let mut response = Response::from_data(buffer);
+                response.add_header(Header {
+                    field: HeaderField::from_str("Content-Type").unwrap(),
+                    value: ascii::AsciiString::from_str(encoder.format_type())?,
+                });
+
+                request.respond(response)?;
+            }
+        }
+    });
+
     loop {
         let msg = s.recv()?;
 
         if let Some(pgn_def) = lib.get_pgn(msg.pgn) {
             for (s, spn) in pgn_def.get_spns().iter() {
-                let value = spn.parse_message(msg.data);
-
-                let sub = format!("{}.{}", nats_sub_prefix, s);
-                nc.publish(
+                if let Some(value) = spn.parse_message(msg.data) {
+                    let sub = format!("{}.{}", nats_sub_prefix, s);
+                    nc.publish(
                     &sub,
                     serde_json::to_vec(&json!({
                         "pgn": msg.pgn,
@@ -102,6 +150,18 @@ fn main() -> anyhow::Result<()> {
                     })?,
                 )
                 .with_context(|| "Failed to send parsed j1939 frame to NATS")?;
+
+                    // TODO: Figure out these clones
+                    let gauge = gauges.entry(spn.name.clone()).or_insert_with(|| {
+                        let opts = opts!(
+                            format!("{}_{}", nats_sub_prefix, s),
+                            spn.description.clone()
+                        );
+                        register_gauge!(opts).unwrap()
+                    });
+
+                    gauge.set(value as f64);
+                }
             }
         }
     }
