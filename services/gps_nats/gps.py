@@ -25,7 +25,8 @@ async def run(loop):
 
     gps_socket = gps3.GPSDSocket()
     data_stream = gps3.DataStream()
-    gps_socket.connect(host='127.0.0.1', port=2948)
+    #gps_socket.connect(host='127.0.0.1', port=2948)
+    gps_socket.connect(host='127.0.0.1', port=2947)
     gps_socket.watch()
 
     # Create nats object and connect to local nats server
