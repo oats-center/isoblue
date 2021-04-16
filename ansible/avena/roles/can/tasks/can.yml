@@ -1,5 +1,5 @@
 - name: ensure CAN interfaces
-  when: oats_can_interfaces is defined
+  when: can_interfaces is defined
   block:
     - name: ensure can interface options config file is present
       become: yes
