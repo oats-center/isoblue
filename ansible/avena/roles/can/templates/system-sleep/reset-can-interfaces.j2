@@ -5,8 +5,7 @@ case $1/$2 in
         post/*)
                 echo "Waking up from $2..."
                 {% for interface in can_interfaces %}
-                systemctl restart can@{{ interface }}
+                systemctl restart can@{{ interface.name }}
                 {% endfor %}
                 ;;
 esac
-
