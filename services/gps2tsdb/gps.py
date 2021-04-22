@@ -3,6 +3,7 @@ import postgres
 import os
 import sys
 from time import sleep
+import json
 from psycopg2 import OperationalError
 import asyncio
 from nats.aio.client import Client as NATS
@@ -35,53 +36,53 @@ def setup_db_tables(db):
     #   "eps":     1.66,
     #   "epc":     212.98 }
     db.run("""
-            CREATE TABLE IF NOT EXISTS gps.tpv (
-              device text
-              mode smallint NOT NULL
-              status smallint
+            CREATE TABLE IF NOT EXISTS gps_tpv (
+              device text,
+              mode smallint NOT NULL,
+              status smallint,
               time timestamptz UNIQUE NOT NULL,
-              altHAE double precision
-              altMSL double precision
-              alt double precision
-              climb double precision
-              datum text
-              depth double precision
-              dgpsAge double precision
-              dgpsSta dobule precision
-              epc double precision
-              epd double precision
-              eph double precision
-              eps double precision
-              ept double precision
-              epx double precision
-              epy double precision
-              epv double precision
-              geoidSep double precision
-              lat double precision
-              lon double precision
-              track double precision
-              magtrack double precision
-              magvar double precision
-              speed double precision
-              ecefx double precision
-              ecefy double precision
-              ecefz double precision
-              ecefpACC double precision
-              ecefvx double precision
-              ecefvy double precision
-              ecefvz double precision
-              ecefvACC double precision
-              sep double precision
-              relD double precision
-              relE double precision
-              relN double precision
-              wanglem double precision
-              wangler double precision
-              wanglet double precision
-              wspeedr double precision
+              altHAE double precision,
+              altMSL double precision,
+              alt double precision,
+              climb double precision,
+              datum text,
+              depth double precision,
+              dgpsAge double precision,
+              dgpsSta double precision,
+              epc double precision,
+              epd double precision,
+              eph double precision,
+              eps double precision,
+              ept double precision,
+              epx double precision,
+              epy double precision,
+              epv double precision,
+              geoidSep double precision,
+              lat double precision,
+              lon double precision,
+              track double precision,
+              magtrack double precision,
+              magvar double precision,
+              speed double precision,
+              ecefx double precision,
+              ecefy double precision,
+              ecefz double precision,
+              ecefpACC double precision,
+              ecefvx double precision,
+              ecefvy double precision,
+              ecefvz double precision,
+              ecefvACC double precision,
+              sep double precision,
+              relD double precision,
+              relE double precision,
+              relN double precision,
+              wanglem double precision,
+              wangler double precision,
+              wanglet double precision,
+              wspeedr double precision,
               wspeedt double precision);""")
     print("Ensuring GPS point table is a timescaledb hypertable")
-    db.run("SELECT create_hypertable('gps.tpv', 'time', if_not_exists => TRUE, migrate_data => TRUE);")
+    db.run("SELECT create_hypertable('gps_tpv', 'time', if_not_exists => TRUE, migrate_data => TRUE);")
     print("Finished settting up tables")
 
 
@@ -126,6 +127,7 @@ async def run(loop):
     nc = NATS()
 
     print("Connecting to nats server")
+    #await nc.connect("nats://localhost:4222")
     await nc.connect("nats://nats:4222")
 
     print("Connecting to database")
@@ -142,18 +144,18 @@ async def run(loop):
         tpv_fix  = json.loads(data)
         print("Received a message on '{subject} {reply}': {data}".format(
             subject=subject, reply=reply, data=data))
+        sys.stdout.flush()
 
         # build sql query from json
         if "time" in tpv_fix:
-            print("Inserting for timestamp", gps_tpv["time"])
-            db.run("INSERT INTO gps.tpv select (json_populate_record(null:gps.tpv,
-                   '%s'::json)).*;", data)
+            print("Inserting for timestamp", tpv_fix["time"])
+            db.run("INSERT INTO gps_tpv select (json_populate_record(null::gps_tpv,%s::json)).*;", (data, ))
         else:
           print("GPS point had no timestamp, could not insert into time-series database")
         sys.stdout.flush()
 
 
-    notify_subject = 'gps.tpv' 
+    notify_subject = 'gps.TPV' 
     print("Subscribing to subject", notify_subject)
     await nc.subscribe(notify_subject, cb=notify_tpv)
 

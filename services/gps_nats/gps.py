@@ -21,7 +21,7 @@ async def run(loop):
     lng_gauge = Gauge('avena_position_lng', 'Last know fix longitude')
     global time_gauge
     time_gauge = Gauge('avena_position_time', 'Last know fix time')
-    start_http_server(10001)
+    #start_http_server(10001)
 
     gps_socket = gps3.GPSDSocket()
     data_stream = gps3.DataStream()
@@ -34,6 +34,7 @@ async def run(loop):
     sys.stdout.flush()
     nc = NATS()
     await nc.connect("nats://localhost:4222")
+    #await nc.connect("nats://nats:4222")
 
     for new_data in gps_socket:
         if new_data:

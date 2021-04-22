@@ -16,5 +16,10 @@ services:
       db_port: "5432"
     depends_on:
       - postgres
-    volumes:
-      - /var/run/dbus:/var/run/dbus:rw
+
+  adminer:
+    image: adminer:4.8.0
+    restart: unless-stopped
+    ports:
+      - "18080:8080"
+
