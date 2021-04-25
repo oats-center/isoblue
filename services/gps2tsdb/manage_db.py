@@ -32,10 +32,11 @@ def setup_db_tables(db):
     #   "epc":     212.98 }
     db.run("""
             CREATE TABLE IF NOT EXISTS gps_tpv (
+              systime timestamptz UNIQUE NOT NULL,
               device text,
               mode smallint NOT NULL,
               status smallint,
-              time timestamptz UNIQUE NOT NULL,
+              time timestamptz,
               altHAE double precision,
               altMSL double precision,
               alt double precision,
@@ -78,7 +79,7 @@ def setup_db_tables(db):
               wspeedt double precision);""")
 
     print("Ensuring GPS TPV table is a timescaledb hypertable")
-    db.run("SELECT create_hypertable('gps_tpv', 'time', if_not_exists => TRUE, migrate_data => TRUE);")
+    db.run("SELECT create_hypertable('gps_tpv', 'systime', if_not_exists => TRUE, migrate_data => TRUE);")
 
     # Create GPS SKY table
     print("Ensuring GPS SKY table is setup properly")
@@ -101,8 +102,9 @@ def setup_db_tables(db):
     #     { "PRN": 10, "el": 27, "az": 150, "ss": 29, "used": true, "gnssid": 0, "svid": 10 }]}
     db.run("""
             CREATE TABLE IF NOT EXISTS gps_sky (
+              systime timestamptz UNIQUE NOT NULL,
               device text,
-              time timestamptz UNIQUE NOT NULL,
+              time timestamptz,
               gdop double precision,
               hdop double precision,
               pdop double precision,
@@ -116,7 +118,7 @@ def setup_db_tables(db):
 
 
     print("Ensuring GPS SKY table is a timescaledb hypertable")
-    db.run("SELECT create_hypertable('gps_sky', 'time', if_not_exists => TRUE, migrate_data => TRUE);")
+    db.run("SELECT create_hypertable('gps_sky', 'systime', if_not_exists => TRUE, migrate_data => TRUE);")
 
     # Create GPS PPS table
     # TODO: Double check these data types
@@ -135,6 +137,7 @@ def setup_db_tables(db):
     # }
     db.run("""
             CREATE TABLE IF NOT EXISTS gps_pps (
+              systime timestamptz UNIQUE NOT NULL,
               device text,
               real_sec bigint,
               real_nsec bigint,
@@ -145,8 +148,7 @@ def setup_db_tables(db):
 
 
     print("Ensuring GPS PPS table is a timescaledb hypertable")
-    # Chunking in 7 day chunks (604800 seconds/rows). PPS is emited once per second
-    db.run("SELECT create_hypertable('gps_pps', 'clock_sec', if_not_exists => TRUE, migrate_data => TRUE, chunk_time_interval => 604800 );")
+    db.run("SELECT create_hypertable('gps_pps', 'systime', if_not_exists => TRUE, migrate_data => TRUE);")
 
     print("Finished setting up tables")
 

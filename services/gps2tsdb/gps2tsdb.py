@@ -3,6 +3,7 @@ import postgres
 import os
 import sys
 from time import sleep
+from datetime import datetime, timezone
 import json
 from psycopg2 import OperationalError
 import asyncio
@@ -31,17 +32,16 @@ async def run(loop):
         subject = msg.subject
         reply = msg.reply
         data = msg.data.decode()
-        fix  = json.loads(data)
         print("Received a message on '{subject} {reply}': {data}".format(
             subject=subject, reply=reply, data=data))
         sys.stdout.flush()
 
+        # Add system time to query
+        fix = json.loads(data)
+        fix["systime"] = datetime.now().isoformat()
+        data = json.dumps(fix)
         # build sql query from json
-        if "time" in fix:
-            print("Inserting for timestamp", fix["time"])
-            db.run("INSERT INTO gps_tpv select (json_populate_record(null::gps_tpv,%s::json)).*;", (data, ))
-        else:
-          print("GPS TPV point had no timestamp, could not insert into time-series database")
+        db.run("INSERT INTO gps_tpv select (json_populate_record(null::gps_tpv,%s::json)).*;", (data, ))
         sys.stdout.flush()
 
     async def notify_sky(msg):
@@ -49,17 +49,16 @@ async def run(loop):
         subject = msg.subject
         reply = msg.reply
         data = msg.data.decode()
-        fix  = json.loads(data)
         print("Received a message on '{subject} {reply}': {data}".format(
             subject=subject, reply=reply, data=data))
         sys.stdout.flush()
 
+        # Add system time to query
+        fix = json.loads(data)
+        fix["systime"] = datetime.now().isoformat()
+        data = json.dumps(fix)
         # build sql query from json
-        if "time" in fix:
-            print("Inserting for timestamp", fix["time"])
-            db.run("INSERT INTO gps_sky select (json_populate_record(null::gps_sky,%s::json)).*;", (data, ))
-        else:
-          print("GPS SKY point had no timestamp, could not insert into time-series database")
+        db.run("INSERT INTO gps_sky select (json_populate_record(null::gps_sky,%s::json)).*;", (data, ))
         sys.stdout.flush()
 
     async def notify_pps(msg):
@@ -67,14 +66,17 @@ async def run(loop):
         subject = msg.subject
         reply = msg.reply
         data = msg.data.decode()
-        fix  = json.loads(data)
         print("Received a message on '{subject} {reply}': {data}".format(
             subject=subject, reply=reply, data=data))
         sys.stdout.flush()
 
-        # build sql query from json. Don't need to check for time as clock_sec is required for gpsd spec
-        print("Inserting for timestamp", fix["clock_sec"])
+        # Add system time to query
+        fix = json.loads(data)
+        fix["systime"] = datetime.now().isoformat()
+        data = json.dumps(fix)
+        # build sql query from json
         db.run("INSERT INTO gps_pps select (json_populate_record(null::gps_pps,%s::json)).*;", (data, ))
+
         sys.stdout.flush()
 
     notify_subject = 'gps.TPV' 
