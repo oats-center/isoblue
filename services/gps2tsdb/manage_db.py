@@ -1,24 +1,19 @@
 #!/usr/bin/python3
-import postgres
-import os
-import sys
-from time import sleep
-import json
-from psycopg2 import OperationalError
-import asyncio
-from nats.aio.client import Client as NATS
-from nats.aio.errors import ErrConnectionClosed, ErrTimeout, ErrNoServers
-
 
 def setup_db_tables(db):
     print("Ensuring timescaledb extension is activated")
     db.run("CREATE EXTENSION IF NOT EXISTS timescaledb;")
 
+    # There are many different objects that GPSD can return, however we are going
+    # to stick with the 3 that the Purdue team has seen from the GPS modules that 
+    # they use: TPV, SKY, and PPS. This could be easlily extended to include other 
+    # objects if needed
+
     # Create GPS tpv table
-    print("Ensuring tables are setup properly")
+    print("Ensuring GPS TPV table is setup properly")
     # Ref Table 1 from here: https://gpsd.gitlab.io/gpsd/gpsd_json.html
     # Most of these columns will not be used
-    # Sample TPV message from out device:
+    # Sample TPV message from our device:
     # { "class":  "TPV",
     #   "device": "/dev/ttyUSB0",
     #   "mode":    3,
@@ -81,13 +76,90 @@ def setup_db_tables(db):
               wanglet double precision,
               wspeedr double precision,
               wspeedt double precision);""")
-    print("Ensuring GPS point table is a timescaledb hypertable")
+
+    print("Ensuring GPS TPV table is a timescaledb hypertable")
     db.run("SELECT create_hypertable('gps_tpv', 'time', if_not_exists => TRUE, migrate_data => TRUE);")
-    print("Finished settting up tables")
+
+    # Create GPS SKY table
+    print("Ensuring GPS SKY table is setup properly")
+    # Ref Table 2 from here: https://gpsd.gitlab.io/gpsd/gpsd_json.html
+    # Most of these columns will not be used
+    # Sample SKY message from our device with truncated number of sats:
+    # {
+    #   "class": "SKY",
+    #   "device": "/dev/ttyUSB0",
+    #   "xdop": 0.9,
+    #   "ydop": 0.96,
+    #   "vdop": 2.18,
+    #   "tdop": 1.13,
+    #   "hdop": 1.31,
+    #   "gdop": 2.76,
+    #   "pdop": 2.54,
+    #   "satellites": [
+    #     { "PRN": 1,  "el": 26, "az": 281, "ss": 17, "used": false, "gnssid": 0, "svid": 1 },
+    #     { "PRN": 3,  "el": 16, "az": 317, "ss": 0,  "used": false, "gnssid": 0, "svid": 3 },
+    #     { "PRN": 10, "el": 27, "az": 150, "ss": 29, "used": true, "gnssid": 0, "svid": 10 }]}
+    db.run("""
+            CREATE TABLE IF NOT EXISTS gps_sky (
+              device text,
+              time timestamptz UNIQUE NOT NULL,
+              gdop double precision,
+              hdop double precision,
+              pdop double precision,
+              tdop double precision,
+              vdop double precision,
+              xdop double precision,
+              ydop double precision,
+              nSat double precision,
+              uSat double precision,
+              satellites json);""")
+
+
+    print("Ensuring GPS SKY table is a timescaledb hypertable")
+    db.run("SELECT create_hypertable('gps_sky', 'time', if_not_exists => TRUE, migrate_data => TRUE);")
+
+    # Create GPS PPS table
+    # TODO: Double check these data types
+    print("Ensuring GPS PPS table is setup properly")
+    # Ref Table 8 from here: https://gpsd.gitlab.io/gpsd/gpsd_json.html
+    # Most of these columns will not be used
+    # Sample PPS message from our GPS module:
+    # {
+    #   "class": "PPS",
+    #   "device": "/dev/ttyUSB3",
+    #   "real_sec": 1603741751,
+    #   "real_nsec": 0,
+    #   "clock_sec": 1603741751,
+    #   "clock_nsec": 8980399,
+    #   "precision": -10
+    # }
+    db.run("""
+            CREATE TABLE IF NOT EXISTS gps_pps (
+              device text,
+              real_sec bigint,
+              real_nsec bigint,
+              clock_sec bigint,
+              clock_nsec bigint,
+              precision int,
+              qErr int);""")
+
+
+    print("Ensuring GPS PPS table is a timescaledb hypertable")
+    # Chunking in 7 day chunks (604800 seconds/rows). PPS is emited once per second
+    db.run("SELECT create_hypertable('gps_pps', 'clock_sec', if_not_exists => TRUE, migrate_data => TRUE, chunk_time_interval => 604800 );")
+
+    print("Finished setting up tables")
 
 
 
 def connect_db():
+
+    import postgres
+    import os
+    import sys
+    from time import sleep
+    from psycopg2 import OperationalError
+
     # Try to connect to the DB. It may be starting up so we should try a few timees
     # before failing. Currently trying every second 60 times
     tries = 0
@@ -120,52 +192,3 @@ def connect_db():
 
     return db
 
-
-async def run(loop):
-    print("Setting up NATS")
-    sys.stdout.flush()
-    nc = NATS()
-
-    print("Connecting to nats server")
-    #await nc.connect("nats://localhost:4222")
-    await nc.connect("nats://nats:4222")
-
-    print("Connecting to database")
-    db = connect_db()
-
-    print("Setting up db")
-    setup_db_tables(db) 
-
-    async def notify_tpv(msg):
-
-        subject = msg.subject
-        reply = msg.reply
-        data = msg.data.decode()
-        tpv_fix  = json.loads(data)
-        print("Received a message on '{subject} {reply}': {data}".format(
-            subject=subject, reply=reply, data=data))
-        sys.stdout.flush()
-
-        # build sql query from json
-        if "time" in tpv_fix:
-            print("Inserting for timestamp", tpv_fix["time"])
-            db.run("INSERT INTO gps_tpv select (json_populate_record(null::gps_tpv,%s::json)).*;", (data, ))
-        else:
-          print("GPS point had no timestamp, could not insert into time-series database")
-        sys.stdout.flush()
-
-
-    notify_subject = 'gps.TPV' 
-    print("Subscribing to subject", notify_subject)
-    await nc.subscribe(notify_subject, cb=notify_tpv)
-
-    while True:
-      await asyncio.sleep(1)
-
-    # Gracefully close the connection.
-    await nc.drain()
-
-if __name__ == '__main__':
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(run(loop))
-    loop.close()

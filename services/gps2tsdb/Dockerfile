@@ -31,5 +31,6 @@ COPY healthcheck.py .
 HEALTHCHECK CMD ["python", "./healthcheck.py"]
 
 # Copy script over and run
-COPY gps.py .
-CMD [ "python", "./gps.py" ]
+COPY gps2tsdb.py .
+COPY manage_db.py . 
+CMD [ "python", "./gps2tsdb.py" ]
