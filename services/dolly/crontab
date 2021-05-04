@@ -1,4 +1,0 @@
-# Using the run-parts function to run the all scripts in the
-# /etc/periodic/rclone dir every 5 mins
-*/5       *       *       *       *       echo -e "\nRunning run-parts on /etc/periodic/rclone" > /proc/1/fd/1 && run-parts /etc/periodic/rclone > /proc/1/fd/1
-

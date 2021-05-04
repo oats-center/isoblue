@@ -1,19 +1,37 @@
+version: "3"
 services:
+  ofelia:
+    image: mcuadros/ofelia:development
+    depends_on:
+      - dolly
+    command: daemon --docker
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
   dolly:
+#   image: isoblue/dolly:feature-dolly
     build:
-      context: ../dolly
+      context: ../dolly/
     restart: unless-stopped
     environment:
       type: 'box'
       box_sub_type: 'enterprise'
-      token: 'example-token'
+      # Use this command to get a token: `docker run --rm -it --network host rclone/rclone config`
+      token: ''
       override: '0'
       bwlimit: '500k'
       numcheckers: '2'
       clvl: '0'
     volumes:
-      - /data/log:/data:rw
+#     - /data/docker/volumes/container-maintainer_can_data/_data:/data/test/can:rw
+#     - gps_exporter_data:/data/test/gps_exporter:rw
+      - /home/avena/isoblue-avena/services/dolly/test-upload-folder/:/data/test/can:rw
       - dolly_config:/config
-
+    labels:
+      ofelia.enabled: "true"
+      ofelia.job-exec.dolly.schedule: "@every 30s"
+      ofelia.job-exec.dolly.command: "/bin/ash /go-dolly"
+      ofelia.job-exec.dolly.no-overlap: "true"
 volumes:
   dolly_config:
+#  can_data:
+  gps_exporter_data:
