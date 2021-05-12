@@ -49,7 +49,7 @@ async def run(loop):
                 print("NC flushed")
             sys.stdout.flush()
         # Loop runs out of control without this
-        sleep(0.5)
+        sleep(0.1)
 
     print("This should never be reached")
             
