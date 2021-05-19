@@ -27,11 +27,12 @@ class WebServer:
         self.nc = NATS()
 
         print("Connecting to nats server")
-        await self.nc.connect("nats://nats:4222")
-       
+        await self.nc.connect("nats://172.16.254.5:4222")
+#       await self.nc.connect("nats://nats:4222")
+      
         return self.app
     
-    async def postHandler(self, request: web.Request) -> web.Response:
+    async def postHandler(self, request: web.Request):# -> web.Response:
         print("Received post request with the following body:", request)
         data = await request.post()
         print("Text message sent from",data["From"], "with body `",data["Body"],"`")
@@ -46,7 +47,7 @@ class WebServer:
 
     
         sys.stdout.flush()
-        return web.HTTPOk()
+#       return web.HTTPOk()
     
     def run(self):
         web.run_app(self.initializer(), host=self.host, port=self.port)
