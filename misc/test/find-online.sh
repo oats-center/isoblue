@@ -84,8 +84,7 @@ do
 				else
 					message="{\"text\":\"${function[$suffix]} ($prefix$suffix) came online after $gapstr. Last seen: $(date --date @$prev)\"}" 
 				fi
-				curl -X POST -H 'Content-type: application/json' --data "$message" https://hooks.slack.com/services/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
-				echo -e '\n'
+				curl -X POST -H 'Content-type: application/json' --data "$message" <webhook URL>				echo -e '\n'
 			else
 				echo "Ping $prefix$suffix successful, not notifying user"
 				last_seen[$suffix]=$(date +%s)
@@ -96,7 +95,7 @@ do
 			if [ ${curr_online[$suffix]} -eq 1 ]; then
 				echo -e "\tNotifying user that $prefix$suffix just went offline"
 				message="{\"text\":\"${function[$suffix]} ($prefix$suffix) just went offline\"}" 
-				curl -X POST -H 'Content-type: application/json' --data "$message" https://hooks.slack.com/services/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
+				curl -X POST -H 'Content-type: application/json' --data "$message" <webhook URL> 
 				echo -e '\n'
 			fi
 			curr_online[$suffix]=0
