@@ -49,7 +49,7 @@ Wire Wire Line
 Wire Wire Line
 	4800 2150 4450 2150
 Text HLabel 4800 2250 2    50   Input ~ 0
-BOARD_5V
+USB_P4_5V
 Text HLabel 4800 1950 2    50   Input ~ 0
 BOARD_GND
 Wire Wire Line

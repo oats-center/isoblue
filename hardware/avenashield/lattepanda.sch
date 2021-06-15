@@ -240,18 +240,18 @@ Wire Wire Line
 	1900 3800 2250 3800
 Wire Wire Line
 	2250 3900 1900 3900
-Text HLabel 4700 1500 2    50   Input ~ 0
-BOARD_3V3
-Text HLabel 4700 1800 2    50   Input ~ 0
-BOARD_5V
+Text HLabel 5800 5400 2    50   Input ~ 0
+AVSHLD_3V3
+Text HLabel 5800 5700 2    50   Input ~ 0
+AVSHLD_5V
 Wire Wire Line
 	3700 1600 3950 1600
 Wire Wire Line
-	3950 1600 3950 1500
+	3950 1600 3950 1550
 Wire Wire Line
 	3950 1500 3700 1500
 Wire Wire Line
-	3950 1700 3950 1800
+	3950 1700 3950 1750
 Wire Wire Line
 	3950 1800 3700 1800
 Wire Wire Line
@@ -296,7 +296,7 @@ Text Notes 1950 2200 0    50   ~ 0
 SCL
 Text Notes 1050 900  0    129  ~ 26
 Lattepanda Header Interface
-Text Notes 5550 900  0    129  ~ 26
+Text Notes 5800 1650 0    129  ~ 26
 Status LEDs
 $Comp
 L Device:R_US R22
@@ -449,11 +449,11 @@ F 3 "http://www.ti.com/lit/ds/symlink/pca9306.pdf" H 5000 3350 50  0001 C CNN
 $EndComp
 Connection ~ 6200 1800
 Text Label 2150 2200 0    50   ~ 0
-BOARD_SCL
+PANDA_SCL
 Text Label 2150 2300 0    50   ~ 0
-BOARD_SDA
+PANDA_SDA
 Text Label 2150 2400 0    50   ~ 0
-BOARD_1V8
+PANDA_1V8
 Wire Wire Line
 	2150 2200 1900 2200
 Wire Wire Line
@@ -461,15 +461,15 @@ Wire Wire Line
 Wire Wire Line
 	1900 2400 2150 2400
 Text Label 4500 2900 2    50   ~ 0
-BOARD_SCL
+PANDA_SCL
 Text Label 4500 3000 2    50   ~ 0
-BOARD_SDA
+PANDA_SDA
 Wire Wire Line
 	4500 2900 4600 2900
 Wire Wire Line
 	4900 3000 4850 3000
 Text Label 4450 2300 2    50   ~ 0
-BOARD_1V8
+PANDA_1V8
 Wire Wire Line
 	4450 2300 4600 2300
 Wire Wire Line
@@ -570,59 +570,42 @@ Wire Wire Line
 $Comp
 L Device:Jumper_NC_Dual JP6
 U 1 1 5E6D8CB0
-P 4350 1800
-F 0 "JP6" H 4500 1950 50  0000 C CNN
-F 1 "5V SRC SEL" H 4350 2050 50  0000 C CNN
-F 2 "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical_SMD_Pin1Left" H 4350 1800 50  0001 C CNN
-F 3 "~" H 4350 1800 50  0001 C CNN
-	1    4350 1800
+P 5450 5700
+F 0 "JP6" H 5600 5850 50  0000 C CNN
+F 1 "5V SRC SEL" H 5450 5950 50  0000 C CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical_SMD_Pin1Left" H 5450 5700 50  0001 C CNN
+F 3 "~" H 5450 5700 50  0001 C CNN
+	1    5450 5700
 	-1   0    0    1   
 $EndComp
 $Comp
 L Device:Jumper_NC_Dual JP5
 U 1 1 5E6E8EC7
-P 4350 1500
-F 0 "JP5" H 4200 1050 50  0000 C CNN
-F 1 "3.3V SRC SEL" H 4000 1150 50  0000 C CNN
-F 2 "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical_SMD_Pin1Left" H 4350 1500 50  0001 C CNN
-F 3 "~" H 4350 1500 50  0001 C CNN
-	1    4350 1500
+P 5450 5400
+F 0 "JP5" H 5300 4950 50  0000 C CNN
+F 1 "3.3V SRC SEL" H 5100 5050 50  0000 C CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical_SMD_Pin1Left" H 5450 5400 50  0001 C CNN
+F 3 "~" H 5450 5400 50  0001 C CNN
+	1    5450 5400
 	-1   0    0    1   
 $EndComp
 Wire Wire Line
-	3950 1500 4100 1500
-Connection ~ 3950 1500
-Wire Wire Line
-	4600 1500 4700 1500
-Wire Wire Line
-	4700 1800 4650 1800
-Wire Wire Line
-	4650 1800 4650 1900
-Wire Wire Line
-	4650 1900 5250 1900
-Wire Wire Line
-	5250 1900 5250 1800
+	5700 5400 5800 5400
 Wire Wire Line
 	5250 1800 5400 1800
-Connection ~ 4650 1800
-Wire Wire Line
-	4650 1800 4600 1800
 Connection ~ 5400 1800
-Wire Wire Line
-	4100 1800 3950 1800
-Connection ~ 3950 1800
-Text HLabel 4700 1350 2    50   Input ~ 0
+Text HLabel 5800 5250 2    50   Input ~ 0
 EXT_3V3
-Text HLabel 4700 1650 2    50   Input ~ 0
+Text HLabel 5800 5550 2    50   Input ~ 0
 EXT_5V
 Wire Wire Line
-	4700 1350 4350 1350
+	5800 5250 5450 5250
 Wire Wire Line
-	4350 1350 4350 1400
+	5450 5250 5450 5300
 Wire Wire Line
-	4700 1650 4350 1650
+	5800 5550 5450 5550
 Wire Wire Line
-	4350 1650 4350 1700
+	5450 5550 5450 5600
 $Comp
 L power:GNDREF #PWR0140
 U 1 1 5E78D63F
@@ -716,4 +699,32 @@ Wire Wire Line
 	8250 3100 8250 3000
 Wire Wire Line
 	8250 3000 8350 3000
+Wire Wire Line
+	5700 5700 5800 5700
+Text Label 4000 1550 0    50   ~ 0
+PANDA_3V3
+Text Label 4000 1750 0    50   ~ 0
+PANDA_5V
+Wire Wire Line
+	4000 1550 3950 1550
+Connection ~ 3950 1550
+Wire Wire Line
+	3950 1550 3950 1500
+Wire Wire Line
+	4000 1750 3950 1750
+Connection ~ 3950 1750
+Wire Wire Line
+	3950 1750 3950 1800
+Text Label 5100 5400 2    50   ~ 0
+PANDA_3V3
+Text Label 5100 5700 2    50   ~ 0
+PANDA_5V
+Wire Wire Line
+	5100 5400 5200 5400
+Wire Wire Line
+	5100 5700 5200 5700
+Text Notes 4800 4850 0    129  ~ 26
+Voltage Source \nSelection Jumpers\n
+Text HLabel 5250 1800 0    50   Input ~ 0
+AVSHLD_5V
 $EndSCHEMATC
