@@ -1,5 +1,5 @@
 - name: ensure CAN interfaces
-  when: oats_can_interfaces is defined
+  when: can_interfaces is defined
   block:
     - name: ensure can interface options config file is present
       become: yes
@@ -34,14 +34,14 @@
     - name: ensure can interfaces are started
       become: yes
       systemd:
-        name: can@{{ item }}
+        name: can@{{ item.name }}
         state: started
       with_items: "{{ can_interfaces }}"
 
     - name: ensure can interface configurations are applied
       become: yes
       systemd:
-        name: can@{{ item }}
+        name: can@{{ item.name }}
         state: restarted
       with_items: "{{ can_interfaces }}"
       when: result is changed
