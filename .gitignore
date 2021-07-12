@@ -113,9 +113,11 @@ fp-info-cache
 ########
 # Rust #
 ########
+debug/
+target/
+**/*.rs.bak
 
 target/
-
 
 ##########
 # Python #
@@ -127,3 +129,4 @@ target/
 # ACT #
 #######
 .actrc
+
