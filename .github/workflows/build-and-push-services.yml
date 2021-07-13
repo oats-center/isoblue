@@ -117,7 +117,7 @@ jobs:
           context: services/${{ matrix.service }}
           file: services/${{ matrix.service }}/Dockerfile
 
-          platforms: linux/amd64,linux/arm/v7,linux/arm/v6,linux/arm64
+          platforms: linux/amd64,linux/arm64,linux/arm/v7
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.prepare.outputs.tags }}
           build-args: |
