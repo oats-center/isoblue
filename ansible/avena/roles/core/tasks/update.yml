@@ -1,19 +1,19 @@
 - name: Ensure non-free is available to apt
   become: yes
   apt_repository:
-    repo: deb http://deb.debian.org/debian buster non-free
+    repo: deb http://deb.debian.org/debian bullseye non-free
     state: present
     filename: debian-non-free
     update_cache: no
 
-- name: Ensure buster-backports is available to apt
+- name: Ensure bullseye is available to apt
   become: yes
   apt_repository:
-    repo: deb http://deb.debian.org/debian buster-backports main
+    repo: deb http://deb.debian.org/debian bullseye main
     state: present
-    filename: debian-buster-backports
+    filename: debian-bullseye
     update_cache: no
-  when: ansible_distribution_release == "buster"
+  when: ansible_distribution_release == "bullseye"
 
 # Wait up update cache until now due to known Ansible bugs
 - name: Update apt cache
@@ -34,6 +34,20 @@
     name: linux-image-armmp
     selection: "{{ 'hold' if kernel_lock_upgrades is defined and kernel_lock_upgrades is sameas true else 'install' }}"
   when: ansible_facts.architecture == "armv7l"
+
+- name: Ensure the Linux Kernel headers as marked as held or not according to the kernel_lock_upgrades variable (aarch64)
+  become: yes
+  dpkg_selections:
+    name: linux-headers-arm64
+    selection: "{{ 'hold' if kernel_lock_upgrades is defined and kernel_lock_upgrades is sameas true else 'install' }}"
+  when: ansible_facts.architecture == "aarch64"
+
+- name: Ensure the Linux Kernel image as marked as held or not according to the kernel_lock_upgrades variable (aarch64)
+  become: yes
+  dpkg_selections:
+    name: linux-image-arm64
+    selection: "{{ 'hold' if kernel_lock_upgrades is defined and kernel_lock_upgrades is sameas true else 'install' }}"
+  when: ansible_facts.architecture == "aarch64"
 
 - name: Ensure the Linux Kernel headers as marked as held or not according to the kernel_lock_upgrades variable (x86_64)
   become: yes
@@ -59,6 +73,18 @@
     default_release: "{{ 'buster-backports' if ansible_distribution_release == 'buster' | default(omit) }}"
   notify: reboot system
   when: ansible_facts.architecture == "armv7l" and (kernel_lock_upgrades is not defined or not kernel_lock_upgrades)
+
+- name: ensure Linux Kernel is up to date (aarch64)
+  become: yes
+  apt:
+    name:
+      - linux-image-arm64
+      - linux-headers-arm64
+    state: latest
+    default_release: "{{ 'bullseye-backports' if ansible_distribution_release == 'bullseye' | default(omit) }}"
+  notify: reboot system
+  when: ansible_facts.architecture == "aarch64" and (kernel_lock_upgrades is not defined or not kernel_lock_upgrades)
+
 
 - name: ensure Linux Kernel is up to date (x86_64)
   become: yes
