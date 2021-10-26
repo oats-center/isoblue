@@ -10,6 +10,7 @@ jobs:
       matrix:
         service:
           - gps2tsdb
+          - gps_nats
           - oada_upload
           - cell_logger
           - can_watchdog

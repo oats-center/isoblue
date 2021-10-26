@@ -27,7 +27,7 @@ connectionurl='postgresql://' + os.environ['db_user'] + ':' + os.environ['db_pas
 db = postgres.Postgres(url=connectionurl)
 
 # Query the most recent timestamp
-rst = db.one("SELECT * FROM gps_tpv ORDER BY time DESC LIMIT 1;")
+rst = db.one("SELECT * FROM gps ORDER BY time DESC LIMIT 1;")
 
 # Handle if the database is empty
 if rst == None:
@@ -36,4 +36,4 @@ if rst == None:
 
 # First column is the timestampt, in datetime format
 lastupdate = rst[0]
-checktimestamp('GPS tpv database table', lastupdate, threshold)
+checktimestamp('GPS database table', lastupdate, threshold)
