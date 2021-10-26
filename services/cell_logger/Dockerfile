@@ -7,7 +7,7 @@ WORKDIR /usr/src/app
 RUN apt-get -y update
 
 # Needed for building dbus-python
-RUN apt-get install -y --no-install-recommends python-pip pkg-config libdbus-1-dev libglib2.0-dev libdbus-glib-1-dev python3-dbus
+RUN apt-get install -y --no-install-recommends python3-pip pkg-config libdbus-1-dev libglib2.0-dev libdbus-glib-1-dev python3-dbus
 
 # Activate virtualenv
 RUN python -m venv /opt/venv
