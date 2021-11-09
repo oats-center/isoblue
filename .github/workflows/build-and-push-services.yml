@@ -19,6 +19,7 @@ jobs:
           - cand
           - j1939d
           - gps-exporter
+          - cell_nats
 
     runs-on: ubuntu-latest
 
