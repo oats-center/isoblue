@@ -34,5 +34,5 @@ COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 # Copy script over and run
-COPY cell_logger.py .
+COPY cell_nats.py .
 CMD [ "./cell_nats.py" ]
