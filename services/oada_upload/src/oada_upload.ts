@@ -15,15 +15,19 @@ declare global {
 // Packages
 import { assert } from '@sindresorhus/is';
 import { config } from 'dotenv';
-import { Client } from 'pg';
+import pglib from 'pg';
 import moment from 'moment';
 import ksuid from 'ksuid';
 import { randomBytes } from 'crypto'
 import pMap from 'p-map';
 import { connect } from '@oada/client';
 import { V1 as Location } from '@oada/types/oada/isoblue/location/v1';
+import sleep from 'atomic-sleep';
+import GeohashLib from 'latlon-geohash';
 
-import { isoblueDataTree } from './trees';
+import { isoblueDataTree } from './trees.js';
+
+const { Client } = pglib;
 
 // dotenv
 config();
@@ -283,7 +287,7 @@ async function main(): Promise<void> {
     // Wait 1s for the data to start to refill the db and requery
     if (!gps.rows.length) {
       console.log('No unsent data found in database');
-      await sleep(1000);
+      sleep(1000);
       continue;
     }
     
@@ -300,8 +304,9 @@ async function main(): Promise<void> {
       // Extract time and use it to create path that it will be uploaded it
       const t = moment.unix(p.time_epoch);
       const day = t.format('YYYY-MM-DD');
-      const hour = t.format('HH');
-      const path = `/bookmarks/isoblue/device-index/${id}/location/day-index/${day}/hour-index/${hour}`;
+      // const hour = t.format('HH');
+      const geohash = GeohashLib.encode(p.lat, p.lng, 7);
+      const path = `/bookmarks/isoblue/device-index/${id}/trails/day-index/${day}/geohash-index/${geohash}`;
       // Create a UUID that can be coarsely sorted by time of creation
       const pId = ksuid.fromParts(Math.round(p.time_epoch*1000), randomBytes(16)).string;
 
@@ -319,13 +324,9 @@ async function main(): Promise<void> {
       data[path].timetzs.push(p.time_tz);
       data[path].locations[pId] = {
         id: pId,
-        time: {
-          value: p.time_epoch,
-        },
-        location: {
-          lat: p.lat,
-          lng: p.lng,
-        },
+        time: p.time_epoch,
+        lat: p.lat,
+        lon: p.lng,
       };
       
     });
@@ -388,17 +389,10 @@ async function main(): Promise<void> {
   }
 }
 
-// Sleep - used to pause after put to not overload server as well as yielding if
-// there is no data to upload
-// Keeping the sleep function defined for use in debugging as well as waiting for the db
-// to fill
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
-}
+
 
 main().catch((err) => {
   console.error(`Something unexpected happened! ${err}\n`, (<Error>err).message);
   process.exit(-1);
 });
+
