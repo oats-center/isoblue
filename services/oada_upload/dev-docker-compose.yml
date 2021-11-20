@@ -1,0 +1,20 @@
+version: '3.1'
+services:
+  oada-upload:
+    build:
+      context: ../oada_upload
+    restart: unless-stopped
+    command: "./dev-startup.sh"
+    volumes:
+      - .:/code
+    environment:
+      isoblue_id: "test-dev-oada-upload-1"
+      oada_server_batchsize: "1000"
+      oada_server_basepath: "/bookmarks/isoblue/device-index"
+      oada_server_url: "your.server"
+      oada_server_token: "your_token"
+      db_user: "your_db_user"
+      db_host: "your_db_host"
+      db_database: "your_db_name"
+      db_password: "your_db_password"
+      db_port: "5432"
