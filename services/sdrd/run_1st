@@ -1,0 +1,8 @@
+# Clone UHD git repo
+git clone https://github.com/EttusResearch/uhd
+
+# Run this to allow non-root access to the B200mini USRP
+cd uhd/host/utils
+sudo cp uhd-usrp.rules /etc/udev/rules.d/
+sudo udevadm control --reload-rules
+sudo udevadm trigger

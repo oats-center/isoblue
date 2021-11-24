@@ -1,0 +1,11 @@
+version: '3.9'
+services:
+  sdrd:
+    build:
+      context: ../sdrd
+    restart: unless-stopped
+    device_cgroup_rules:
+      - 'c 189:* rmw'
+    volumes: 
+      - /dev/bus/usb:/dev/bus/usb:ro  
+    tty: true
