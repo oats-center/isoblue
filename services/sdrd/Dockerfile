@@ -17,9 +17,9 @@ ARG         DEBIAN_FRONTEND=noninteractive
 ARG         UHD_TAG=v4.1.0.4
 ARG         GNU_TAG=v3.9.4.0
 
-# Use 16 threads when compiling
+# Use 4 threads when compiling
 
-ARG         MAKEWIDTH=16
+ARG         MAKEWIDTH=4
 
 # Install security updates and required packages
 
