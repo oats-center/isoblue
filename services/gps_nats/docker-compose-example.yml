@@ -1,0 +1,13 @@
+services:
+  gps_nats:
+    build:
+      # Cannot use `./` due to this issue https://github.com/docker/compose/issues/3530#issuecomment-222490501
+      context: ../gps_nats
+    restart: "no"
+    network_mode: "host"
+  nats:
+    image: nats:2
+    restart: "no"
+    ports:
+      - "4222:4222"
+

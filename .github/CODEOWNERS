@@ -44,7 +44,7 @@ services/socketcand   @facastiblancor
 
 # Aaron wrote the gps, db, and oada related containers
 services/can_watchdog @aaron97neu
-services/gps2tsdb     @aaron97neu
+services/gps_nats     @aaron97neu
 services/oada_upload  @aaron97neu
 services/postgres     @aaron97neu
 

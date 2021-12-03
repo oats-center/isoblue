@@ -1,0 +1,29 @@
+services:
+  gps_nats:
+    build:
+      context: ../gps_nats
+    network_mode: host
+    restart: "no"
+  gps_replay:
+    build:
+      context: test/gps_replay
+    network_mode: host
+    volumes:
+    - read_only: true
+      source: ./test/test_points
+      target: /opt/test_points
+      type: bind
+  gps_verify:
+    build:
+      context: test/gps_verify
+    volumes:
+    - read_only: true
+      source: ./test/test_points
+      target: /opt/test_points
+      type: bind
+  nats:
+    image: nats:2
+    restart: "no"
+    ports:
+      - "4222:4222"
+
