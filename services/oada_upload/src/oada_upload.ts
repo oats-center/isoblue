@@ -338,27 +338,11 @@ async function main(): Promise<void> {
       try {
         //console.debug(`GPS ID ${data[path].epochs.join(',')} to OADA ${path}`);
         console.debug(`${data[path].epochs.length} points to OADA ${path}`);
-        // Modified timeout await as described here https://stackoverflow.com/a/33292942
-        res = await Promise.race( 
-	        [ 
-            oada.put({
-              tree: isoblueDataTree,
-              path,
-              data: JSON.parse(JSON.stringify({data: data[path].locations})),
-            }),
-            sleep(5000) 
-	        ]
-	      );
-	      // Is there a better way to determine if the sleep is the one that expired
-	      if( res === undefined){
-                // Try to reconnect?
-                console.debug(`oada.put timed out`);
-                process.exit(-1);
-
-                //oada = await connect({ domain, token, concurrency: 5 });
-                //throw new Error(`oada.put timed out`);
-	      }
-        //console.debug(`OADA put finished`);
+        await oada.put({
+          tree: isoblueDataTree,
+          path,
+          data: JSON.parse(JSON.stringify({data: data[path].locations})),
+        })
       } catch (e) {
         // The PUT is not a success. This is either due to a misconfiguration or lack of internet.
         // Assume that everything is configured correctly rebuild the queue for the next try.
