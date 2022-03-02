@@ -5,16 +5,16 @@ use std::ptr;
 use std::slice;
 
 #[derive(Debug)]
-pub enum ControlMessage<'a> {
+pub enum ControlMessage {
     DestAddr(u8),
-    DestName(&'a [u8]),
+    DestName(u64),
     Priority(u8),
     Timestamp(NaiveDateTime),
     Unknown(),
 }
 
 /// Convert the low level cmsg data structures into a J1939 focused enum
-impl<'a> From<*const cmsghdr> for ControlMessage<'a> {
+impl<'a> From<*const cmsghdr> for ControlMessage {
     fn from(hdr: *const cmsghdr) -> Self {
         let h = unsafe { *hdr };
         match (h.cmsg_level, h.cmsg_type) {
@@ -31,15 +31,18 @@ impl<'a> From<*const cmsghdr> for ControlMessage<'a> {
             }
             (SOL_CAN_J1939, SCM_J1939_DEST_NAME) => {
                 let p = unsafe { libc::CMSG_DATA(hdr) };
-                let len = hdr as *const _ as usize + h.cmsg_len as usize - p as usize;
-                let name = unsafe { slice::from_raw_parts(p, len) };
+                // let len = hdr as *const _ as usize + h.cmsg_len as usize - p as usize;
+                // let name = unsafe { slice::from_raw_parts(p, len) };
+
+                let name = unsafe { ptr::read_unaligned(p as *const u64) };
 
                 Self::DestName(name)
             }
             (SOL_SOCKET, SCM_TIMESTAMP) => {
                 let p = unsafe { libc::CMSG_DATA(hdr) };
                 let tv: libc::timeval = unsafe { ptr::read_unaligned(p as *const _) };
-                let time = NaiveDateTime::from_timestamp(tv.tv_sec.into(), tv.tv_usec as u32 * 1000);
+                let time =
+                    NaiveDateTime::from_timestamp(tv.tv_sec.into(), tv.tv_usec as u32 * 1000);
 
                 Self::Timestamp(time)
             }
@@ -64,7 +67,7 @@ impl<'a> ControlMessageIterator<'a> {
 }
 
 impl<'a> Iterator for ControlMessageIterator<'a> {
-    type Item = ControlMessage<'a>;
+    type Item = ControlMessage;
 
     fn next(&mut self) -> Option<Self::Item> {
         match self.cmsghdr {

@@ -12,6 +12,7 @@ ascii = "1.0.0"
 canparse = { git = "https://github.com/oats-center/canparse" }
 chrono = "0.4.19"
 clap = "2.33.3"
+hex = "0.4.3"
 libc = "0.2.86"
 nats = "0.9.7"
 prometheus = "0.12.0"
