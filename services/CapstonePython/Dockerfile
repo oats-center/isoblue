@@ -31,5 +31,5 @@ ENV PATH="/opt/venv/bin:$PATH"
 #HEALTHCHECK CMD ["python", "./healthcheck.py"]
 
 # Copy script over and run
-COPY gps.py .
-CMD [ "python", "./gps.py" ]
+COPY PythonFinal.py .
+CMD [ "python", "./PythonFinal.py" ]
