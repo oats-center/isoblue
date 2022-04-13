@@ -26,6 +26,10 @@ COPY --from=builder /opt/venv /opt/venv
 # Make sure we use the virtualenv
 ENV PATH="/opt/venv/bin:$PATH"
 
+# Copy health check script
+#COPY healthcheck.py .
+#HEALTHCHECK CMD ["python", "./healthcheck.py"]
+
 # Copy script over and run
-COPY gps_verify.py .
-CMD [ "python3", "./gps_verify.py" ]
+COPY PythonFinal.py .
+CMD [ "python", "./PythonFinal.py" ]

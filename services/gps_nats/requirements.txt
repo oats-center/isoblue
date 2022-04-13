@@ -1,4 +1,0 @@
-postgres
-gps3
-prometheus-client
-asyncio-nats-client
