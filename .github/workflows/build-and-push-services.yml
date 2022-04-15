@@ -9,7 +9,7 @@ jobs:
     strategy:
       matrix:
         service:
-          - CapstonePython
+          - capstone_python
           - gps2tsdb
           - gps_nats
           - oada_upload
