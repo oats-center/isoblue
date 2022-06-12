@@ -39,13 +39,13 @@ async def main():
         if new_data:
             fix = json.loads(new_data)
             subject = os.getenv('HOSTNAME') + ".gps." + str(fix["class"])
-            #print("Publishing new data point to subject", subject, ": ", new_data[:-1])
+            print("Publishing new data point to subject", subject, ": ", new_data[:-1])
             await nc.publish(subject, bytes(new_data, 'utf-8'))
             await nc.flush(1)
 
             if "activated" in fix and fix["activated"] == 0:
                 await nc.flush(10)
-                #print("NC flushed")
+                print("NC flushed")
             sys.stdout.flush()
         # Loop runs out of control without this
     #    sleep(0.1)
@@ -54,11 +54,9 @@ async def main():
             
 
 if __name__ == '__main__':
-    
-    loop = asyncio.get_event_loop()
+
     try:
-        asyncio.ensure_future(main())
-        loop.run_forever()
+        asyncio.run()
     finally:
         print("Stopping gps_nats...")
         loop.close()
