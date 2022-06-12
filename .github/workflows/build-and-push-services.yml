@@ -9,18 +9,18 @@ jobs:
     strategy:
       matrix:
         service:
-          - j1939_filter
-          - gps2tsdb
-          - gps_nats
-          - oada_upload
-          - cell_logger
-          - can_watchdog
-          - can_logger
-          - socketcand
-          - cand
-          - j1939d
-          - gps-exporter
-
+          #- j1939_filter
+            #- gps2tsdb
+            #- gps_nats
+            #- oada_upload
+            #- cell_logger
+            #- can_watchdog
+            #- can_logger
+            #- socketcand
+            #- cand
+            #- j1939d
+            #- gps-exporter
+            - avena_fm
     runs-on: ubuntu-latest
 
     steps:
