@@ -32,14 +32,12 @@ async def main():
     print('Setting up NATS')
     sys.stdout.flush()
     nc = await nats.connect("localhost")
-    #await nc.connect("nats://localhost:4222")
-    #await nc.connect("nats://nats:4222")
 
     for new_data in gps_socket:
         if new_data:
             fix = json.loads(new_data)
             subject = os.getenv('HOSTNAME') + ".gps." + str(fix["class"])
-            print("Publishing new data point to subject", subject, ": ", new_data[:-1])
+            #print("Publishing new data point to subject", subject, ": ", new_data[:-1])
             await nc.publish(subject, bytes(new_data, 'utf-8'))
             await nc.flush(1)
 
@@ -48,17 +46,13 @@ async def main():
                 print("NC flushed")
             sys.stdout.flush()
         # Loop runs out of control without this
-    #    sleep(0.1)
-
-    #print("This should never be reached")
-            
+        sleep(0.1)
 
 if __name__ == '__main__':
 
     try:
-        asyncio.run()
+        asyncio.run(main())
     finally:
         print("Stopping gps_nats...")
-        loop.close()
 
     sys.exit(0)
