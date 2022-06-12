@@ -13,7 +13,7 @@ sleep(5)
 print("Starting GPS_NATS")
 sys.stdout.flush()
 
-async def run(loop):
+async def run():
     # Prometheus variables to export
     global lat_gauge
     lat_gauge = Gauge('avena_position_lat', 'Last know fix latitude')
@@ -40,7 +40,7 @@ async def run(loop):
         if new_data:
             fix = json.loads(new_data)
             subject = os.getenv('HOSTNAME') + ".gps." + str(fix["class"])
-            print("Publishing new data point to subject", subject, ": ", new_data[:-1])
+            #print("Publishing new data point to subject", subject, ": ", new_data[:-1])
             await nc.publish(subject, bytes(new_data, 'utf-8'))
             await nc.flush(1)
 
@@ -51,7 +51,7 @@ async def run(loop):
         # Loop runs out of control without this
         sleep(0.1)
 
-    print("This should never be reached")
+    #print("This should never be reached")
             
 
 if __name__ == '__main__':
