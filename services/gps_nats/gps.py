@@ -4,8 +4,7 @@ from prometheus_client import start_http_server, Gauge
 import sys
 from time import sleep
 import asyncio
-from nats.aio.client import Client as NATS
-from nats.aio.errors import ErrConnectionClosed, ErrTimeout, ErrNoServers
+import nats
 import json
 from gps3 import gps3
 
@@ -13,7 +12,7 @@ sleep(5)
 print("Starting GPS_NATS")
 sys.stdout.flush()
 
-async def run():
+async def main():
     # Prometheus variables to export
     global lat_gauge
     lat_gauge = Gauge('avena_position_lat', 'Last know fix latitude')
@@ -32,8 +31,8 @@ async def run():
     # Create nats object and connect to local nats server
     print('Setting up NATS')
     sys.stdout.flush()
-    nc = NATS()
-    await nc.connect("nats://localhost:4222")
+    nc = await nats.connect("localhost")
+    #await nc.connect("nats://localhost:4222")
     #await nc.connect("nats://nats:4222")
 
     for new_data in gps_socket:
@@ -46,17 +45,22 @@ async def run():
 
             if "activated" in fix and fix["activated"] == 0:
                 await nc.flush(10)
-                print("NC flushed")
+                #print("NC flushed")
             sys.stdout.flush()
         # Loop runs out of control without this
-        sleep(0.1)
+    #    sleep(0.1)
 
     #print("This should never be reached")
             
 
 if __name__ == '__main__':
+    
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(run(loop))
-    loop.close()
+    try:
+        asyncio.ensure_future(main())
+        loop.run_forever()
+    finally:
+        print("Stopping gps_nats...")
+        loop.close()
 
     sys.exit(0)
