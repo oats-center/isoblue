@@ -36,7 +36,7 @@ async def main():
     for new_data in gps_socket:
         if new_data:
             fix = json.loads(new_data)
-            subject = os.getenv('HOSTNAME') + ".gps." + str(fix["class"])
+            subject = os.getenv('AVENA_PREFIX') + ".gps." + str(fix["class"])
             #print("Publishing new data point to subject", subject, ": ", new_data[:-1])
             await nc.publish(subject, bytes(new_data, 'utf-8'))
             await nc.flush(1)
