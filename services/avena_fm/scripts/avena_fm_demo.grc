@@ -11,7 +11,7 @@ options:
     gen_linking: dynamic
     generate_options: no_gui
     hier_block_src_path: '.:'
-    id: fm_radio_demo
+    id: avena_fm_demo
     max_nouts: '0'
     output_language: python
     placement: (0,0)
@@ -28,7 +28,7 @@ options:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [672, 12.0]
+    coordinate: [664, 8.0]
     rotation: 0
     state: enabled
 
@@ -54,7 +54,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1264, 16.0]
+    coordinate: [368, 80.0]
     rotation: 0
     state: true
 - name: fc
@@ -78,7 +78,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1080, 16.0]
+    coordinate: [184, 80.0]
     rotation: 0
     state: true
 - name: ft
@@ -90,7 +90,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [280, 80.0]
+    coordinate: [16, 8.0]
     rotation: 0
     state: true
 - name: max_buff
@@ -102,7 +102,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [992, 16.0]
+    coordinate: [104, 80.0]
     rotation: 0
     state: true
 - name: min_buff
@@ -114,7 +114,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [904, 16.0]
+    coordinate: [16, 80.0]
     rotation: 0
     state: true
 - name: quadrature
@@ -145,12 +145,24 @@ blocks:
   id: variable
   parameters:
     comment: ''
-    value: '30'
+    value: '10'
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1176, 16.0]
+    coordinate: [280, 80.0]
+    rotation: 0
+    state: true
+- name: stream
+  id: variable
+  parameters:
+    comment: ''
+    value: 'False'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [464, 80.0]
     rotation: 0
     state: true
 - name: transition_bw
@@ -191,7 +203,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1048, 384.0]
+    coordinate: [1072, 368.0]
     rotation: 0
     state: true
 - name: blocks_complex_to_mag_0
@@ -207,7 +219,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1640, 264.0]
+    coordinate: [1176, 200.0]
     rotation: 0
     state: true
 - name: blocks_keep_one_in_n_0
@@ -225,7 +237,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1448, 256.0]
+    coordinate: [984, 192.0]
     rotation: 0
     state: true
 - name: blocks_moving_average_xx_0
@@ -245,7 +257,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1240, 240.0]
+    coordinate: [776, 176.0]
     rotation: 0
     state: true
 - name: blocks_msgpair_to_var_0
@@ -259,7 +271,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [584, 560.0]
+    coordinate: [584, 584.0]
     rotation: 0
     state: true
 - name: blocks_msgpair_to_var_0_0
@@ -273,7 +285,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [584, 496.0]
+    coordinate: [584, 528.0]
     rotation: 0
     state: true
 - name: blocks_msgpair_to_var_0_1
@@ -287,7 +299,21 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [584, 624.0]
+    coordinate: [584, 648.0]
+    rotation: 0
+    state: true
+- name: blocks_msgpair_to_var_1
+  id: blocks_msgpair_to_var
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    target: stream
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [584, 464.0]
     rotation: 0
     state: true
 - name: blocks_null_source_0
@@ -306,7 +332,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [56, 496.0]
+    coordinate: [48, 536.0]
     rotation: 0
     state: true
 - name: blocks_selector_0
@@ -329,7 +355,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [584, 224.0]
+    coordinate: [584, 320.0]
     rotation: 0
     state: true
 - name: blocks_stream_to_vector_0
@@ -347,7 +373,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [816, 272.0]
+    coordinate: [352, 208.0]
     rotation: 0
     state: true
 - name: epy_block_0
@@ -360,19 +386,20 @@ blocks:
       \ return json.JSONEncoder.default(self, obj)\n\nclass blk(gr.sync_block):  #\
       \ other base classes are basic_block, decim_block, interp_block\n\n\n    def\
       \ __init__(self, vector_size=1024, subject='fft', \n                 nats_server='nats://localhost:4222',\n\
-      \                 freq=98700000, span=2000000):  # only default arguments here\n\
-      \n        gr.sync_block.__init__(\n            self,\n            name='NATS\
-      \ Sink',   # will show up in GRC\n            in_sig=[(np.ushort, vector_size)],\n\
-      \            out_sig=None\n        )\n\n        #hostname = os.getenv('HOSTNAME')\n\
-      \        self.vector_size = vector_size\n        self.freq = freq\n        self.span\
-      \ = span\n        self.subject = os.getenv('HOSTNAME') + '.' + subject\n   \
-      \     self.nc = NATSClient(nats_server, socket_timeout=2)\n        self.nc.connect()\n\
-      \        \n    def work(self, input_items, output_items):\n        \n      \
-      \  b64encpayload = str(b64encode(input_items[0][0]), 'utf-8')\n        json_dump\
-      \ = json.dumps({'fft': b64encpayload,\n                                'fc'\
-      \ : self.freq, \n                                'span' : self.span, \n    \
-      \                            'fft_size' : self.vector_size}, \n            \
-      \                    cls=NumpyEncoder)\n        self.nc.publish(subject=self.subject\
+      \                 freq=98700000, span=2000000, stream=False):  # only default\
+      \ arguments here\n\n        gr.sync_block.__init__(\n            self,\n   \
+      \         name='NATS Sink',   # will show up in GRC\n            in_sig=[(np.ushort,\
+      \ vector_size)],\n            out_sig=None\n        )\n\n        avena_prefix\
+      \ = os.getenv('AVENA_PREFIX')\n        self.vector_size = vector_size\n    \
+      \    self.freq = freq\n        self.span = span\n        self.stream = stream\n\
+      \        self.subject = avena_prefix + '.' + subject\n        self.nc = NATSClient(nats_server,\
+      \ socket_timeout=2)\n        self.nc.connect()\n        \n    def work(self,\
+      \ input_items, output_items):\n        \n        b64encpayload = str(b64encode(input_items[0][0]),\
+      \ 'utf-8')\n        json_dump = json.dumps({'fft': b64encpayload,\n        \
+      \                        'fc' : self.freq, \n                              \
+      \  'span' : self.span, \n                                'fft_size' : self.vector_size,\n\
+      \                                'stream' : self.stream}, \n               \
+      \                 cls=NumpyEncoder)\n        self.nc.publish(subject=self.subject\
       \ ,payload=json_dump)\n        \n        return len(input_items[0])\n"
     affinity: ''
     alias: ''
@@ -382,16 +409,18 @@ blocks:
     minoutbuf: min_buff
     nats_server: '''nats://localhost:4222'''
     span: samp_rate
+    stream: stream
     subject: '''sdr.fft'''
     vector_size: fft_size
   states:
     _io_cache: ('NATS Sink', 'blk', [('vector_size', '1024'), ('subject', "'fft'"),
-      ('nats_server', "'nats://localhost:4222'"), ('freq', '98700000'), ('span', '2000000')],
-      [('0', 'short', 1024)], [], '', ['freq', 'span', 'subject', 'vector_size'])
+      ('nats_server', "'nats://localhost:4222'"), ('freq', '98700000'), ('span', '2000000'),
+      ('stream', 'False')], [('0', 'short', 1024)], [], '', ['freq', 'span', 'stream',
+      'subject', 'vector_size'])
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [2032, 232.0]
+    coordinate: [1568, 160.0]
     rotation: 0
     state: true
 - name: epy_block_1
@@ -405,23 +434,28 @@ blocks:
       \    self,\n            name='NATS Subscription',   # will show up in GRC\n\
       \            in_sig=[np.complex64],\n            out_sig=None\n        )\n \
       \       # if an attribute with the same name as a parameter is found,\n    \
-      \    # a callback is registered (properties work, too).\n        self.port_1\
-      \ = 'Frequency'\n        self.port_2 = 'Center Frequency'\n        self.port_3\
-      \ = 'Gain'\n        self.port_4 = 'Stream'\n        self.subject = os.getenv('HOSTNAME')\
-      \ + '.' + subject\n        self.message_port_register_out(pmt.intern(self.port_1))\n\
-      \        self.message_port_register_out(pmt.intern(self.port_2))\n        self.message_port_register_out(pmt.intern(self.port_3))\
-      \   \n        self.message_port_register_out(pmt.intern(self.port_4))      \
-      \    \n        self.nc = NATSClient(nats_server, socket_timeout=2)\n       \
-      \ self.nc.connect()\n        self.nc.subscribe(subject=self.subject, callback=self.callback)\n\
-      \        \n    \n    def callback(self, msg):\n\t\n        nats_msg = json.loads(msg.payload.decode())\
-      \    \n        PMT_msg_1 = pmt.cons(pmt.string_to_symbol('ft'), \n         \
-      \         pmt.from_long(nats_msg['ft']))\n        PMT_msg_2 = pmt.cons(pmt.string_to_symbol('fc'),\
-      \ \n                  pmt.from_long(nats_msg['fc']))\n        PMT_msg_3 = pmt.cons(pmt.string_to_symbol('gain'),\
+      \    # a callback is registered (properties work, too).\n        avena_prefix\
+      \ = os.getenv('AVENA_PREFIX')\n        self.port_1 = 'Frequency'\n        self.port_2\
+      \ = 'Center Frequency'\n        self.port_3 = 'Gain'\n        self.port_4 =\
+      \ 'Stream Control'\n        self.port_5 = 'Stream Status' # THERE MIGHT BE BETTER\
+      \ WAYS TO DO THIS!\n        self.subject = avena_prefix + '.' + subject\n  \
+      \      self.message_port_register_out(pmt.intern(self.port_1))\n        self.message_port_register_out(pmt.intern(self.port_2))\n\
+      \        self.message_port_register_out(pmt.intern(self.port_3))   \n      \
+      \  self.message_port_register_out(pmt.intern(self.port_4))\n        self.message_port_register_out(pmt.intern(self.port_5))\
+      \             \n        self.nc = NATSClient(nats_server, socket_timeout=2)\n\
+      \        self.nc.connect()\n        self.nc.subscribe(subject=self.subject,\
+      \ callback=self.callback)\n        \n    \n    def callback(self, msg):\n\t\n\
+      \        nats_msg = json.loads(msg.payload.decode())    \n        PMT_msg_1\
+      \ = pmt.cons(pmt.string_to_symbol('ft'), \n                  pmt.from_long(nats_msg['ft']))\n\
+      \        PMT_msg_2 = pmt.cons(pmt.string_to_symbol('fc'), \n               \
+      \   pmt.from_long(nats_msg['fc']))\n        PMT_msg_3 = pmt.cons(pmt.string_to_symbol('gain'),\
       \ \n                  pmt.from_long(nats_msg['gain']))\n        PMT_msg_4 =\
-      \ pmt.to_pmt(nats_msg['stream'])\n        \n        self.message_port_pub(pmt.intern(self.port_1),\
-      \ PMT_msg_1)\n        self.message_port_pub(pmt.intern(self.port_2), PMT_msg_2)\n\
-      \        self.message_port_pub(pmt.intern(self.port_3), PMT_msg_3)\n       \
-      \ self.message_port_pub(pmt.intern(self.port_4), PMT_msg_4)\n        \n    \
+      \ pmt.to_pmt(nats_msg['stream'])\n        PMT_msg_5 = pmt.cons(pmt.string_to_symbol('stream'),\
+      \ \n                  pmt.from_bool(nats_msg['stream']))\n        \n       \
+      \ self.message_port_pub(pmt.intern(self.port_1), PMT_msg_1)\n        self.message_port_pub(pmt.intern(self.port_2),\
+      \ PMT_msg_2)\n        self.message_port_pub(pmt.intern(self.port_3), PMT_msg_3)\n\
+      \        self.message_port_pub(pmt.intern(self.port_4), PMT_msg_4)\n       \
+      \ self.message_port_pub(pmt.intern(self.port_5), PMT_msg_5)\n        \n    \
       \    print(f\"Frequency set to {nats_msg['ft']} Hz\")\n        print(f\"Center\
       \ Frequency set to {nats_msg['fc']} Hz\")\n        print(f\"Gain set to {nats_msg['gain']}\
       \ dB\")\n        print(f\"Streaming: {nats_msg['stream']}\")   \n          \
@@ -436,13 +470,13 @@ blocks:
     subject: '''sdr.control'''
   states:
     _io_cache: ('NATS Subscription', 'blk', [('nats_server', "'nats://localhost:4222'"),
-      ('subject', "'sdr.control'")], [('0', 'complex', 1)], [('Stream', 'message',
-      1), ('Gain', 'message', 1), ('Center Frequency', 'message', 1), ('Frequency',
-      'message', 1)], '', ['subject'])
+      ('subject', "'sdr.control'")], [('0', 'complex', 1)], [('Stream Status', 'message',
+      1), ('Stream Control', 'message', 1), ('Gain', 'message', 1), ('Center Frequency',
+      'message', 1), ('Frequency', 'message', 1)], '', ['subject'])
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [224, 448.0]
+    coordinate: [208, 472.0]
     rotation: 0
     state: true
 - name: epy_block_3
@@ -478,7 +512,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1848, 256.0]
+    coordinate: [1384, 192.0]
     rotation: 0
     state: true
 - name: fft_vxx_0
@@ -499,7 +533,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [992, 232.0]
+    coordinate: [528, 168.0]
     rotation: 0
     state: true
 - name: freq_xlating_fir_filter_xxx_0
@@ -520,7 +554,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [816, 368.0]
+    coordinate: [816, 352.0]
     rotation: 0
     state: true
 - name: network_udp_sink_0
@@ -540,7 +574,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1464, 360.0]
+    coordinate: [1480, 344.0]
     rotation: 0
     state: true
 - name: rational_resampler_xxx_0
@@ -560,7 +594,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1264, 368.0]
+    coordinate: [1280, 352.0]
     rotation: 0
     state: true
 - name: rtlsdr_source_0
@@ -917,7 +951,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [72, 132.0]
+    coordinate: [64, 228.0]
     rotation: 0
     state: true
 
@@ -927,18 +961,19 @@ connections:
 - [blocks_keep_one_in_n_0, '0', blocks_complex_to_mag_0, '0']
 - [blocks_moving_average_xx_0, '0', blocks_keep_one_in_n_0, '0']
 - [blocks_null_source_0, '0', epy_block_1, '0']
-- [blocks_selector_0, '0', blocks_stream_to_vector_0, '0']
 - [blocks_selector_0, '0', freq_xlating_fir_filter_xxx_0, '0']
 - [blocks_stream_to_vector_0, '0', fft_vxx_0, '0']
 - [epy_block_1, Center Frequency, blocks_msgpair_to_var_0, inpair]
 - [epy_block_1, Frequency, blocks_msgpair_to_var_0_1, inpair]
 - [epy_block_1, Gain, blocks_msgpair_to_var_0_0, inpair]
-- [epy_block_1, Stream, blocks_selector_0, en]
+- [epy_block_1, Stream Control, blocks_selector_0, en]
+- [epy_block_1, Stream Status, blocks_msgpair_to_var_1, inpair]
 - [epy_block_3, '0', epy_block_0, '0']
 - [fft_vxx_0, '0', blocks_moving_average_xx_0, '0']
 - [freq_xlating_fir_filter_xxx_0, '0', analog_wfm_rcv_0, '0']
 - [rational_resampler_xxx_0, '0', network_udp_sink_0, '0']
 - [rtlsdr_source_0, '0', blocks_selector_0, '0']
+- [rtlsdr_source_0, '0', blocks_stream_to_vector_0, '0']
 
 metadata:
   file_format: 1

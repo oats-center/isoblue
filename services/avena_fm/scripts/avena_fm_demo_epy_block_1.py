@@ -21,12 +21,14 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
         self.port_1 = 'Frequency'
         self.port_2 = 'Center Frequency'
         self.port_3 = 'Gain'
-        self.port_4 = 'Stream'
+        self.port_4 = 'Stream Control'
+        self.port_5 = 'Stream Status' # THERE MIGHT BE BETTER WAYS TO DO THIS!
         self.subject = os.getenv('HOSTNAME') + '.' + subject
         self.message_port_register_out(pmt.intern(self.port_1))
         self.message_port_register_out(pmt.intern(self.port_2))
         self.message_port_register_out(pmt.intern(self.port_3))   
-        self.message_port_register_out(pmt.intern(self.port_4))          
+        self.message_port_register_out(pmt.intern(self.port_4))
+        self.message_port_register_out(pmt.intern(self.port_5))             
         self.nc = NATSClient(nats_server, socket_timeout=2)
         self.nc.connect()
         self.nc.subscribe(subject=self.subject, callback=self.callback)
@@ -42,11 +44,14 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
         PMT_msg_3 = pmt.cons(pmt.string_to_symbol('gain'), 
                   pmt.from_long(nats_msg['gain']))
         PMT_msg_4 = pmt.to_pmt(nats_msg['stream'])
+        PMT_msg_5 = pmt.cons(pmt.string_to_symbol('stream'), 
+                  pmt.from_bool(nats_msg['stream']))
         
         self.message_port_pub(pmt.intern(self.port_1), PMT_msg_1)
         self.message_port_pub(pmt.intern(self.port_2), PMT_msg_2)
         self.message_port_pub(pmt.intern(self.port_3), PMT_msg_3)
         self.message_port_pub(pmt.intern(self.port_4), PMT_msg_4)
+        self.message_port_pub(pmt.intern(self.port_5), PMT_msg_5)
         
         print(f"Frequency set to {nats_msg['ft']} Hz")
         print(f"Center Frequency set to {nats_msg['fc']} Hz")

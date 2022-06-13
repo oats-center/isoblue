@@ -21,16 +21,16 @@ from argparse import ArgumentParser
 from gnuradio.eng_arg import eng_float, intx
 from gnuradio import eng_notation
 from gnuradio import network
-import fm_radio_demo_epy_block_0 as epy_block_0  # embedded python block
-import fm_radio_demo_epy_block_1 as epy_block_1  # embedded python block
-import fm_radio_demo_epy_block_3 as epy_block_3  # embedded python block
+import avena_fm_demo_epy_block_0 as epy_block_0  # embedded python block
+import avena_fm_demo_epy_block_1 as epy_block_1  # embedded python block
+import avena_fm_demo_epy_block_3 as epy_block_3  # embedded python block
 import osmosdr
 import time
 
 
 
 
-class fm_radio_demo(gr.top_block):
+class avena_fm_demo(gr.top_block):
 
     def __init__(self):
         gr.top_block.__init__(self, "RTL-SDR FM Tuner", catch_exceptions=True)
@@ -41,7 +41,8 @@ class fm_radio_demo(gr.top_block):
         self.samp_rate = samp_rate = 1e06
         self.volume = volume = 1
         self.transition_bw = transition_bw = 10e3
-        self.sdr_gain = sdr_gain = 30
+        self.stream = stream = False
+        self.sdr_gain = sdr_gain = 10
         self.quadrature = quadrature = samp_rate/4
         self.min_buff = min_buff = 0
         self.max_buff = max_buff = 0
@@ -79,11 +80,12 @@ class fm_radio_demo(gr.top_block):
         self.fft_vxx_0 = fft.fft_vcc(fft_size, True, window.blackmanharris(fft_size), True, 1)
         self.epy_block_3 = epy_block_3.blk(scale=10000, vector_size=fft_size)
         self.epy_block_1 = epy_block_1.blk(nats_server='nats://localhost:4222', subject='sdr.control')
-        self.epy_block_0 = epy_block_0.blk(vector_size=fft_size, subject='sdr.fft', nats_server='nats://localhost:4222', freq=fc, span=samp_rate)
+        self.epy_block_0 = epy_block_0.blk(vector_size=fft_size, subject='sdr.fft', nats_server='nats://localhost:4222', freq=fc, span=samp_rate, stream=stream)
         self.blocks_stream_to_vector_0 = blocks.stream_to_vector(gr.sizeof_gr_complex*1, fft_size)
         self.blocks_selector_0 = blocks.selector(gr.sizeof_gr_complex*1,0,0)
         self.blocks_selector_0.set_enabled(False)
         self.blocks_null_source_0 = blocks.null_source(gr.sizeof_gr_complex*1)
+        self.blocks_msgpair_to_var_1 = blocks.msg_pair_to_var(self.set_stream)
         self.blocks_msgpair_to_var_0_1 = blocks.msg_pair_to_var(self.set_ft)
         self.blocks_msgpair_to_var_0_0 = blocks.msg_pair_to_var(self.set_sdr_gain)
         self.blocks_msgpair_to_var_0 = blocks.msg_pair_to_var(self.set_fc)
@@ -102,13 +104,13 @@ class fm_radio_demo(gr.top_block):
         self.msg_connect((self.epy_block_1, 'Center Frequency'), (self.blocks_msgpair_to_var_0, 'inpair'))
         self.msg_connect((self.epy_block_1, 'Gain'), (self.blocks_msgpair_to_var_0_0, 'inpair'))
         self.msg_connect((self.epy_block_1, 'Frequency'), (self.blocks_msgpair_to_var_0_1, 'inpair'))
-        self.msg_connect((self.epy_block_1, 'Stream'), (self.blocks_selector_0, 'en'))
+        self.msg_connect((self.epy_block_1, 'Stream Status'), (self.blocks_msgpair_to_var_1, 'inpair'))
+        self.msg_connect((self.epy_block_1, 'Stream Control'), (self.blocks_selector_0, 'en'))
         self.connect((self.analog_wfm_rcv_0, 0), (self.rational_resampler_xxx_0, 0))
         self.connect((self.blocks_complex_to_mag_0, 0), (self.epy_block_3, 0))
         self.connect((self.blocks_keep_one_in_n_0, 0), (self.blocks_complex_to_mag_0, 0))
         self.connect((self.blocks_moving_average_xx_0, 0), (self.blocks_keep_one_in_n_0, 0))
         self.connect((self.blocks_null_source_0, 0), (self.epy_block_1, 0))
-        self.connect((self.blocks_selector_0, 0), (self.blocks_stream_to_vector_0, 0))
         self.connect((self.blocks_selector_0, 0), (self.freq_xlating_fir_filter_xxx_0, 0))
         self.connect((self.blocks_stream_to_vector_0, 0), (self.fft_vxx_0, 0))
         self.connect((self.epy_block_3, 0), (self.epy_block_0, 0))
@@ -116,6 +118,7 @@ class fm_radio_demo(gr.top_block):
         self.connect((self.freq_xlating_fir_filter_xxx_0, 0), (self.analog_wfm_rcv_0, 0))
         self.connect((self.rational_resampler_xxx_0, 0), (self.network_udp_sink_0, 0))
         self.connect((self.rtlsdr_source_0, 0), (self.blocks_selector_0, 0))
+        self.connect((self.rtlsdr_source_0, 0), (self.blocks_stream_to_vector_0, 0))
 
 
     def get_samp_rate(self):
@@ -140,6 +143,13 @@ class fm_radio_demo(gr.top_block):
     def set_transition_bw(self, transition_bw):
         self.transition_bw = transition_bw
         self.freq_xlating_fir_filter_xxx_0.set_taps( firdes.complex_band_pass(1, self.samp_rate, -self.samp_rate/(2*self.decimation), self.samp_rate/(2*self.decimation), self.transition_bw))
+
+    def get_stream(self):
+        return self.stream
+
+    def set_stream(self, stream):
+        self.stream = stream
+        self.epy_block_0.stream = self.stream
 
     def get_sdr_gain(self):
         return self.sdr_gain
@@ -205,7 +215,7 @@ class fm_radio_demo(gr.top_block):
 
 
 
-def main(top_block_cls=fm_radio_demo, options=None):
+def main(top_block_cls=avena_fm_demo, options=None):
     tb = top_block_cls()
 
     def sig_handler(sig=None, frame=None):

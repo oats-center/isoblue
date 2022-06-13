@@ -16,7 +16,7 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
 
     def __init__(self, vector_size=1024, subject='fft', 
                  nats_server='nats://localhost:4222',
-                 freq=98700000, span=2000000):  # only default arguments here
+                 freq=98700000, span=2000000, stream=False):  # only default arguments here
 
         gr.sync_block.__init__(
             self,
@@ -25,11 +25,12 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
             out_sig=None
         )
 
-        #hostname = os.getenv('HOSTNAME')
+        avena_prefix = os.getenv('HOSTNAME')
         self.vector_size = vector_size
         self.freq = freq
         self.span = span
-        self.subject = os.getenv('HOSTNAME') + '.' + subject
+        self.stream = stream
+        self.subject = avena_prefix + '.' + subject
         self.nc = NATSClient(nats_server, socket_timeout=2)
         self.nc.connect()
         
@@ -39,7 +40,8 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
         json_dump = json.dumps({'fft': b64encpayload,
                                 'fc' : self.freq, 
                                 'span' : self.span, 
-                                'fft_size' : self.vector_size}, 
+                                'fft_size' : self.vector_size,
+                                'stream' : self.stream}, 
                                 cls=NumpyEncoder)
         self.nc.publish(subject=self.subject ,payload=json_dump)
         
