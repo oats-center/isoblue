@@ -18,12 +18,14 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
         )
         # if an attribute with the same name as a parameter is found,
         # a callback is registered (properties work, too).
+        avena_prefix = os.getenv('AVENA_PREFIX')
         self.port_1 = 'Frequency'
         self.port_2 = 'Center Frequency'
         self.port_3 = 'Gain'
         self.port_4 = 'Stream Control'
         self.port_5 = 'Stream Status' # THERE MIGHT BE BETTER WAYS TO DO THIS!
-        self.subject = os.getenv('HOSTNAME') + '.' + subject
+        #self.subject = avena_prefix + '.' + subject
+        self.subject = subject
         self.message_port_register_out(pmt.intern(self.port_1))
         self.message_port_register_out(pmt.intern(self.port_2))
         self.message_port_register_out(pmt.intern(self.port_3))   

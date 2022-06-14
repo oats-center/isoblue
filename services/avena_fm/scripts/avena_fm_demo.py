@@ -51,6 +51,7 @@ class avena_fm_demo(gr.top_block):
         self.fc = fc = 98.7e06
         self.decimation = decimation = 4
         self.cutoff = cutoff = 100000.0
+        self.audio_rate = audio_rate = 44000
 
         ##################################################
         # Blocks
@@ -71,16 +72,16 @@ class avena_fm_demo(gr.top_block):
         self.rtlsdr_source_0.set_antenna('', 0)
         self.rtlsdr_source_0.set_bandwidth(0, 0)
         self.rational_resampler_xxx_0 = filter.rational_resampler_fff(
-                interpolation=22,
-                decimation=25,
+                interpolation=int(audio_rate/10000*samp_rate/200000),
+                decimation=int(samp_rate/40000),
                 taps=[],
                 fractional_bw=0)
         self.network_udp_sink_0 = network.udp_sink(gr.sizeof_float, 1, '127.0.0.1', 2000, 0, 1472, False)
-        self.freq_xlating_fir_filter_xxx_0 = filter.freq_xlating_fir_filter_ccc(decimation,  firdes.complex_band_pass(1, samp_rate, -samp_rate/(2*decimation), samp_rate/(2*decimation), transition_bw), ft- fc, samp_rate)
+        self.freq_xlating_fir_filter_xxx_0 = filter.freq_xlating_fir_filter_ccc(decimation,  firdes.complex_band_pass(1, samp_rate, -samp_rate/(2*decimation), samp_rate/(2*decimation), transition_bw), ft-fc, samp_rate)
         self.fft_vxx_0 = fft.fft_vcc(fft_size, True, window.blackmanharris(fft_size), True, 1)
         self.epy_block_3 = epy_block_3.blk(scale=10000, vector_size=fft_size)
         self.epy_block_1 = epy_block_1.blk(nats_server='nats://localhost:4222', subject='sdr.control')
-        self.epy_block_0 = epy_block_0.blk(vector_size=fft_size, subject='sdr.fft', nats_server='nats://localhost:4222', freq=fc, span=samp_rate, stream=stream)
+        self.epy_block_0 = epy_block_0.blk(vector_size=fft_size, subject='sdr.fft', nats_server='nats://localhost:4222', freq=fc, span=samp_rate, stream=stream, gain=sdr_gain)
         self.blocks_stream_to_vector_0 = blocks.stream_to_vector(gr.sizeof_gr_complex*1, fft_size)
         self.blocks_selector_0 = blocks.selector(gr.sizeof_gr_complex*1,0,0)
         self.blocks_selector_0.set_enabled(False)
@@ -94,7 +95,7 @@ class avena_fm_demo(gr.top_block):
         self.blocks_complex_to_mag_0 = blocks.complex_to_mag(fft_size)
         self.analog_wfm_rcv_0 = analog.wfm_rcv(
         	quad_rate=quadrature,
-        	audio_decimation=5,
+        	audio_decimation=int(samp_rate/200000),
         )
 
 
@@ -156,6 +157,7 @@ class avena_fm_demo(gr.top_block):
 
     def set_sdr_gain(self, sdr_gain):
         self.sdr_gain = sdr_gain
+        self.epy_block_0.gain = self.sdr_gain
         self.rtlsdr_source_0.set_gain(self.sdr_gain, 0)
 
     def get_quadrature(self):
@@ -181,7 +183,7 @@ class avena_fm_demo(gr.top_block):
 
     def set_ft(self, ft):
         self.ft = ft
-        self.freq_xlating_fir_filter_xxx_0.set_center_freq(self.ft- self.fc)
+        self.freq_xlating_fir_filter_xxx_0.set_center_freq(self.ft-self.fc)
         self.rtlsdr_source_0.set_center_freq(self.ft, 0)
 
     def get_fft_size(self):
@@ -197,7 +199,7 @@ class avena_fm_demo(gr.top_block):
     def set_fc(self, fc):
         self.fc = fc
         self.epy_block_0.freq = self.fc
-        self.freq_xlating_fir_filter_xxx_0.set_center_freq(self.ft- self.fc)
+        self.freq_xlating_fir_filter_xxx_0.set_center_freq(self.ft-self.fc)
 
     def get_decimation(self):
         return self.decimation
@@ -211,6 +213,12 @@ class avena_fm_demo(gr.top_block):
 
     def set_cutoff(self, cutoff):
         self.cutoff = cutoff
+
+    def get_audio_rate(self):
+        return self.audio_rate
+
+    def set_audio_rate(self, audio_rate):
+        self.audio_rate = audio_rate
 
 
 

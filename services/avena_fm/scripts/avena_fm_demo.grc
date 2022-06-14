@@ -33,6 +33,18 @@ options:
     state: enabled
 
 blocks:
+- name: audio_rate
+  id: variable
+  parameters:
+    comment: ''
+    value: '44000'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [560, 80.0]
+    rotation: 0
+    state: true
 - name: cutoff
   id: variable
   parameters:
@@ -194,7 +206,7 @@ blocks:
   parameters:
     affinity: ''
     alias: ''
-    audio_decimation: '5'
+    audio_decimation: int(samp_rate/200000)
     comment: ''
     maxoutbuf: max_buff
     minoutbuf: min_buff
@@ -386,25 +398,28 @@ blocks:
       \ return json.JSONEncoder.default(self, obj)\n\nclass blk(gr.sync_block):  #\
       \ other base classes are basic_block, decim_block, interp_block\n\n\n    def\
       \ __init__(self, vector_size=1024, subject='fft', \n                 nats_server='nats://localhost:4222',\n\
-      \                 freq=98700000, span=2000000, stream=False):  # only default\
-      \ arguments here\n\n        gr.sync_block.__init__(\n            self,\n   \
-      \         name='NATS Sink',   # will show up in GRC\n            in_sig=[(np.ushort,\
+      \                 freq=98700000, span=2000000, stream=False, gain=0):  # only\
+      \ default arguments here\n\n        gr.sync_block.__init__(\n            self,\n\
+      \            name='NATS Sink',   # will show up in GRC\n            in_sig=[(np.ushort,\
       \ vector_size)],\n            out_sig=None\n        )\n\n        avena_prefix\
       \ = os.getenv('AVENA_PREFIX')\n        self.vector_size = vector_size\n    \
       \    self.freq = freq\n        self.span = span\n        self.stream = stream\n\
-      \        self.subject = avena_prefix + '.' + subject\n        self.nc = NATSClient(nats_server,\
+      \        self.gain = gain\n        self.subject = subject\n        #self.subject\
+      \ = avena_prefix + '.' + subject\n        self.nc = NATSClient(nats_server,\
       \ socket_timeout=2)\n        self.nc.connect()\n        \n    def work(self,\
       \ input_items, output_items):\n        \n        b64encpayload = str(b64encode(input_items[0][0]),\
       \ 'utf-8')\n        json_dump = json.dumps({'fft': b64encpayload,\n        \
-      \                        'fc' : self.freq, \n                              \
-      \  'span' : self.span, \n                                'fft_size' : self.vector_size,\n\
-      \                                'stream' : self.stream}, \n               \
-      \                 cls=NumpyEncoder)\n        self.nc.publish(subject=self.subject\
-      \ ,payload=json_dump)\n        \n        return len(input_items[0])\n"
+      \                        'fc' : self.freq,\n                               \
+      \ 'gain' : self.gain, \n                                'span' : self.span,\
+      \ \n                                'fft_size' : self.vector_size,\n       \
+      \                         'stream' : self.stream}, \n                      \
+      \          cls=NumpyEncoder)\n        self.nc.publish(subject=self.subject ,payload=json_dump)\n\
+      \        \n        return len(input_items[0])\n"
     affinity: ''
     alias: ''
     comment: ''
     freq: fc
+    gain: sdr_gain
     maxoutbuf: max_buff
     minoutbuf: min_buff
     nats_server: '''nats://localhost:4222'''
@@ -415,12 +430,12 @@ blocks:
   states:
     _io_cache: ('NATS Sink', 'blk', [('vector_size', '1024'), ('subject', "'fft'"),
       ('nats_server', "'nats://localhost:4222'"), ('freq', '98700000'), ('span', '2000000'),
-      ('stream', 'False')], [('0', 'short', 1024)], [], '', ['freq', 'span', 'stream',
-      'subject', 'vector_size'])
+      ('stream', 'False'), ('gain', '0')], [('0', 'short', 1024)], [], '', ['freq',
+      'gain', 'span', 'stream', 'subject', 'vector_size'])
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1568, 160.0]
+    coordinate: [1568, 148.0]
     rotation: 0
     state: true
 - name: epy_block_1
@@ -438,17 +453,17 @@ blocks:
       \ = os.getenv('AVENA_PREFIX')\n        self.port_1 = 'Frequency'\n        self.port_2\
       \ = 'Center Frequency'\n        self.port_3 = 'Gain'\n        self.port_4 =\
       \ 'Stream Control'\n        self.port_5 = 'Stream Status' # THERE MIGHT BE BETTER\
-      \ WAYS TO DO THIS!\n        self.subject = avena_prefix + '.' + subject\n  \
-      \      self.message_port_register_out(pmt.intern(self.port_1))\n        self.message_port_register_out(pmt.intern(self.port_2))\n\
-      \        self.message_port_register_out(pmt.intern(self.port_3))   \n      \
-      \  self.message_port_register_out(pmt.intern(self.port_4))\n        self.message_port_register_out(pmt.intern(self.port_5))\
-      \             \n        self.nc = NATSClient(nats_server, socket_timeout=2)\n\
-      \        self.nc.connect()\n        self.nc.subscribe(subject=self.subject,\
-      \ callback=self.callback)\n        \n    \n    def callback(self, msg):\n\t\n\
-      \        nats_msg = json.loads(msg.payload.decode())    \n        PMT_msg_1\
-      \ = pmt.cons(pmt.string_to_symbol('ft'), \n                  pmt.from_long(nats_msg['ft']))\n\
-      \        PMT_msg_2 = pmt.cons(pmt.string_to_symbol('fc'), \n               \
-      \   pmt.from_long(nats_msg['fc']))\n        PMT_msg_3 = pmt.cons(pmt.string_to_symbol('gain'),\
+      \ WAYS TO DO THIS!\n        #self.subject = avena_prefix + '.' + subject\n \
+      \       self.subject = subject\n        self.message_port_register_out(pmt.intern(self.port_1))\n\
+      \        self.message_port_register_out(pmt.intern(self.port_2))\n        self.message_port_register_out(pmt.intern(self.port_3))\
+      \   \n        self.message_port_register_out(pmt.intern(self.port_4))\n    \
+      \    self.message_port_register_out(pmt.intern(self.port_5))             \n\
+      \        self.nc = NATSClient(nats_server, socket_timeout=2)\n        self.nc.connect()\n\
+      \        self.nc.subscribe(subject=self.subject, callback=self.callback)\n \
+      \       \n    \n    def callback(self, msg):\n\t\n        nats_msg = json.loads(msg.payload.decode())\
+      \    \n        PMT_msg_1 = pmt.cons(pmt.string_to_symbol('ft'), \n         \
+      \         pmt.from_long(nats_msg['ft']))\n        PMT_msg_2 = pmt.cons(pmt.string_to_symbol('fc'),\
+      \ \n                  pmt.from_long(nats_msg['fc']))\n        PMT_msg_3 = pmt.cons(pmt.string_to_symbol('gain'),\
       \ \n                  pmt.from_long(nats_msg['gain']))\n        PMT_msg_4 =\
       \ pmt.to_pmt(nats_msg['stream'])\n        PMT_msg_5 = pmt.cons(pmt.string_to_symbol('stream'),\
       \ \n                  pmt.from_bool(nats_msg['stream']))\n        \n       \
@@ -541,7 +556,7 @@ blocks:
   parameters:
     affinity: ''
     alias: ''
-    center_freq: ft- fc
+    center_freq: ft-fc
     comment: ''
     decim: decimation
     maxoutbuf: '0'
@@ -574,7 +589,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1480, 344.0]
+    coordinate: [1488, 344.0]
     rotation: 0
     state: true
 - name: rational_resampler_xxx_0
@@ -583,9 +598,9 @@ blocks:
     affinity: ''
     alias: ''
     comment: ''
-    decim: '25'
+    decim: int(samp_rate/40000)
     fbw: '0'
-    interp: '22'
+    interp: int(audio_rate/10000*samp_rate/200000)
     maxoutbuf: max_buff
     minoutbuf: min_buff
     taps: '[]'
@@ -594,7 +609,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1280, 352.0]
+    coordinate: [1304, 352.0]
     rotation: 0
     state: true
 - name: rtlsdr_source_0
