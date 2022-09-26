@@ -47,7 +47,7 @@ COPY --from=sources /app/.cargo /app/.cargo
 COPY --from=sources /app/vendor /app/vendor
 
 RUN cargo build --release --offline --target $(cat /rust_target.txt)
-RUN strip /app/target/release/j1939d
+RUN strip /app/target/$(cat /rust_target)/release/j1939d
 
 ######
 ### Runtime Stage
