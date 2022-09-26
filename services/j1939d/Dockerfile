@@ -57,6 +57,6 @@ WORKDIR /app
 
 RUN apt-get update && apt-get install -y libssl1.1
 
-COPY --from=builder /app/target/release/j1939d .
+COPY --from=builder /app/target/$(cat /rust_target.txt)/release/j1939d .
 
 ENTRYPOINT [ "./j1939d" ]
