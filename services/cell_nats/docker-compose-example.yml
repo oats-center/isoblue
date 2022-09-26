@@ -1,0 +1,10 @@
+version: '3.9'
+services:
+  cell_nats:
+    build:
+      context: ../cell_nats
+    restart: unless-stopped
+  depends_on:
+    - nats
+  volumes: 
+    - /var/run/dbus:/var/run/dbus:rw
