@@ -9,17 +9,17 @@ jobs:
     strategy:
       matrix:
         service:
-          - j1939_filter
-          - gps2tsdb
-          - gps_nats
-          - oada_upload
-          - cell_logger
-          - can_watchdog
-          - can_logger
-          - socketcand
-          - cand
+          #- j1939_filter
+          #- gps2tsdb
+          #- gps_nats
+          #- oada_upload
+          #- cell_logger
+          #- can_watchdog
+          #- can_logger
+          #- socketcand
+          #- cand
           - j1939d
-          - gps-exporter
+          #- gps-exporter
 
     runs-on: ubuntu-latest
 
