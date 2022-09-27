@@ -30,14 +30,15 @@ RUN case "$TARGETPLATFORM" in \
     esac
 
 ## Install dependencies for both targets
-RUN apt-get update && apt-get upgrade -y
-RUN apt-get install -y g++-arm-linux-gnueabihf \
-                       g++-aarch64-linux-gnu \
-                       libc6-dev-armhf-cross \
-                       libc6-dev-arm64-cross
+RUN cargo install cross --git https://github.com/cross-rs/cross
+#RUN apt-get update && apt-get upgrade -y
+#RUN apt-get install -y g++-arm-linux-gnueabihf \
+#                       g++-aarch64-linux-gnu \
+#                       libc6-dev-armhf-cross \
+#                       libc6-dev-arm64-cross
                        
-RUN rustup target add $(cat /rust_target.txt)
-RUN rustup toolchain install stable-$(cat /rust_target.txt)
+#RUN rustup target add $(cat /rust_target.txt)
+#RUN rustup toolchain install stable-$(cat /rust_target.txt)
 
 ENV USER=1000
 
@@ -47,7 +48,8 @@ COPY ./src /app/src
 COPY --from=sources /app/.cargo /app/.cargo
 COPY --from=sources /app/vendor /app/vendor
 
-RUN cargo build --release --offline --target $(cat /rust_target.txt)
+RUN cross build --release --offline --target $(cat /rust_target.txt)
+#RUN cargo build --release --offline --target $(cat /rust_target.txt)
 RUN strip /app/target/$(cat /rust_target.txt)/release/j1939d
 RUN cp /app/target/$(cat /rust_target.txt)/release/j1939d .
 
