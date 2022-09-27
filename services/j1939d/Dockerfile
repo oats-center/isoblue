@@ -13,9 +13,9 @@ COPY ./Cargo.lock .
 RUN mkdir -p /app/.cargo && cargo vendor /app/vendor > /app/.cargo/config
 
 #####
-## Build Stage 
+## Cross build Stage 
 #####
-FROM --platform=$BUILDPLATFORM rust:buster AS builder
+FROM --platform=$BUILDPLATFORM rust:buster AS cross-builder
 
 WORKDIR /app
 
@@ -58,8 +58,17 @@ ENV CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc \
 
 #RUN cross build --release --offline --target $(cat /rust_target.txt)
 RUN cargo build --release --offline --target $(cat /rust_target.txt)
-RUN strip /app/target/$(cat /rust_target.txt)/release/j1939d
 RUN cp /app/target/$(cat /rust_target.txt)/release/j1939d .
+
+######
+## Post-build Stage
+######
+FROM rust:buster AS post-builder
+WORKDIR /app
+
+COPY --from=cross-builder /app/j1939d . 
+
+RUN strip j1939d
 
 ######
 ### Runtime Stage
@@ -69,6 +78,6 @@ WORKDIR /app
 
 RUN apt-get update && apt-get install -y libssl1.1
 
-COPY --from=builder /app/j1939d .
+COPY --from=post-builder /app/j1939d .
 
 ENTRYPOINT [ "./j1939d" ]
