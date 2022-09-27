@@ -1,5 +1,5 @@
 # BUILDER
-FROM python:3 as builder
+FROM python:3.9.14-buster as builder
 
 WORKDIR /usr/src/app
 
@@ -22,7 +22,7 @@ RUN pip install -r requirements.txt
 
 
 # RUNTIME
-FROM python:3 as runtime
+FROM python:3.9.14-buster as runtime
 
 WORKDIR /usr/src/app
 
