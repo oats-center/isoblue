@@ -30,15 +30,15 @@ RUN case "$TARGETPLATFORM" in \
     esac
 
 ## Install dependencies for both targets
-RUN cargo install cross --git https://github.com/cross-rs/cross
-#RUN apt-get update && apt-get upgrade -y
-#RUN apt-get install -y g++-arm-linux-gnueabihf \
-#                       g++-aarch64-linux-gnu \
-#                       libc6-dev-armhf-cross \
-#                       libc6-dev-arm64-cross
+#RUN cargo install cross --git https://github.com/cross-rs/cross
+RUN apt-get update && apt-get upgrade -y
+RUN apt-get install -y g++-arm-linux-gnueabihf \
+                       g++-aarch64-linux-gnu \
+                       libc6-dev-armhf-cross \
+                       libc6-dev-arm64-cross
                        
-#RUN rustup target add $(cat /rust_target.txt)
-#RUN rustup toolchain install stable-$(cat /rust_target.txt)
+RUN rustup target add $(cat /rust_target.txt)
+RUN rustup toolchain install stable-$(cat /rust_target.txt)
 
 ENV USER=1000
 
@@ -48,8 +48,16 @@ COPY ./src /app/src
 COPY --from=sources /app/.cargo /app/.cargo
 COPY --from=sources /app/vendor /app/vendor
 
-RUN cross build --release --offline --target $(cat /rust_target.txt)
-#RUN cargo build --release --offline --target $(cat /rust_target.txt)
+ENV CARGO_TARGET_ARMV7_UNKNOWN_LINUX_GNUEABIHF_LINKER=arm-linux-gnueabihf-gcc \
+    CC_armv7_unknown_linux_gnueabihf=arm-linux-gnueabihf-gcc \
+    CXX_armv7_unknown_linux_gnueabihf=arm-linux-gnueabihf-g++
+
+ENV CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc \
+    CC_aarch64_unknown_linux_gnu=aarch64-linux-gnu-gcc \
+    CXX_aarch64_unknown_linux_gnu=aarch64-linux-gnu-g++
+
+#RUN cross build --release --offline --target $(cat /rust_target.txt)
+RUN cargo build --release --offline --target $(cat /rust_target.txt)
 RUN strip /app/target/$(cat /rust_target.txt)/release/j1939d
 RUN cp /app/target/$(cat /rust_target.txt)/release/j1939d .
 
