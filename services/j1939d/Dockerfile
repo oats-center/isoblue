@@ -37,6 +37,7 @@ RUN apt-get install -y g++-arm-linux-gnueabihf \
                        libc6-dev-arm64-cross
                        
 RUN rustup target add $(cat /rust_target.txt)
+RUN rustup toolchain install stable-$(cat /rust_target.txt)
 
 ENV USER=1000
 
