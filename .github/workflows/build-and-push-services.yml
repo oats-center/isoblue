@@ -17,9 +17,9 @@ jobs:
           - can_watchdog
           - can_logger
           - socketcand
-          - cand
+          #- cand
           - j1939d
-          - gps-exporter
+          #- gps-exporter
 
     runs-on: ubuntu-latest
 
@@ -128,7 +128,7 @@ jobs:
             GIT_REF=${{ github.sha }}
           labels: |
             org.opencontainers.image.title=${{ matrix.service }}
-            org.opencontainers.image.description=An ISOBlue Avena Service
+            org.opencontainers.image.description=An Avena Service for ISOBlue
             org.opencontainers.image.url=${{ github.event.repository.html_url }}
             org.opencontainers.image.source=${{ github.event.repository.clone_url }}
             org.opencontainers.image.version=${{ steps.prepare.outputs.version }}
