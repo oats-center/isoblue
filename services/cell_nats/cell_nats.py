@@ -4,6 +4,7 @@ import dbus
 import datetime
 import time
 import os
+import json
 from pynats2 import NATSClient
 
 def get_signal_stats():
@@ -73,6 +74,6 @@ if __name__ == '__main__':
         data['time'] =  datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
         subject = os.getenv('AVENA_PREFIX') + ".cell.signal"
         with NATSClient() as client:
-            client.publish(subject, payload=bytes(str(data), 'utf-8'))
+            client.publish(subject, payload=bytes(json.dumps(data)), 'utf-8'))
 
         time.sleep(1)
