@@ -74,6 +74,6 @@ if __name__ == '__main__':
         data['time'] =  datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
         subject = os.getenv('AVENA_PREFIX') + ".cell.signal"
         with NATSClient() as client:
-            client.publish(subject, payload=bytes(json.dumps(data)), 'utf-8'))
+            client.publish(subject, payload=bytes(str(json.dumps(data)), 'utf-8'))
 
         time.sleep(1)
