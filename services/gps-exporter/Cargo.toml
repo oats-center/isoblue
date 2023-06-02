@@ -16,7 +16,7 @@ gpx = { git = "https://github.com/georust/gpx.git" }
 #shapefile = { git = "https://github.com/tmontaigu/shapefile-rs" }
 sqlx = { version = "0.5.1", features = [ "postgres", "runtime-tokio-rustls",
 "chrono" ] }
-tokio = { version = "1.8.4", features = [ "macros" ] }
+tokio = { version = "1.18.5", features = [ "macros" ] }
 walkdir = "2.3.1"
 
 #[patch.'https://github.com/tmontaigu/shapefile-rs']
