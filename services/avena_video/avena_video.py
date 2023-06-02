@@ -11,6 +11,7 @@ from ffmpeg.asyncio import FFmpeg
 
 async def main():
     
+    print(f"Starting Avena RTSP video stream on {os.getenv('AVENA_PREFIX')} with {os.getenv('CAMERA')} camera")
     ## Connect to NATS server running in localhost
     nc = await nats.connect("nats://localhost:4222")
     
