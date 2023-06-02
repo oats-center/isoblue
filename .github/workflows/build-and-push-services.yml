@@ -20,6 +20,7 @@ jobs:
           #- cand
           - j1939d
           #- gps-exporter
+          - avena_video
 
     runs-on: ubuntu-latest
 
