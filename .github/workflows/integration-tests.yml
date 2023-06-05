@@ -29,7 +29,7 @@ jobs:
     steps:
         # Checkout the latest pushed version of the test
       - name: Checkout
-        uses: actions/checkout@v3.3.0
+        uses: actions/checkout@v3.5.2
 
         # If the service has a docker-compose-test.yml file, execute it and use the
         # exit code as the exit code for the test
