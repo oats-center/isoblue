@@ -171,7 +171,7 @@ fn main() -> Result<()> {
                     // TODO: Figure out these clones
                     let gauge = gauges.entry(spn.name.clone()).or_insert_with(|| {
                         let opts = opts!(
-                            format!("{}_{}", nats_sub_prefix, s),
+                            format!("{}_{}", "j1939", s),
                             spn.description.clone()
                         );
                         register_gauge!(opts).unwrap()
