@@ -51,7 +51,7 @@ async def main():
                 print("NC flushed")
             sys.stdout.flush()
         # Loop runs out of control without this
-        sleep(0.1)
+        #sleep(0.1)
 
 if __name__ == '__main__':
 
