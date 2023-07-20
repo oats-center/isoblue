@@ -40,7 +40,7 @@ async def main():
                 fix = json.loads(new_data)
             except:
                 # Ignore string if unable to parse
-                pass
+                print("Failed to parse JSON message")
             subject = os.getenv('AVENA_PREFIX') + ".gps." + str(fix["class"])
             #print("Publishing new data point to subject", subject, ": ", new_data[:-1])
             await nc.publish(subject, bytes(new_data, 'utf-8'))
