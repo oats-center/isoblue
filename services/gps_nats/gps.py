@@ -1,57 +1,41 @@
 #!/usr/bin/python3
 import os
-from prometheus_client import start_http_server, Gauge
-import sys
-from time import sleep
 import asyncio
 import nats
 import json
-from gps3 import gps3
+import ast
+from gpsdclient import GPSDClient
 
-sleep(5)
-print("Starting GPS_NATS")
-sys.stdout.flush()
+print("Starting gps_nats...")
 
 async def main():
-    # Prometheus variables to export
-    global lat_gauge
-    lat_gauge = Gauge('avena_position_lat', 'Last know fix latitude')
-    global lng_gauge
-    lng_gauge = Gauge('avena_position_lng', 'Last know fix longitude')
-    global time_gauge
-    time_gauge = Gauge('avena_position_time', 'Last know fix time')
-    #start_http_server(10001)
 
-    gps_socket = gps3.GPSDSocket()
-    data_stream = gps3.DataStream()
-    #gps_socket.connect(host='127.0.0.1', port=2948)
-    gps_socket.connect(host='127.0.0.1', port=2947)
-    gps_socket.watch()
 
     # Create nats object and connect to local nats server
-    print('Setting up NATS')
-    sys.stdout.flush()
-    nc = await nats.connect("localhost")
+    print('Connecting to NATS server')
+    nc = await nats.connect("nats://localhost:4222")
+    # Get list of GPSD classes to send over NATS
+    gpsd_classes = "[" + os.getenv('GPSD_CLASSES') + "]"
+    # Use AST to parse the classes string into a list
+    try:
+        gpsd_classes = ast.literal_eval(gpsd_classes)
+    except:
+        print("Failed to parse GPSD_CLASSES env. variable. Defaulting to all classes")
+        gpsd_classes=None
 
-    for new_data in gps_socket:
-        if new_data:
-            # Parse incoming GPSD JSON strings
-            try:
-                fix = json.loads(new_data)
-            except:
-                # Ignore string if unable to parse
-                print("Failed to parse JSON message")
-            subject = os.getenv('AVENA_PREFIX') + ".gps." + str(fix["class"])
-            #print("Publishing new data point to subject", subject, ": ", new_data[:-1])
-            await nc.publish(subject, bytes(new_data, 'utf-8'))
-            await nc.flush(1)
-
-            if "activated" in fix and fix["activated"] == 0:
-                await nc.flush(10)
-                print("NC flushed")
-            sys.stdout.flush()
-        # Loop runs out of control without this
-        sleep(0.001)
+    with GPSDClient(host="127.0.0.1") as client:
+        for result in client.dict_stream(filter=gpsd_classes)
+        # Parse incoming GPSD JSON strings
+        try:
+            fix = json.loads(results)
+        except:
+            # Ignore string if unable to parse
+            print("Failed to parse JSON message")
+        subject = os.getenv('AVENA_PREFIX') + ".gps." + str(fix["class"])
+        #print("Publishing new data point to subject", subject, ": ", new_data[:-1])
+        await nc.publish(subject, bytes(new_data, 'utf-8'))
+    # Loop runs out of control without this
+    #sleep(0.001)
 
 if __name__ == '__main__':
 
