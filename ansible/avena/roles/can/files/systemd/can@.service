@@ -7,9 +7,9 @@ RemainAfterExit=yes
 EnvironmentFile=/etc/can.conf
 ExecStart=/sbin/ip link set %I type can bitrate $%I_BITRATE $%I_OPTIONS 
 ExecStart=/sbin/ip link set %I up
-ExecStart=/usr/bin/bash -c 'echo "enabled" > /sys/class/net/%I/device/power/wakeup'
+#ExecStart=/usr/bin/bash -c 'echo "enabled" > /sys/class/net/%I/device/power/wakeup'
 ExecStop=/sbin/ip link set %I down
-ExecStop=/usr/bin/bash -c 'echo "disabled" > /sys/class/net/%I/device/power/wakeup'
+#ExecStop=/usr/bin/bash -c 'echo "disabled" > /sys/class/net/%I/device/power/wakeup'
 
 [Install]
 WantedBy=multi-user.target

@@ -8,11 +8,11 @@
     mode: 0600
   notify: reload network-manager
 
-- name: ensure cell reset on sleep
-  become: yes
-  template:
-    src: system-sleep/reset-cell-modem.j2
-    dest: /usr/lib/systemd/system-sleep/reset-cell-modem
-    owner: root
-    group: root
-    mode: '0755'
+  #- name: ensure cell reset on sleep
+  #  become: yes
+  #  template:
+  # src: system-sleep/reset-cell-modem.j2
+  #  dest: /usr/lib/systemd/system-sleep/reset-cell-modem
+  # owner: root
+  # group: root
+  # mode: '0755'
