@@ -13,7 +13,6 @@ jobs:
           - can_watchdog
           - j1939d
 
-
     runs-on: ubuntu-latest
 
     steps:
