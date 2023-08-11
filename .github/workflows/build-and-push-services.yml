@@ -9,10 +9,11 @@ jobs:
     strategy:
       matrix:
         service:
+          - avena_fm
           - gps_nats
           - can_watchdog
           - j1939d
-
+          
     runs-on: ubuntu-latest
 
     steps:
