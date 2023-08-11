@@ -3,12 +3,6 @@ FROM python:3 as builder
 
 WORKDIR /usr/src/app
 
-# Download latest listing of available packages
-RUN apt-get -y update
-
-# Needed for building dbus-python
-RUN apt-get install -y --no-install-recommends python3-pip pkg-config libdbus-1-dev libdbus-1-3 libglib2.0-dev libdbus-glib-1-dev python3-dbus dbus cmake
-
 # Activate virtualenv
 RUN python -m venv /opt/venv
 
@@ -22,12 +16,9 @@ RUN pip install -r requirements.txt
 
 
 # RUNTIME
-FROM python:3 as runtime
+FROM python:3-slim as runtime
 
 WORKDIR /usr/src/app
-
-# Install runtime deps
-RUN apt-get -y update && apt-get install -y --no-install-recommends python3-dbus
 
 # Copy compiled venv from builder
 COPY --from=builder /opt/venv /opt/venv
@@ -36,9 +27,9 @@ COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 # Copy health check script
-COPY healthcheck.py .
-HEALTHCHECK CMD ["python", "./healthcheck.py"]
+#COPY healthcheck.py .
+#HEALTHCHECK CMD ["python", "./healthcheck.py"]
 
 # Copy script over and run
-COPY cell_logger.py .
-CMD [ "./cell_logger.py" ]
+COPY PythonFinal.py .
+CMD [ "python", "./PythonFinal.py" ]

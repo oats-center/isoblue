@@ -38,7 +38,7 @@ pub struct J1939Message<'a> {
     pub src_addr: u8,
     pub src_name: u64,
     pub dest_addr: Option<u8>,
-    pub dest_name: Option<&'a [u8]>,
+    pub dest_name: Option<u64>,
     pub dest_priority: Option<u8>,
     pub data: &'a [u8],
 }

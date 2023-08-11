@@ -129,10 +129,28 @@ fn main() -> Result<()> {
     loop {
         let msg = s.recv()?;
 
+        // Publish raw data
+        let sub = format!("{}.raw.{}", nats_sub_prefix, msg.pgn);
+        nc.publish(
+            &sub,
+            serde_json::to_vec(&json!({
+                "timestamp": msg.timestamp.map(|t| t.timestamp_nanos() as f64 / 1_000_000_000.0),
+                "pgn": format!("{:x}", msg.pgn),
+                "saddr": format!("{:x}", msg.src_addr),
+                "sname": format!("{:x}", msg.src_name),
+                "daddr": msg.dest_addr.map(|addr| format!("{:x}", addr)),
+                "dname": msg.dest_name.map(|name| format!("{:x}", name)),
+                "priority": msg.dest_priority.map(|prio| format!("{:x}", prio)),
+                "data": hex::encode(&msg.data)
+            }))
+            .with_context(|| "Failed to seralize raw frame")?,
+        )
+        .with_context(|| "Failed to send raw j1939 frame to NATS")?;
+
         if let Some(pgn_def) = lib.get_pgn(msg.pgn) {
             for (s, spn) in pgn_def.get_spns().iter() {
                 if let Some(value) = spn.parse_message(msg.data) {
-                    let sub = format!("{}.{}", nats_sub_prefix, s);
+                    let sub = format!("{}.data.{}", nats_sub_prefix, s);
                     nc.publish(
                     &sub,
                     serde_json::to_vec(&json!({
@@ -145,8 +163,7 @@ fn main() -> Result<()> {
                         "max_value": spn.max_value
                     }))
                     .with_context(|| {
-                        "Failed to
-                seralize frame"
+                        "Failed to seralize frame"
                     })?,
                 )
                 .with_context(|| "Failed to send parsed j1939 frame to NATS")?;
@@ -154,7 +171,7 @@ fn main() -> Result<()> {
                     // TODO: Figure out these clones
                     let gauge = gauges.entry(spn.name.clone()).or_insert_with(|| {
                         let opts = opts!(
-                            format!("{}_{}", nats_sub_prefix, s),
+                            format!("{}_{}", "j1939", s),
                             spn.description.clone()
                         );
                         register_gauge!(opts).unwrap()
