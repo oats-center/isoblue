@@ -9,16 +9,16 @@ export const isoblueDataTree = {
         '*': {
           _type: 'application/vnd.oada.isoblue.device.1+json',
           _rev: 0,
-          '*': {
-            _type: 'application/vnd.oada.isoblue.dataset.1+json',
+          'trails': {
+            _type: 'application/vnd.oada.trails.1+json',
             _rev: 0,
             'day-index': {
               '*': {
-                _type: 'application/vnd.oada.isoblue.day.1+json',
+                _type: 'application/vnd.oada.trails.1+json',
                 _rev: 0,
-                'hour-index': {
+                'geohash-index': {
                   '*': {
-                    _type: 'application/vnd.oada.isoblue.hour.1+json',
+                    _type: 'application/vnd.oada.trails.1+json',
                   },
                 },
               },

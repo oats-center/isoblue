@@ -1,4 +1,2 @@
 postgres
-PyGObject
-dbus-python
-prometheus-client
+asyncio-nats-client

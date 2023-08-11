@@ -15,15 +15,19 @@ declare global {
 // Packages
 import { assert } from '@sindresorhus/is';
 import { config } from 'dotenv';
-import { Client } from 'pg';
+import pglib from 'pg';
 import moment from 'moment';
 import ksuid from 'ksuid';
 import { randomBytes } from 'crypto'
 import pMap from 'p-map';
 import { connect } from '@oada/client';
 import { V1 as Location } from '@oada/types/oada/isoblue/location/v1';
+import sleep from 'atomic-sleep';
+import GeohashLib from 'latlon-geohash';
 
-import { isoblueDataTree } from './trees';
+import { isoblueDataTree } from './trees.js';
+
+const { Client } = pglib;
 
 // dotenv
 config();
@@ -283,7 +287,7 @@ async function main(): Promise<void> {
     // Wait 1s for the data to start to refill the db and requery
     if (!gps.rows.length) {
       console.log('No unsent data found in database');
-      await sleep(1000);
+      sleep(1000);
       continue;
     }
     
@@ -300,8 +304,9 @@ async function main(): Promise<void> {
       // Extract time and use it to create path that it will be uploaded it
       const t = moment.unix(p.time_epoch);
       const day = t.format('YYYY-MM-DD');
-      const hour = t.format('HH');
-      const path = `/bookmarks/isoblue/device-index/${id}/location/day-index/${day}/hour-index/${hour}`;
+      // const hour = t.format('HH');
+      const geohash = GeohashLib.encode(p.lat, p.lng, 7);
+      const path = `/bookmarks/isoblue/device-index/${id}/trails/day-index/${day}/geohash-index/${geohash}`;
       // Create a UUID that can be coarsely sorted by time of creation
       const pId = ksuid.fromParts(Math.round(p.time_epoch*1000), randomBytes(16)).string;
 
@@ -319,13 +324,9 @@ async function main(): Promise<void> {
       data[path].timetzs.push(p.time_tz);
       data[path].locations[pId] = {
         id: pId,
-        time: {
-          value: p.time_epoch,
-        },
-        location: {
-          lat: p.lat,
-          lng: p.lng,
-        },
+        time: p.time_epoch,
+        lat: p.lat,
+        lon: p.lng,
       };
       
     });
@@ -337,27 +338,11 @@ async function main(): Promise<void> {
       try {
         //console.debug(`GPS ID ${data[path].epochs.join(',')} to OADA ${path}`);
         console.debug(`${data[path].epochs.length} points to OADA ${path}`);
-        // Modified timeout await as described here https://stackoverflow.com/a/33292942
-        res = await Promise.race( 
-	        [ 
-            oada.put({
-              tree: isoblueDataTree,
-              path,
-              data: JSON.parse(JSON.stringify({data: data[path].locations})),
-            }),
-            sleep(5000) 
-	        ]
-	      );
-	      // Is there a better way to determine if the sleep is the one that expired
-	      if( res === undefined){
-                // Try to reconnect?
-                console.debug(`oada.put timed out`);
-                process.exit(-1);
-
-                //oada = await connect({ domain, token, concurrency: 5 });
-                //throw new Error(`oada.put timed out`);
-	      }
-        //console.debug(`OADA put finished`);
+        await oada.put({
+          tree: isoblueDataTree,
+          path,
+          data: JSON.parse(JSON.stringify({data: data[path].locations})),
+        })
       } catch (e) {
         // The PUT is not a success. This is either due to a misconfiguration or lack of internet.
         // Assume that everything is configured correctly rebuild the queue for the next try.
@@ -388,17 +373,10 @@ async function main(): Promise<void> {
   }
 }
 
-// Sleep - used to pause after put to not overload server as well as yielding if
-// there is no data to upload
-// Keeping the sleep function defined for use in debugging as well as waiting for the db
-// to fill
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
-}
+
 
 main().catch((err) => {
   console.error(`Something unexpected happened! ${err}\n`, (<Error>err).message);
   process.exit(-1);
 });
+

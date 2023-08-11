@@ -8,7 +8,7 @@ WORKDIR /usr/src/app
 
 RUN apt-get -y update
 
-RUN apt-get install -y --no-install-recommends python-pip pkg-config
+RUN apt-get install -y --no-install-recommends python3-pip pkg-config
 
 #Activate virtualenv
 

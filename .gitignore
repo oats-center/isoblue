@@ -105,3 +105,28 @@ fp-info-cache
 # Exported BOM files
 *.xml
 *.csv
+
+# Rescue files
+*-rescue.dcm
+*-rescue.lib
+
+########
+# Rust #
+########
+debug/
+target/
+**/*.rs.bak
+
+target/
+
+##########
+# Python #
+##########
+.venv/
+
+
+#######
+# ACT #
+#######
+.actrc
+
